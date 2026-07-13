@@ -1,0 +1,113 @@
+.navbar {
+  position: sticky;
+  top: 0;
+  z-index: 50;
+  width: 100%;
+  background: rgb(var(--color-surface) / 0.8);
+  backdrop-filter: blur(12px);
+  border-bottom: 1px solid rgb(var(--color-outline-variant) / 0.3);
+}
+.dark .navbar {
+  background: rgb(var(--color-background) / 0.8);
+  border-bottom-color: rgb(var(--color-outline) / 0.2);
+}
+.navbar__inner {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding-left: 32px;
+  padding-right: 32px;
+  padding-top: 16px;
+  padding-bottom: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.navbar__left {
+  display: flex;
+  align-items: center;
+  gap: 40px;
+}
+.navbar__brand {
+  font-size: 24px;
+  line-height: 32px;
+  font-weight: 800;
+  color: rgb(var(--color-primary));
+  text-decoration: none;
+}
+.dark .navbar__brand {
+  color: rgb(var(--color-primary-fixed));
+}
+.navbar__links {
+  display: none;
+  gap: 24px;
+}
+@media (min-width: 768px) {
+  .navbar__links {
+    display: flex;
+  }
+}
+.navbar__link {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 16px;
+  line-height: 24px;
+  height: 45px;
+  min-width: 60px;
+  color: rgb(var(--color-secondary));
+  text-decoration: none;
+  transition: color 0.2s ease;
+}
+.dark .navbar__link {
+  color: rgb(var(--color-secondary-fixed-dim));
+}
+.navbar__link:hover {
+  color: rgb(var(--color-primary));
+}
+.navbar__link--active {
+  color: rgb(var(--color-primary));
+  font-weight: 600;
+}
+.navbar__link--active::after {
+  content: '';
+  position: absolute;
+  bottom: -17px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 75px;
+  height: 2px;
+  background: rgb(var(--color-primary));
+  border-radius: 1px;
+}
+.navbar__right {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+.navbar__login {
+  padding: 8px 16px;
+  border-radius: 8px;
+  background: rgb(var(--color-primary));
+  color: rgb(var(--color-on-primary));
+  font-size: 16px;
+  line-height: 24px;
+  text-decoration: none;
+  transition: opacity 0.2s ease;
+}
+.navbar__login:hover {
+  opacity: 0.9;
+}
+.navbar__menu-btn {
+  display: inline-flex;
+  color: rgb(var(--color-primary));
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+}
+@media (min-width: 768px) {
+  .navbar__menu-btn {
+    display: none;
+  }
+}

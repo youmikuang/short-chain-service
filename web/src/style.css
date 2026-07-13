@@ -1,0 +1,205 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=block');
+
+/* ============================================================
+   Design tokens (light / dark) — consumed as rgb(var(--x) / a)
+   ============================================================ */
+:root {
+  --color-background: 247 249 251; /* #f7f9fb */
+  --color-on-background: 25 28 30; /* #191c1e */
+  --color-surface: 247 249 251;
+  --color-surface-dim: 216 218 220;
+  --color-surface-bright: 247 249 251;
+  --color-surface-container-lowest: 255 255 255;
+  --color-surface-container-low: 242 244 246;
+  --color-surface-container: 236 238 240;
+  --color-surface-container-high: 230 232 234;
+  --color-surface-container-highest: 224 227 229;
+  --color-surface-variant: 224 227 229;
+  --color-on-surface: 25 28 30;
+  --color-on-surface-variant: 67 70 85;
+  --color-inverse-surface: 45 49 51;
+  --color-inverse-on-surface: 239 241 243;
+  --color-outline: 115 118 134;
+  --color-outline-variant: 195 198 215;
+  --color-surface-tint: 0 83 219;
+  --color-primary: 0 74 198; /* #004ac6 */
+  --color-on-primary: 255 255 255;
+  --color-primary-container: 37 99 235; /* #2563eb */
+  --color-on-primary-container: 238 239 255;
+  --color-inverse-primary: 180 197 255;
+  --color-primary-fixed: 219 225 255;
+  --color-primary-fixed-dim: 180 197 255;
+  --color-on-primary-fixed: 0 23 75;
+  --color-on-primary-fixed-variant: 0 62 168;
+  --color-secondary: 80 95 118;
+  --color-on-secondary: 255 255 255;
+  --color-secondary-container: 208 225 251;
+  --color-on-secondary-container: 84 100 122;
+  --color-secondary-fixed: 211 228 254;
+  --color-secondary-fixed-dim: 183 200 225;
+  --color-on-secondary-fixed: 11 28 48;
+  --color-on-secondary-fixed-variant: 56 72 93;
+  --color-tertiary: 77 85 107;
+  --color-on-tertiary: 255 255 255;
+  --color-tertiary-container: 101 109 132;
+  --color-on-tertiary-container: 238 240 255;
+  --color-tertiary-fixed: 218 226 253;
+  --color-tertiary-fixed-dim: 190 198 224;
+  --color-on-tertiary-fixed: 19 27 46;
+  --color-on-tertiary-fixed-variant: 63 70 92;
+  --color-error: 186 26 26;
+  --color-on-error: 255 255 255;
+  --color-error-container: 255 218 214;
+  --color-on-error-container: 147 0 10;
+}
+
+.dark {
+  --color-background: 18 20 22;
+  --color-on-background: 232 235 237;
+  --color-surface: 24 26 29;
+  --color-surface-dim: 30 33 36;
+  --color-surface-bright: 40 43 46;
+  --color-surface-container-lowest: 30 33 36;
+  --color-surface-container-low: 34 37 40;
+  --color-surface-container: 40 43 46;
+  --color-surface-container-high: 46 49 53;
+  --color-surface-container-highest: 52 56 60;
+  --color-surface-variant: 52 56 60;
+  --color-on-surface: 232 235 237;
+  --color-on-surface-variant: 180 185 195;
+  --color-inverse-surface: 232 235 237;
+  --color-inverse-on-surface: 30 33 36;
+  --color-outline: 120 124 140;
+  --color-outline-variant: 60 64 72;
+  --color-surface-tint: 150 170 255;
+  --color-primary: 150 170 255;
+  --color-on-primary: 10 20 50;
+  --color-primary-container: 30 70 200;
+  --color-on-primary-container: 235 240 255;
+  --color-inverse-primary: 0 74 198;
+  --color-primary-fixed: 219 225 255;
+  --color-primary-fixed-dim: 180 197 255;
+  --color-on-primary-fixed: 0 23 75;
+  --color-on-primary-fixed-variant: 0 62 168;
+  --color-secondary: 170 185 210;
+  --color-on-secondary: 20 28 40;
+  --color-secondary-container: 60 75 100;
+  --color-on-secondary-container: 210 225 250;
+  --color-secondary-fixed: 211 228 254;
+  --color-secondary-fixed-dim: 183 200 225;
+  --color-on-secondary-fixed: 11 28 48;
+  --color-on-secondary-fixed-variant: 56 72 93;
+  --color-tertiary: 180 188 210;
+  --color-on-tertiary: 20 26 40;
+  --color-tertiary-container: 80 88 110;
+  --color-on-tertiary-container: 230 235 255;
+  --color-tertiary-fixed: 218 226 253;
+  --color-tertiary-fixed-dim: 190 198 224;
+  --color-on-tertiary-fixed: 19 27 46;
+  --color-on-tertiary-fixed-variant: 63 70 92;
+  --color-error: 255 180 175;
+  --color-on-error: 60 10 10;
+  --color-error-container: 90 20 20;
+  --color-on-error-container: 255 218 214;
+}
+
+/* ============================================================
+   Base
+   ============================================================ */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  font-family: 'Inter', sans-serif;
+  font-size: 16px;
+}
+html.dark {
+  color-scheme: dark;
+}
+
+body {
+  margin: 0;
+  background: rgb(var(--color-background));
+  color: rgb(var(--color-on-background));
+  font-size: 16px;
+  line-height: 24px;
+  font-weight: 400;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Smooth theme switch: ease color/border/shadow across the page. */
+*,
+*::before,
+*::after {
+  transition: background-color 0.3s ease, border-color 0.3s ease, color 0.3s ease,
+    fill 0.3s ease, stroke 0.3s ease, box-shadow 0.3s ease;
+}
+
+/* ============================================================
+   Material Symbols icon font
+   ============================================================ */
+.material-symbols-outlined {
+  font-family: 'Material Symbols Outlined';
+  font-weight: normal;
+  font-style: normal;
+  line-height: 1;
+  letter-spacing: normal;
+  text-transform: none;
+  display: inline-block;
+  white-space: nowrap;
+  word-wrap: normal;
+  direction: ltr;
+  -webkit-font-feature-settings: 'liga';
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ============================================================
+   Shared layout helpers
+   ============================================================ */
+.container-max {
+  max-width: 1200px;
+  margin: 0 auto;
+}
+.px-margin-x {
+  padding-left: 32px;
+  padding-right: 32px;
+}
+.app-shell {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+.app-main {
+  flex-grow: 1;
+}
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* ============================================================
+   Hero / login page backgrounds (light + dark aware)
+   ============================================================ */
+.hero-gradient {
+  background: linear-gradient(180deg, #eef4ff 0%, #f7f9fb 60%);
+}
+.dark .hero-gradient {
+  background: linear-gradient(180deg, #1a2236 0%, #121416 70%);
+}
+.login-bg {
+  background: linear-gradient(135deg, rgb(240, 247, 255) 0%, rgb(224, 231, 255) 100%);
+}
+.dark .login-bg {
+  background: linear-gradient(135deg, #11151f 0%, #1a1d28 100%);
+}

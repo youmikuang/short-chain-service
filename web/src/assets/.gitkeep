@@ -1,0 +1,4 @@
+# Static assets live here and are referenced via the `@assets` alias
+# (e.g. `import logo from '@assets/logo.png'`).
+# Vite resolves `@assets` -> <project>/src/assets.
+# Keep root-served files (favicon.ico, robots.txt, …) in /public instead.

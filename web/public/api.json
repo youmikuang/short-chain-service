@@ -1,0 +1,77 @@
+{
+  "profile": {
+    "fullName": "Jane Doe",
+    "initials": "J",
+    "email": "jane.doe@example.com",
+    "githubId": "janedoe",
+    "avatar": "https://lh3.googleusercontent.com/aida-public/AB6AXuBInkkxtlhpzMKZS0jd_RkvYLc2bkUnym11QvlI6cAhiHfDe52wCld2oT6bMhwfQEQr7LhgQ4E6jZpLDDGlWdizTQ2SMt4EWZtbFAs7GjBrk3u4dofLdM9nVu8rwD99Z52dbGkJHmtSz4v_3q3acUZh65u3238Fn30jhAJEwSq3aKW5JnmEvO69SqgbEuXKZnVc4FLPUR9LzF2MW3-ppo2TvMwt-V7L-mwSox4S97fF92uryV2bMTKA-hGDM7ZWIT3d0_Ry6oc3vdU"
+  },
+  "tokenKey": {
+    "token": "sk_live_1234567890abcdef",
+    "status": "active",
+    "usage": 45210,
+    "quota": 100000
+  },
+  "usageTrends": [
+    { "day": "Mon", "value": 30 },
+    { "day": "Tue", "value": 45 },
+    { "day": "Wed", "value": 25 },
+    { "day": "Thu", "value": 60 },
+    { "day": "Fri", "value": 90 },
+    { "day": "Sat", "value": 70 },
+    { "day": "Sun", "value": 100 }
+  ],
+  "logs": [
+    { "timestamp": "2024-07-13 14:32:01", "endpoint": "/v1/shorten", "status": 200, "latency": "85ms" },
+    { "timestamp": "2024-07-13 14:31:45", "endpoint": "/v1/expand", "status": 200, "latency": "112ms" },
+    { "timestamp": "2024-07-13 14:28:12", "endpoint": "/v1/shorten", "status": 429, "latency": "45ms" },
+    { "timestamp": "2024-07-13 14:25:00", "endpoint": "/v1/analytics/link", "status": 200, "latency": "150ms" },
+    { "timestamp": "2024-07-13 14:22:15", "endpoint": "/v1/shorten", "status": 200, "latency": "92ms" },
+    { "timestamp": "2024-07-13 14:20:01", "endpoint": "/v1/expand", "status": 200, "latency": "105ms" },
+    { "timestamp": "2024-07-13 14:18:44", "endpoint": "/v1/shorten", "status": 429, "latency": "38ms" },
+    { "timestamp": "2024-07-13 14:15:30", "endpoint": "/v1/analytics/link", "status": 200, "latency": "142ms" },
+    { "timestamp": "2024-07-13 14:12:10", "endpoint": "/v1/shorten", "status": 200, "latency": "77ms" },
+    { "timestamp": "2024-07-13 14:10:05", "endpoint": "/v1/expand", "status": 200, "latency": "118ms" },
+    { "timestamp": "2024-07-13 14:06:52", "endpoint": "/v1/shorten", "status": 200, "latency": "88ms" },
+    { "timestamp": "2024-07-13 14:03:19", "endpoint": "/v1/analytics/link", "status": 200, "latency": "134ms" }
+  ],
+  "settings": {
+    "emailNotif": true,
+    "securityAlerts": true,
+    "marketingComm": false
+  },
+  "links": [
+    {
+      "code": "g3f2k",
+      "shortUrl": "slink.sh/g3f2k",
+      "longUrl": "https://www.google.com/search?q=stitch+ai",
+      "createdAt": "2023-10-12T09:24:00Z",
+      "clicks": 1248,
+      "note": "Search query"
+    },
+    {
+      "code": "git-tr",
+      "shortUrl": "slink.sh/git-tr",
+      "longUrl": "https://github.com/trending",
+      "createdAt": "2023-10-14T11:02:00Z",
+      "clicks": 852,
+      "note": "Social/Dev"
+    },
+    {
+      "code": "hn-top",
+      "shortUrl": "slink.sh/hn-top",
+      "longUrl": "https://news.ycombinator.com",
+      "createdAt": "2023-10-15T08:41:00Z",
+      "clicks": 3120,
+      "note": "News Aggregator"
+    },
+    {
+      "code": "mdn-docs",
+      "shortUrl": "slink.sh/mdn-docs",
+      "longUrl": "https://developer.mozilla.org/en-US/",
+      "createdAt": "2023-10-16T15:18:00Z",
+      "clicks": 412,
+      "note": "Documentation"
+    }
+  ]
+}
