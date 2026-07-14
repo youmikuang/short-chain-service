@@ -327,3 +327,78 @@
   text-align: center;
   color: rgb(var(--color-secondary));
 }
+
+/* --- API Keys management --- */
+.token__keys {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.token__key {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px 16px;
+  border: 1px solid var(--glass-border);
+  border-radius: 8px;
+  background: var(--glass-bg);
+}
+.token__key--empty {
+  justify-content: center;
+  color: rgb(var(--color-secondary));
+}
+.token__key-info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+.token__key-name {
+  font-size: 15px;
+  font-weight: 600;
+  color: rgb(var(--color-on-surface));
+}
+.token__key-meta {
+  font-size: 12px;
+  color: rgb(var(--color-secondary));
+}
+.token__revoke {
+  flex-shrink: 0;
+  padding: 8px 12px;
+  border-radius: 8px;
+  border: 1px solid rgb(var(--color-error) / 0.4);
+  background: transparent;
+  color: rgb(var(--color-error));
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s ease;
+}
+.token__revoke:hover {
+  background: rgb(var(--color-error) / 0.1);
+}
+.token__create-btn {
+  flex-shrink: 0;
+  padding: 12px 16px;
+  border-radius: 8px;
+  border: none;
+  background: rgb(var(--color-primary));
+  color: rgb(var(--color-on-primary));
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: opacity 0.2s ease;
+}
+.token__create-btn:disabled {
+  opacity: 0.6;
+  cursor: default;
+}
+.token__empty-note {
+  color: rgb(var(--color-secondary));
+  font-size: 14px;
+  margin: 0;
+}

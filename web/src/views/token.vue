@@ -1,28 +1,68 @@
 <script setup lang="ts">
-import { ref, computed, onMounted, watch } from 'vue'
+import { ref, onMounted, watch } from 'vue'
 import { RouterLink } from 'vue-router'
 import TheNavBar from '@/components/navbar.vue'
 import TheFooter from '@/components/footer.vue'
 import {
-  fetchTokenKey,
+  listApiKeys,
+  createApiKey,
+  revokeApiKey,
   fetchUsageTrends,
   fetchLogs,
+  type ApiKey,
   type UsagePoint,
   type LogRow,
 } from '@/api'
 
-/* ---- token Token ---- */
-const token = ref('')
-const copied = ref(false)
-const usage = ref(0)
-const quota = ref(0)
-const usagePct = computed(() => (quota.value ? Math.round((usage.value / quota.value) * 100) : 0))
+/* ---- API Keys ---- */
+const keys = ref<ApiKey[]>([])
+const newKeyName = ref('')
+const createdKey = ref<string | null>(null)
+const creating = ref(false)
+const copiedKey = ref(false)
 
-async function copyToken() {
+async function loadKeys() {
   try {
-    await navigator.clipboard.writeText(token.value)
-    copied.value = true
-    setTimeout(() => (copied.value = false), 2000)
+    const r = await listApiKeys()
+    keys.value = r.items
+  } catch {
+    keys.value = []
+  }
+}
+
+async function onCreateKey() {
+  const name = newKeyName.value.trim()
+  if (!name || creating.value) return
+  creating.value = true
+  try {
+    const r = await createApiKey(name)
+    // The raw key is only returned once at creation time.
+    createdKey.value = r.key
+    localStorage.setItem('slink_api_key', r.key)
+    newKeyName.value = ''
+    await loadKeys()
+  } catch {
+    /* ignore */
+  } finally {
+    creating.value = false
+  }
+}
+
+async function onRevoke(id: number) {
+  try {
+    await revokeApiKey(id)
+    await loadKeys()
+  } catch {
+    /* ignore */
+  }
+}
+
+async function copyKey() {
+  if (!createdKey.value) return
+  try {
+    await navigator.clipboard.writeText(createdKey.value)
+    copiedKey.value = true
+    setTimeout(() => (copiedKey.value = false), 2000)
   } catch {
     /* ignore */
   }
@@ -41,8 +81,12 @@ const logs = ref<LogRow[]>([])
 const search = ref('')
 
 async function loadLogs() {
-  const { items } = await fetchLogs({ search: search.value, pageSize: 4 })
-  logs.value = items
+  try {
+    const r = await fetchLogs({ search: search.value, pageSize: 5 })
+    logs.value = r.items
+  } catch {
+    logs.value = []
+  }
 }
 
 watch(search, loadLogs)
@@ -58,11 +102,12 @@ function statusText(status: number) {
 }
 
 onMounted(async () => {
-  const [key, trends] = await Promise.all([fetchTokenKey(), fetchUsageTrends()])
-  token.value = key.token
-  usage.value = key.usage
-  quota.value = key.quota
-  weekly.value = trends
+  await loadKeys()
+  try {
+    weekly.value = await fetchUsageTrends()
+  } catch {
+    weekly.value = []
+  }
   await loadLogs()
 })
 </script>
@@ -74,49 +119,68 @@ onMounted(async () => {
     <main class="app-main">
       <div class="token">
         <div class="token__grid">
-          <!-- token Token Card -->
+          <!-- API Keys Card -->
           <div class="token__token-card card">
             <div class="token__token-head">
               <div>
-                <h2 class="token__card-title">Production Key</h2>
+                <h2 class="token__card-title">API Keys</h2>
                 <span class="token-pill">
-                  <span class="token-dot"></span> Active
+                  <span class="token-dot"></span> {{ keys.length }} key(s)
                 </span>
               </div>
               <span class="material-symbols-outlined token__token-icon">key</span>
             </div>
 
-            <div class="token__token-field">
-              <label class="token__label">Token (Masked)</label>
+            <div v-if="createdKey" class="token__token-field">
+              <label class="token__label">New Key (copy now, shown once)</label>
               <div class="token__token-input-row">
-                <input type="password" :value="token" readonly class="token__token-input" />
+                <input type="text" :value="createdKey" readonly class="token__token-input" />
                 <button
                   class="token__copy"
-                  :title="copied ? 'Copied!' : 'Copy Token'"
-                  @click="copyToken"
+                  :title="copiedKey ? 'Copied!' : 'Copy Key'"
+                  @click="copyKey"
                 >
-                  <span class="material-symbols-outlined">{{ copied ? 'done' : 'content_copy' }}</span>
+                  <span class="material-symbols-outlined">{{ copiedKey ? 'done' : 'content_copy' }}</span>
                 </button>
               </div>
             </div>
 
-            <div class="token__usage">
-              <div class="token__usage-row">
-                <span class="text-secondary">Usage (This Month)</span>
-                <span class="text-primary"
-                  >{{ usage.toLocaleString() }} / {{ quota.toLocaleString() }}</span
-                >
-              </div>
-              <div class="token__progress">
-                <div class="token__progress-bar" :style="{ width: usagePct + '%' }"></div>
+            <div class="token__token-field">
+              <label class="token__label">Create a new key</label>
+              <div class="token__token-input-row">
+                <input
+                  v-model="newKeyName"
+                  type="text"
+                  class="token__token-input"
+                  placeholder="e.g. Production"
+                  @keyup.enter="onCreateKey"
+                />
+                <button class="token__create-btn" :disabled="creating" @click="onCreateKey">
+                  {{ creating ? 'Creating…' : 'Create' }}
+                </button>
               </div>
             </div>
+
+            <ul class="token__keys">
+              <li v-for="k in keys" :key="k.id" class="token__key">
+                <div class="token__key-info">
+                  <span class="token__key-name">{{ k.name }}</span>
+                  <span class="token__key-meta">
+                    {{ statusText(k.status) }} · {{ k.createdAt || '—' }}
+                  </span>
+                </div>
+                <button class="token__revoke" @click="onRevoke(k.id)">Revoke</button>
+              </li>
+              <li v-if="keys.length === 0" class="token__key token__key--empty">
+                No API keys yet.
+              </li>
+            </ul>
           </div>
 
           <!-- Usage Trends -->
           <div class="token__trends card">
             <h2 class="token__card-title">Usage Trends (Last 7 Days)</h2>
-            <div class="token__chart">
+            <div v-if="weekly.length" class="token__chart">
               <div
                 v-for="(bar, i) in weekly"
                 :key="i"
@@ -127,7 +191,8 @@ onMounted(async () => {
                 <span class="token__bar-tip">{{ bar.value }}k</span>
               </div>
             </div>
-            <div class="token__chart-labels">
+            <p v-else class="token__empty-note">No usage data available yet.</p>
+            <div v-if="weekly.length" class="token__chart-labels">
               <span v-for="(bar, i) in weekly" :key="i">{{ bar.day }}</span>
             </div>
           </div>
@@ -137,7 +202,7 @@ onMounted(async () => {
         <div id="logs" class="token__logs">
           <div class="token__logs-card card">
             <div class="token__logs-bar">
-              <h3 class="token__logs-bar-title">Recent token Activity</h3>
+              <h3 class="token__logs-bar-title">Recent Activity</h3>
               <RouterLink to="/logs" class="token__view-all">
                 View All
                 <span class="material-symbols-outlined" style="font-size: 18px; margin-left: 4px;">arrow_forward</span>

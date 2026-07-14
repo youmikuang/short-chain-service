@@ -76,7 +76,7 @@ async function shorten() {
   error.value = ''
   try {
     const res = await createShortLink(normalized)
-    shortUrl.value = res.shortUrl
+    shortUrl.value = `slink.sh/${res.code}`
     copied.value = false
   } catch {
     error.value = '短链生成失败，请稍后重试。'

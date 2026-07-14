@@ -35,8 +35,13 @@ const rows = computed(() => {
 })
 
 async function load() {
-  const { items } = await fetchLogs({ page: 1, pageSize: 100000 })
-  allRows.value = items
+  try {
+    const { items } = await fetchLogs({ page: 1, pageSize: 100000 })
+    allRows.value = items
+  } catch {
+    // Backend /api/logs is not implemented yet; show an empty table.
+    allRows.value = []
+  }
 }
 
 function onSearch() {
@@ -86,6 +91,9 @@ onMounted(() => {
   load()
 })
 watch(search, onSearch)
+watch(totalPages, (tp) => {
+  if (page.value > tp) page.value = tp
+})
 </script>
 
 <template>

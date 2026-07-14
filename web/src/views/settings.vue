@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, reactive, onMounted, onBeforeUnmount } from 'vue'
+import { ref, reactive, computed, onMounted, onBeforeUnmount } from 'vue'
 import TheNavBar from '@/components/navbar.vue'
 import TheFooter from '@/components/footer.vue'
 import Toast from '@/components/toast.vue'
@@ -25,14 +25,35 @@ const marketingComm = ref(false)
 const root = ref<HTMLElement | null>(null)
 let observer: IntersectionObserver | null = null
 
+const initials = computed(() => {
+  const n = fullName.value.trim()
+  return (
+    n
+      .split(/\s+/)
+      .map((w) => w[0])
+      .join('')
+      .slice(0, 2)
+      .toUpperCase() || n.slice(0, 1).toUpperCase() || 'U'
+  )
+})
+
 onMounted(async () => {
-  const [p, s] = await Promise.all([fetchProfile(), fetchSettings()])
-  fullName.value = p.fullName
-  emailAddress.value = p.email
-  avatar.value = p.avatar
-  emailNotif.value = s.emailNotif
-  securityAlerts.value = s.securityAlerts
-  marketingComm.value = s.marketingComm
+  try {
+    const p = await fetchProfile()
+    fullName.value = p.fullName
+    emailAddress.value = p.email
+    avatar.value = p.avatar
+  } catch {
+    /* profile endpoint unavailable */
+  }
+  try {
+    const s = await fetchSettings()
+    emailNotif.value = s.emailNotif
+    securityAlerts.value = s.securityAlerts
+    marketingComm.value = s.marketingComm
+  } catch {
+    /* settings endpoint unavailable */
+  }
 
   const el = root.value
   if (!el) return
@@ -84,9 +105,8 @@ async function onSaveProfile() {
   savingProfile.value = true
   try {
     await saveProfile({
-      fullName: fullName.value,
+      nickname: fullName.value,
       email: emailAddress.value,
-      avatar: avatar.value,
     })
     showToast('ok', 'Profile saved.')
   } catch {
@@ -199,7 +219,8 @@ async function onSavePreferences() {
             </div>
             <div class="settings__profile-row">
               <div class="settings__avatar-col">
-                <img class="settings__avatar" :src="avatar" alt="User avatar" />
+                <img v-if="avatar" class="settings__avatar" :src="avatar" alt="User avatar" />
+                <div v-else class="settings__avatar settings__avatar--initials">{{ initials }}</div>
               </div>
               <div class="settings__fields">
                 <div class="settings__field">

@@ -1,0 +1,158 @@
+syntax = "api"
+
+info (
+    title:   "Short Chain Admin API"
+    desc:    "管理后台 API（仪表盘 / 链接管理 / 域名黑名单 / API Token）"
+    version: "v3"
+)
+
+type AdminLoginReq {
+    Username string `json:"username"`
+    Password string `json:"password"`
+}
+
+type AdminLoginResp {
+    Token string `json:"token"`
+}
+
+type DashboardResp {
+    Kpis    []KpiItem        `json:"kpis"`
+    Traffic []TrafficPoint   `json:"traffic"`
+    Actions []AdminActionItem `json:"actions"`
+}
+
+type KpiItem {
+    Key   string `json:"key"`
+    Label string `json:"label"`
+    Value string `json:"value"`
+    Badge string `json:"badge"`
+}
+
+type TrafficPoint {
+    Date  string `json:"date"`
+    Value int64  `json:"value"`
+}
+
+type AdminActionItem {
+    Title string `json:"title"`
+    Meta  string `json:"meta"`
+    Time  string `json:"time"`
+}
+
+type ListLinksReq {
+    Page int64 `form:"page"`
+    Size int64 `form:"size"`
+}
+
+type LinkItem {
+    Code      string `json:"code"`
+    LongURL   string `json:"long_url"`
+    ShortURL  string `json:"short_url"`
+    Clicks    int64  `json:"clicks"`
+    Status    int32  `json:"status"`
+    UserName  string `json:"user_name"`
+    UserEmail string `json:"user_email"`
+    CreatedAt string `json:"created_at"`
+}
+
+type ListLinksResp {
+    Total int64      `json:"total"`
+    Items []LinkItem `json:"items"`
+}
+
+type ListBlacklistReq {
+    Page int64 `form:"page"`
+    Size int64 `form:"size"`
+}
+
+type BlacklistItem {
+    Domain    string `json:"domain"`
+    Reason    string `json:"reason"`
+    Attempts  int64  `json:"attempts"`
+    CreatedAt string `json:"created_at"`
+}
+
+type ListBlacklistResp {
+    Total int64           `json:"total"`
+    Items []BlacklistItem `json:"items"`
+}
+
+type AddBlacklistReq {
+    Domain string `json:"domain"`
+    Reason string `json:"reason"`
+}
+
+type AddBlacklistResp {
+    Ok bool `json:"ok"`
+}
+
+type ListTokensReq {
+    Page int64 `form:"page"`
+    Size int64 `form:"size"`
+}
+
+type TokenItem {
+    Id         int64  `json:"id"`
+    TokenId    string `json:"token_id"`
+    UserName   string `json:"user_name"`
+    UserEmail  string `json:"user_email"`
+    UsageLimit int64  `json:"usage_limit"`
+    Remaining  int64  `json:"remaining"`
+    CreatedAt  string `json:"created_at"`
+    Status     int32  `json:"status"`
+}
+
+type ListTokensResp {
+    Total int64       `json:"total"`
+    Items []TokenItem `json:"items"`
+}
+
+type ProvisionTokenReq {
+    UserId int64  `json:"user_id"`
+    Name   string `json:"name"`
+    Quota  int64  `json:"quota"`
+}
+
+type ProvisionTokenResp {
+    Ok      bool   `json:"ok"`
+    TokenId string `json:"token_id"`
+    Token   string `json:"token"`
+}
+
+type RevokeTokenReq {
+    Id int64 `json:"id"`
+}
+
+type RevokeTokenResp {
+    Ok bool `json:"ok"`
+}
+
+@server(
+    prefix: /admin/api
+)
+
+service admin-api {
+    @handler AdminLogin
+    post /login (AdminLoginReq) returns (AdminLoginResp)
+
+    @handler Dashboard
+    get /dashboard (DashboardResp) returns (DashboardResp)
+
+    @handler ListLinks
+    get /links (ListLinksReq) returns (ListLinksResp)
+
+    @handler ListBlacklist
+    get /blacklist (ListBlacklistReq) returns (ListBlacklistResp)
+
+    @handler AddBlacklist
+    post /blacklist (AddBlacklistReq) returns (AddBlacklistResp)
+
+    @handler ListTokens
+    get /tokens (ListTokensReq) returns (ListTokensResp)
+
+    @handler ProvisionToken
+    post /tokens (ProvisionTokenReq) returns (ProvisionTokenResp)
+
+    @handler RevokeToken
+    post /tokens/revoke (RevokeTokenReq) returns (RevokeTokenResp)
+}

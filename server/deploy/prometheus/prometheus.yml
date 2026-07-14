@@ -1,0 +1,13 @@
+global:
+  scrape_interval: 15s
+
+scrape_configs:
+  - job_name: 'shortlink-api'
+    static_configs:
+      - targets: ['shortlink-api:8888']
+  - job_name: 'shortlink-rpc'
+    static_configs:
+      - targets: ['shortlink-rpc:8081']
+  - job_name: 'admin-api'
+    static_configs:
+      - targets: ['admin-api:8889']

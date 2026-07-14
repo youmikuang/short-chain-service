@@ -14,14 +14,32 @@ const search = ref('')
 const page = ref(1)
 const pageSize = ref(10)
 
+// Time sort: null = original order, 'desc' = newest first, 'asc' = oldest first
+const sortDir = ref<'asc' | 'desc' | null>(null)
+
+function toggleTimeSort() {
+  sortDir.value =
+    sortDir.value === null ? 'desc' : sortDir.value === 'desc' ? 'asc' : null
+  page.value = 1
+}
+
 const filtered = computed(() => {
   const q = search.value.trim().toLowerCase()
-  if (!q) return links.value
-  return links.value.filter(
-    (l) =>
-      l.longUrl.toLowerCase().includes(q) ||
-      l.shortUrl.toLowerCase().includes(q),
-  )
+  let list = links.value
+  if (q)
+    list = list.filter(
+      (l) =>
+        l.longUrl.toLowerCase().includes(q) ||
+        l.shortUrl.toLowerCase().includes(q),
+    )
+  if (sortDir.value) {
+    list = [...list].sort((a, b) => {
+      const ta = new Date(a.createdAt).getTime()
+      const tb = new Date(b.createdAt).getTime()
+      return sortDir.value === 'asc' ? ta - tb : tb - ta
+    })
+  }
+  return list
 })
 
 const totalPages = computed(() =>
@@ -171,9 +189,16 @@ onMounted(load)
                 />
               </div>
               <div class="urls__toolbar-actions">
-                <button class="urls__btn-ghost">
-                  <span class="material-symbols-outlined">Sort</span>
-                  Sort
+                <button
+                  class="urls__btn-ghost"
+                  :class="{
+                    'urls__btn-ghost--active': sortDir !== null,
+                    asc: sortDir === 'asc',
+                  }"
+                  @click="toggleTimeSort"
+                >
+                  <span class="material-symbols-outlined urls__sort-icon">Sort</span>
+                  Time Sort
                 </button>
                 <button class="urls__btn-ghost" @click="exportCsv">
                   <span class="material-symbols-outlined">download</span>
@@ -245,10 +270,20 @@ onMounted(load)
 
             <!-- Pagination -->
             <div class="urls__pager">
-              <span class="urls__count"
-                >Showing {{ rangeStart }} to {{ rangeEnd }} of
-                {{ filtered.length }} URLs</span
-              >
+              <div class="urls__pager-left">
+                <div class="urls__pager-size">
+                  <span>Rows per page:</span>
+                  <select v-model.number="pageSize" class="urls__select">
+                    <option :value="10">10</option>
+                    <option :value="25">25</option>
+                    <option :value="50">50</option>
+                  </select>
+                </div>
+                <span class="urls__count"
+                  >Showing {{ rangeStart }} to {{ rangeEnd }} of
+                  {{ filtered.length }} URLs</span
+                >
+              </div>
               <div class="urls__pager-nav">
                 <button
                   class="urls__page-btn"

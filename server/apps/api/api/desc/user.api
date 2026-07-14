@@ -1,0 +1,180 @@
+syntax = "api"
+
+info (
+    title:   "Short Chain User API"
+    desc:    "用户体系 API（注册/登录/GitHub OAuth/API Key 管理）"
+    version: "v3"
+)
+
+type RegisterReq {
+    Email    string `json:"email"`
+    Password string `json:"password"`
+}
+type RegisterResp {
+    UserID int64  `json:"user_id"`
+    Token  string `json:"token"`
+}
+
+type LoginReq {
+    Email    string `json:"email"`
+    Password string `json:"password"`
+}
+type LoginResp {
+    Token    string `json:"token"`
+    UserID   int64  `json:"user_id"`
+    Nickname string `json:"nickname"`
+}
+
+type GitHubAuthURLReq {
+    Redirect string `form:"redirect"`
+}
+type GitHubAuthURLResp {
+    Url string `json:"url"`
+}
+
+type CreateAPIKeyReq {
+    Name string `json:"name"`
+}
+type CreateAPIKeyResp {
+    Key  string `json:"key"`
+    Name string `json:"name"`
+    Id   int64  `json:"id"`
+}
+
+type ListAPIKeysReq {}
+type APIKeyItem {
+    Id        int64  `json:"id"`
+    Name      string `json:"name"`
+    Status    int32  `json:"status"`
+    CreatedAt string `json:"created_at"`
+}
+type ListAPIKeysResp {
+    Items []APIKeyItem `json:"items"`
+}
+
+type RevokeAPIKeyReq {
+    Id int64 `path:"id"`
+}
+type RevokeAPIKeyResp {
+    Ok bool `json:"ok"`
+}
+
+type GetProfileResp {
+    UserID   int64  `json:"user_id"`
+    Email    string `json:"email"`
+    Nickname string `json:"nickname"`
+}
+
+type UpdateProfileReq {
+    Nickname string `json:"nickname"`
+    Email    string `json:"email"`
+}
+type UpdateProfileResp {
+    UserID   int64  `json:"user_id"`
+    Email    string `json:"email"`
+    Nickname string `json:"nickname"`
+}
+
+type ChangePasswordReq {
+    CurrentPassword string `json:"current_password"`
+    NewPassword     string `json:"new_password"`
+}
+type ChangePasswordResp {
+    Ok bool `json:"ok"`
+}
+
+type GetSettingsResp {
+    EmailNotif     bool `json:"email_notif"`
+    SecurityAlerts bool `json:"security_alerts"`
+    MarketingComm  bool `json:"marketing_comm"`
+}
+type UpdateSettingsReq {
+    EmailNotif     bool `json:"email_notif"`
+    SecurityAlerts bool `json:"security_alerts"`
+    MarketingComm  bool `json:"marketing_comm"`
+}
+type UpdateSettingsResp {
+    EmailNotif     bool `json:"email_notif"`
+    SecurityAlerts bool `json:"security_alerts"`
+    MarketingComm  bool `json:"marketing_comm"`
+}
+
+type UsageTrendsReq {
+    Days int64 `form:"days"`
+}
+type UsagePoint {
+    Day   string `json:"day"`
+    Value int64  `json:"value"`
+}
+type UsageTrendsResp {
+    Items []UsagePoint `json:"items"`
+}
+
+type LogsReq {
+    Search   string `form:"search"`
+    Page     int64  `form:"page"`
+    PageSize int64  `form:"page_size"`
+}
+type LogItem {
+    Timestamp string `json:"timestamp"`
+    Endpoint  string `json:"endpoint"`
+    Status    int64  `json:"status"`
+    Latency   string `json:"latency"`
+}
+type LogsResp {
+    Total int64      `json:"total"`
+    Items []LogItem `json:"items"`
+}
+
+@server(
+    prefix: /api/auth
+)
+service auth-api {
+    @handler Register
+    post /auth/register (RegisterReq) returns (RegisterResp)
+
+    @handler Login
+    post /auth/login (LoginReq) returns (LoginResp)
+
+    @handler GitHubAuthURL
+    get /auth/github (GitHubAuthURLReq) returns (GitHubAuthURLResp)
+
+    @handler GitHubCallback
+    get /auth/github/callback (GitHubCallbackReq) returns (LoginResp)
+}
+
+@server(
+    jwt:    Auth
+    prefix: /api
+)
+service user-api {
+    @handler CreateAPIKey
+    post /keys (CreateAPIKeyReq) returns (CreateAPIKeyResp)
+
+    @handler ListAPIKeys
+    get /keys (ListAPIKeysReq) returns (ListAPIKeysResp)
+
+    @handler RevokeAPIKey
+    delete /keys/:id (RevokeAPIKeyReq) returns (RevokeAPIKeyResp)
+
+    @handler GetProfile
+    get /profile (GetProfileResp)
+
+    @handler UpdateProfile
+    post /profile (UpdateProfileReq) returns (UpdateProfileResp)
+
+    @handler ChangePassword
+    post /profile/password (ChangePasswordReq) returns (ChangePasswordResp)
+
+    @handler GetSettings
+    get /settings (GetSettingsResp)
+
+    @handler UpdateSettings
+    put /settings (UpdateSettingsReq) returns (UpdateSettingsResp)
+
+    @handler UsageTrends
+    get /usage-trends (UsageTrendsReq) returns (UsageTrendsResp)
+
+    @handler Logs
+    get /logs (LogsReq) returns (LogsResp)
+}

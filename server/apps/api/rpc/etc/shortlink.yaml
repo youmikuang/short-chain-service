@@ -1,0 +1,15 @@
+Name: shortlink.rpc
+ListenOn: 0.0.0.0:8081
+
+Mysql:
+  DataSource: root:root@tcp(127.0.0.1:3306)/short_chain?charset=utf8mb4
+
+BlacklistRedis:
+  Host: 127.0.0.1:6379
+  Pass: ""
+  DB: 0
+
+BlacklistRedisKey: domain:blacklist
+ClickEventsTopic: click_events
+KafkaBrokers:
+  - 127.0.0.1:9092

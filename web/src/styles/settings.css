@@ -145,6 +145,15 @@
   object-fit: cover;
   box-shadow: 0 1px 2px rgb(0 0 0 / 0.05);
 }
+.settings__avatar--initials {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgb(var(--color-primary) / 0.12);
+  color: rgb(var(--color-primary));
+  font-size: 32px;
+  font-weight: 600;
+}
 .settings__fields {
   flex-grow: 1;
   width: 100%;
