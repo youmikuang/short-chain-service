@@ -1,8 +1,15 @@
 <script setup lang="ts">
-import { ref, onMounted, onBeforeUnmount } from 'vue'
+import { ref, reactive, onMounted, onBeforeUnmount } from 'vue'
 import TheNavBar from '@/components/navbar.vue'
 import TheFooter from '@/components/footer.vue'
-import { fetchProfile, fetchSettings } from '@/api'
+import Toast from '@/components/toast.vue'
+import {
+  fetchProfile,
+  fetchSettings,
+  saveProfile,
+  updatePassword,
+  saveSettings,
+} from '@/api'
 
 const fullName = ref('')
 const emailAddress = ref('')
@@ -50,6 +57,108 @@ onMounted(async () => {
 })
 
 onBeforeUnmount(() => observer?.disconnect())
+
+// --- Toast ---
+const toast = reactive({ type: 'ok' as 'ok' | 'error', message: '' })
+const toastKey = ref(0)
+function showToast(type: 'ok' | 'error', message: string) {
+  toast.type = type
+  toast.message = message
+  toastKey.value++
+}
+
+// --- Profile ---
+const savingProfile = ref(false)
+const emailError = ref('')
+
+function clearEmailError() {
+  emailError.value = ''
+}
+
+async function onSaveProfile() {
+  emailError.value = ''
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(emailAddress.value)) {
+    emailError.value = 'Please enter a valid email address.'
+    return
+  }
+  savingProfile.value = true
+  try {
+    await saveProfile({
+      fullName: fullName.value,
+      email: emailAddress.value,
+      avatar: avatar.value,
+    })
+    showToast('ok', 'Profile saved.')
+  } catch {
+    showToast('error', 'Failed to save profile. Please try again.')
+  } finally {
+    savingProfile.value = false
+  }
+}
+
+// --- Password ---
+const savingPassword = ref(false)
+const currentPasswordError = ref('')
+const newPasswordError = ref('')
+const confirmPasswordError = ref('')
+
+function clearPasswordErrors() {
+  currentPasswordError.value = ''
+  newPasswordError.value = ''
+  confirmPasswordError.value = ''
+}
+
+async function onUpdatePassword() {
+  currentPasswordError.value = ''
+  newPasswordError.value = ''
+  confirmPasswordError.value = ''
+  if (!currentPassword.value) {
+    currentPasswordError.value = 'Please enter your current password.'
+    return
+  }
+  if (newPassword.value.length < 8) {
+    newPasswordError.value = 'New password must be at least 8 characters.'
+    return
+  }
+  if (newPassword.value !== confirmPassword.value) {
+    confirmPasswordError.value = 'New password and confirmation do not match.'
+    return
+  }
+  savingPassword.value = true
+  try {
+    await updatePassword({
+      currentPassword: currentPassword.value,
+      newPassword: newPassword.value,
+    })
+    currentPassword.value = ''
+    newPassword.value = ''
+    confirmPassword.value = ''
+    showToast('ok', 'Password updated.')
+  } catch {
+    showToast('error', 'Failed to update password. Please try again.')
+  } finally {
+    savingPassword.value = false
+  }
+}
+
+// --- Preferences ---
+const savingPrefs = ref(false)
+
+async function onSavePreferences() {
+  savingPrefs.value = true
+  try {
+    await saveSettings({
+      emailNotif: emailNotif.value,
+      securityAlerts: securityAlerts.value,
+      marketingComm: marketingComm.value,
+    })
+    showToast('ok', 'Preferences saved.')
+  } catch {
+    showToast('error', 'Failed to save preferences. Please try again.')
+  } finally {
+    savingPrefs.value = false
+  }
+}
 </script>
 
 <template>
@@ -91,7 +200,6 @@ onBeforeUnmount(() => observer?.disconnect())
             <div class="settings__profile-row">
               <div class="settings__avatar-col">
                 <img class="settings__avatar" :src="avatar" alt="User avatar" />
-                <button class="settings__avatar-btn">Change Avatar</button>
               </div>
               <div class="settings__fields">
                 <div class="settings__field">
@@ -102,15 +210,24 @@ onBeforeUnmount(() => observer?.disconnect())
                   <label class="settings__label" for="emailAddress">Email Address</label>
                   <input
                     class="settings__input"
+                    :class="{ 'settings__input--error': emailError }"
                     id="emailAddress"
                     type="email"
                     v-model="emailAddress"
+                    @input="clearEmailError"
                   />
+                  <span v-if="emailError" class="settings__field-error">{{ emailError }}</span>
                 </div>
               </div>
             </div>
             <div class="settings__actions">
-              <button class="settings__btn-primary">Save Changes</button>
+              <button
+                class="settings__btn-primary"
+                @click="onSaveProfile"
+                :disabled="savingProfile"
+              >
+                {{ savingProfile ? 'Saving…' : 'Save Changes' }}
+              </button>
             </div>
           </section>
 
@@ -125,35 +242,50 @@ onBeforeUnmount(() => observer?.disconnect())
                 <label class="settings__label" for="currentPassword">Current Password</label>
                 <input
                   class="settings__input"
+                  :class="{ 'settings__input--error': currentPasswordError }"
                   id="currentPassword"
                   placeholder="••••••••"
                   type="password"
                   v-model="currentPassword"
+                  @input="clearPasswordErrors"
                 />
+                <span v-if="currentPasswordError" class="settings__field-error">{{ currentPasswordError }}</span>
               </div>
               <div class="settings__field">
                 <label class="settings__label" for="newPassword">New Password</label>
                 <input
                   class="settings__input"
+                  :class="{ 'settings__input--error': newPasswordError }"
                   id="newPassword"
                   placeholder="••••••••"
                   type="password"
                   v-model="newPassword"
+                  @input="clearPasswordErrors"
                 />
+                <span v-if="newPasswordError" class="settings__field-error">{{ newPasswordError }}</span>
               </div>
               <div class="settings__field">
                 <label class="settings__label" for="confirmPassword">Confirm New Password</label>
                 <input
                   class="settings__input"
+                  :class="{ 'settings__input--error': confirmPasswordError }"
                   id="confirmPassword"
                   placeholder="••••••••"
                   type="password"
                   v-model="confirmPassword"
+                  @input="clearPasswordErrors"
                 />
+                <span v-if="confirmPasswordError" class="settings__field-error">{{ confirmPasswordError }}</span>
               </div>
             </div>
             <div class="settings__actions">
-              <button class="settings__btn-primary">Update Password</button>
+              <button
+                class="settings__btn-primary"
+                @click="onUpdatePassword"
+                :disabled="savingPassword"
+              >
+                {{ savingPassword ? 'Updating…' : 'Update Password' }}
+              </button>
             </div>
           </section>
 
@@ -205,7 +337,13 @@ onBeforeUnmount(() => observer?.disconnect())
               </div>
             </div>
             <div class="settings__actions">
-              <button class="settings__btn-primary">Save Preferences</button>
+              <button
+                class="settings__btn-primary"
+                @click="onSavePreferences"
+                :disabled="savingPrefs"
+              >
+                {{ savingPrefs ? 'Saving…' : 'Save Preferences' }}
+              </button>
             </div>
           </section>
         </div>
@@ -213,6 +351,14 @@ onBeforeUnmount(() => observer?.disconnect())
     </main>
 
     <TheFooter />
+
+    <Toast
+      :key="toastKey"
+      :type="toast.type"
+      :message="toast.message"
+      :duration="3000"
+      @close="toast.message = ''"
+    />
   </div>
 </template>
 

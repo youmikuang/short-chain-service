@@ -129,18 +129,13 @@ function onToggle(e: MouseEvent) {
   align-items: center;
   justify-content: center;
   border-radius: 9999px;
-  color: rgb(var(--color-on-surface));
-  background: rgb(var(--color-surface-container-lowest));
-  border: 1px solid rgb(var(--color-outline-variant));
+  background: transparent;
+  color: inherit;
+  border: 0px;
   transition: background 0.2s ease, color 0.2s ease, transform 0.15s ease;
   cursor: pointer;
 }
-.btn-icon.theme-btn:hover {
-  background: rgb(var(--color-surface-container-low));
-}
-.btn-icon.theme-btn:active {
-  transform: scale(0.92);
-}
+
 .btn-icon.theme-btn .icon {
   width: 20px;
   height: 20px;

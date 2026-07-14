@@ -16,8 +16,7 @@
   margin: 0 auto;
   padding-left: 32px;
   padding-right: 32px;
-  padding-top: 16px;
-  padding-bottom: 16px;
+  height: 64px;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -25,6 +24,7 @@
 .navbar__left {
   display: flex;
   align-items: center;
+  height: 100%;
   gap: 40px;
 }
 .navbar__brand {
@@ -39,7 +39,8 @@
 }
 .navbar__links {
   display: none;
-  gap: 24px;
+  height: 100%;
+  gap: 10px;
 }
 @media (min-width: 768px) {
   .navbar__links {
@@ -53,11 +54,15 @@
   justify-content: center;
   font-size: 16px;
   line-height: 24px;
-  height: 45px;
-  min-width: 60px;
+  height: 100%;
+  padding: 0 20px;
+  gap: 6px;
   color: rgb(var(--color-secondary));
   text-decoration: none;
   transition: color 0.2s ease;
+}
+.navbar__link-icon {
+  font-size: 18px;
 }
 .dark .navbar__link {
   color: rgb(var(--color-secondary-fixed-dim));
@@ -67,15 +72,14 @@
 }
 .navbar__link--active {
   color: rgb(var(--color-primary));
-  font-weight: 600;
+  text-shadow: 0.5px 0 0 currentColor;
 }
 .navbar__link--active::after {
   content: '';
   position: absolute;
-  bottom: -17px;
-  left: 50%;
-  transform: translateX(-50%);
-  width: 75px;
+  bottom: 0;
+  left: 0;
+  right: 0;
   height: 2px;
   background: rgb(var(--color-primary));
   border-radius: 1px;

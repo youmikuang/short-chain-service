@@ -18,25 +18,29 @@ const auth = useAuthStore()
             class="navbar__link"
             active-class="navbar__link--active"
             :exact-active-class="''"
-            >Home</RouterLink
+            ><span class="material-symbols-outlined navbar__link-icon">home</span
+            ><span>Home</span></RouterLink
           >
           <RouterLink
             to="/token"
             class="navbar__link"
             active-class="navbar__link--active"
-            >Token</RouterLink
+            ><span class="material-symbols-outlined navbar__link-icon">key</span
+            ><span>Token</span></RouterLink
           >
           <RouterLink
             to="/logs"
             class="navbar__link"
             active-class="navbar__link--active"
-            >Logs</RouterLink
+            ><span class="material-symbols-outlined navbar__link-icon">description</span
+            ><span>Logs</span></RouterLink
           >
           <RouterLink
             to="/urls"
             class="navbar__link"
             active-class="navbar__link--active"
-            >Urls</RouterLink
+            ><span class="material-symbols-outlined navbar__link-icon">link</span
+            ><span>Urls</span></RouterLink
           >
         </div>
       </div>

@@ -1,34 +1,46 @@
 <script setup lang="ts">
 import { ref, computed, onMounted, watch } from 'vue'
+import { useRoute } from 'vue-router'
 import TheNavBar from '@/components/navbar.vue'
 import TheFooter from '@/components/footer.vue'
 import { fetchLogs, type LogRow } from '@/api'
 
-const rows = ref<LogRow[]>([])
-const total = ref(0)
+const route = useRoute()
+const allRows = ref<LogRow[]>([])
 const search = ref('')
 const page = ref(1)
 const pageSize = ref(10)
 
+// Client-side filtering so search works regardless of backend support.
+const filtered = computed(() => {
+  const q = search.value.trim().toLowerCase()
+  if (!q) return allRows.value
+  return allRows.value.filter(
+    (r) =>
+      r.endpoint.toLowerCase().includes(q) ||
+      r.timestamp.toLowerCase().includes(q) ||
+      String(r.status).includes(q),
+  )
+})
+
+const total = computed(() => filtered.value.length)
 const totalPages = computed(() => Math.max(1, Math.ceil(total.value / pageSize.value)))
 const rangeStart = computed(() =>
   total.value === 0 ? 0 : (page.value - 1) * pageSize.value + 1,
 )
 const rangeEnd = computed(() => Math.min(page.value * pageSize.value, total.value))
+const rows = computed(() => {
+  const start = (page.value - 1) * pageSize.value
+  return filtered.value.slice(start, start + pageSize.value)
+})
 
 async function load() {
-  const { items, total: t } = await fetchLogs({
-    search: search.value,
-    page: page.value,
-    pageSize: pageSize.value,
-  })
-  rows.value = items
-  total.value = t
+  const { items } = await fetchLogs({ page: 1, pageSize: 100000 })
+  allRows.value = items
 }
 
 function onSearch() {
   page.value = 1
-  load()
 }
 
 function statusClass(status: number) {
@@ -41,8 +53,39 @@ function statusText(status: number) {
   return `${status} Error`
 }
 
-onMounted(load)
-watch([page, pageSize], load)
+function downloadCsv(filename: string, data: string[][]) {
+  const escape = (v: string) => `"${String(v).replace(/"/g, '""')}"`
+  const csv = data.map((r) => r.map(escape).join(',')).join('\r\n')
+  const blob = new Blob(['﻿' + csv], { type: 'text/csv;charset=utf-8;' })
+  const url = URL.createObjectURL(blob)
+  const a = document.createElement('a')
+  a.href = url
+  a.download = filename
+  document.body.appendChild(a)
+  a.click()
+  document.body.removeChild(a)
+  URL.revokeObjectURL(url)
+}
+
+function exportCsv() {
+  const header = ['Timestamp', 'Endpoint/URL', 'Status', 'Latency']
+  const body = filtered.value.map((r) => [
+    r.timestamp,
+    r.endpoint,
+    String(r.status),
+    r.latency,
+  ])
+  downloadCsv('logs.csv', [header, ...body])
+}
+
+onMounted(() => {
+  const q = route.query.q
+  if (typeof q === 'string' && q.trim()) {
+    search.value = q
+  }
+  load()
+})
+watch(search, onSearch)
 </script>
 
 <template>
@@ -61,13 +104,19 @@ watch([page, pageSize], load)
                   v-model="search"
                   @input="onSearch"
                   type="text"
-                  placeholder="Search URL or Endpoint..."
+                  placeholder="Search Shortened URL"
                   class="field-input logs__search-input"
                 />
               </div>
-              <div class="logs__range">
-                <span class="material-symbols-outlined" style="font-size: 18px;">calendar_today</span>
-                <span>Past 30 Days</span>
+              <div class="logs__toolbar-actions">
+                <div class="logs__range">
+                  <span class="material-symbols-outlined" style="font-size: 18px;">calendar_today</span>
+                  <span>Past 15 Days</span>
+                </div>
+                <button class="logs__btn-ghost" @click="exportCsv">
+                  <span class="material-symbols-outlined">download</span>
+                  Export
+                </button>
               </div>
             </div>
 
@@ -76,7 +125,7 @@ watch([page, pageSize], load)
                 <thead>
                   <tr class="logs__thead-row">
                     <th class="logs__th">Timestamp</th>
-                    <th class="logs__th">Endpoint/URL</th>
+                    <th class="logs__th">Shortened URL</th>
                     <th class="logs__th">Status</th>
                     <th class="logs__th">Latency</th>
                   </tr>

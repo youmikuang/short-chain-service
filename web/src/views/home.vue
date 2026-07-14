@@ -1,11 +1,13 @@
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, watch } from 'vue'
 import { RouterLink } from 'vue-router'
 import TheNavBar from '@/components/navbar.vue'
 import TheFooter from '@/components/footer.vue'
 import { createShortLink } from '@/api'
 
-const url = ref('')
+// Persist the hero input so it survives a page refresh.
+const HERO_URL_KEY = 'slink_hero_url'
+const url = ref(localStorage.getItem(HERO_URL_KEY) ?? '')
 const shortUrl = ref('')
 const copied = ref(false)
 const loading = ref(false)
@@ -48,6 +50,9 @@ function saveClicks(arr: number[]) {
 }
 
 const clickTimes = ref<number[]>(loadClicks())
+
+// Keep the typed URL in sync with localStorage.
+watch(url, (v) => localStorage.setItem(HERO_URL_KEY, v))
 
 async function shorten() {
   if (loading.value) return

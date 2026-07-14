@@ -51,6 +51,19 @@ function handler(req: any, res: any) {
     }
   }
 
+  if (path === 'profile' && method === 'POST') {
+    return readBody(req).then((body) => {
+      data.profile = {
+        ...data.profile,
+        fullName:
+          typeof body.fullName === 'string' ? body.fullName : data.profile.fullName,
+        email: typeof body.email === 'string' ? body.email : data.profile.email,
+        avatar: typeof body.avatar === 'string' ? body.avatar : data.profile.avatar,
+      }
+      return send(res, data.profile)
+    })
+  }
+
   if (path === 'profile') return send(res, data.profile)
 
   if (path === 'shorten' && method === 'POST') {
@@ -59,7 +72,7 @@ function handler(req: any, res: any) {
       const code = Math.random().toString(36).slice(2, 8)
       const record = {
         code,
-        shortUrl: `swft.lk/${code}`,
+        shortUrl: code,
         longUrl,
         createdAt: new Date().toISOString(),
         clicks: Math.floor(Math.random() * 2000),
@@ -76,6 +89,21 @@ function handler(req: any, res: any) {
 
   if (path === 'tokenKey' || path === 'key') return send(res, data.tokenKey)
   if (path === 'usage-trends') return send(res, data.usageTrends)
+  if (path === 'password' && method === 'POST') {
+    return readBody(req).then(() => send(res, { ok: true }))
+  }
+
+  if (path === 'settings' && method === 'POST') {
+    return readBody(req).then((body) => {
+      data.settings = {
+        emailNotif: !!body.emailNotif,
+        securityAlerts: !!body.securityAlerts,
+        marketingComm: !!body.marketingComm,
+      }
+      return send(res, data.settings)
+    })
+  }
+
   if (path === 'settings') return send(res, data.settings)
 
   if (path === 'logs') {

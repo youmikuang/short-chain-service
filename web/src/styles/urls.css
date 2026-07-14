@@ -226,6 +226,12 @@
   color: rgb(var(--color-primary));
   font-weight: 600;
   white-space: nowrap;
+  text-decoration: none;
+  cursor: pointer;
+  transition: opacity 0.2s ease;
+}
+.urls__short-url:hover {
+  opacity: 0.75;
 }
 .urls__copy {
   opacity: 0;
@@ -255,19 +261,6 @@
   font-weight: 600;
   background: rgb(var(--color-secondary-container));
   color: rgb(var(--color-on-secondary-container));
-}
-.urls__action {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  padding: 8px;
-  border-radius: 8px;
-  color: rgb(var(--color-primary));
-  text-decoration: none;
-  transition: background 0.2s ease;
-}
-.urls__action:hover {
-  background: rgb(var(--color-primary) / 0.1);
 }
 .urls__empty {
   padding: 32px;

@@ -139,22 +139,6 @@
   object-fit: cover;
   box-shadow: 0 1px 2px rgb(0 0 0 / 0.05);
 }
-.settings__avatar-btn {
-  font-size: 14px;
-  line-height: 20px;
-  letter-spacing: 0.01em;
-  font-weight: 600;
-  color: rgb(var(--color-primary));
-  background: none;
-  border: 1px solid rgb(var(--color-primary));
-  padding: 8px 16px;
-  border-radius: 8px;
-  cursor: pointer;
-  transition: color 0.2s ease;
-}
-.settings__avatar-btn:hover {
-  color: rgb(var(--color-on-primary-fixed-variant));
-}
 .settings__fields {
   flex-grow: 1;
   width: 100%;
@@ -191,6 +175,20 @@
   border-color: rgb(var(--color-primary));
   box-shadow: 0 0 0 2px rgb(var(--color-primary) / 0.2);
 }
+.settings__input--error {
+  border-color: rgb(var(--color-error));
+}
+.settings__input--error:focus {
+  border-color: rgb(var(--color-error));
+  box-shadow: 0 0 0 2px rgb(var(--color-error) / 0.2);
+}
+.settings__field-error {
+  margin-top: 6px;
+  font-size: 13px;
+  line-height: 18px;
+  font-weight: 600;
+  color: rgb(var(--color-error));
+}
 .settings__actions {
   display: flex;
   justify-content: flex-end;
@@ -216,6 +214,10 @@
 }
 .settings__btn-primary:active {
   transform: scale(0.95);
+}
+.settings__btn-primary:disabled {
+  opacity: 0.6;
+  cursor: default;
 }
 .settings__toggle {
   display: flex;

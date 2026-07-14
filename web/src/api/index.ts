@@ -96,6 +96,51 @@ export function fetchSettings(): Promise<SettingsData> {
   return request<SettingsData>('settings')
 }
 
+export interface SaveProfileParams {
+  fullName: string
+  email: string
+  avatar: string
+}
+
+export function saveProfile(params: SaveProfileParams): Promise<Profile> {
+  return request<Profile>('profile', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(params),
+  })
+}
+
+export interface UpdatePasswordParams {
+  currentPassword: string
+  newPassword: string
+}
+
+export function updatePassword(
+  params: UpdatePasswordParams,
+): Promise<{ ok: boolean }> {
+  return request<{ ok: boolean }>('password', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(params),
+  })
+}
+
+export interface SaveSettingsParams {
+  emailNotif: boolean
+  securityAlerts: boolean
+  marketingComm: boolean
+}
+
+export function saveSettings(
+  params: SaveSettingsParams,
+): Promise<SettingsData> {
+  return request<SettingsData>('settings', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(params),
+  })
+}
+
 export interface LoginResult {
   user: Profile
   token: string

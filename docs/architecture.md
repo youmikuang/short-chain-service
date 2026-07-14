@@ -130,3 +130,11 @@ short-chain-service/
 2. `api/` 骨架：路由 + 短链生成跳转 + Redis + 黑名单最小可用。
 3. `web/` 与 `admin/` 的 Vue3 脚手架。
 4. `sdk/go` 包：封装带 Key 鉴权的调用客户端。
+
+
+
+
+
+## ClickHouse 密码
+
+账号 default ， 密码：L4Pt8w6sxk6ueNZ

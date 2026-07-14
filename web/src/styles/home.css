@@ -83,9 +83,16 @@
   border-color: rgb(var(--color-primary));
 }
 .hero__input-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
   padding-left: 16px;
   padding-right: 8px;
   color: rgb(var(--color-outline));
+}
+.hero__input-icon .material-symbols-outlined {
+  font-size: 22px;
+  line-height: 1;
 }
 .hero__input {
   flex-grow: 1;

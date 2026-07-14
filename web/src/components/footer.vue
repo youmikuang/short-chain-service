@@ -3,7 +3,7 @@
 <template>
   <footer class="footer">
     <div class="footer__text">
-      © 2024 SLink URL Shortener. Professional &amp; Trustworthy.
+      Copyright © 2026 GAOHENG & <a class="footer__link" href="https://github.com/youmikuang/short-chain-service" target="_blank" rel="noopener noreferrer">SHORT-CHAIN-SERVICE</a>
     </div>
   </footer>
 </template>

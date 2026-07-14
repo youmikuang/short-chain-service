@@ -66,6 +66,35 @@
   font-weight: 600;
   white-space: nowrap;
 }
+.logs__toolbar-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.logs__btn-ghost {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 8px 16px;
+  border: 1px solid rgb(var(--color-outline-variant));
+  border-radius: 8px;
+  background: rgb(var(--color-surface));
+  color: rgb(var(--color-on-surface));
+  font-size: 14px;
+  line-height: 20px;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background 0.2s ease;
+}
+.logs__btn-ghost:hover {
+  background: rgb(var(--color-surface-container));
+}
+.logs__btn-ghost .material-symbols-outlined {
+  font-size: 18px;
+  color: rgb(var(--color-on-surface-variant));
+}
 .logs__table-wrap {
   overflow-x: auto;
 }

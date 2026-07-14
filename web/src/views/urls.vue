@@ -5,6 +5,9 @@ import TheNavBar from '@/components/navbar.vue'
 import TheFooter from '@/components/footer.vue'
 import { fetchLinks, createShortLink, type ShortLink } from '@/api'
 
+// Canonical short-link domain used when building the full copyable URL.
+const SHORT_DOMAIN = 'slink.sh'
+
 const links = ref<ShortLink[]>([])
 const loading = ref(false)
 const search = ref('')
@@ -65,9 +68,35 @@ function formatClicks(n: number): string {
   return n.toLocaleString('en-US')
 }
 
+function downloadCsv(filename: string, data: string[][]) {
+  const escape = (v: string) => `"${String(v).replace(/"/g, '""')}"`
+  const csv = data.map((r) => r.map(escape).join(',')).join('\r\n')
+  const blob = new Blob(['﻿' + csv], { type: 'text/csv;charset=utf-8;' })
+  const url = URL.createObjectURL(blob)
+  const a = document.createElement('a')
+  a.href = url
+  a.download = filename
+  document.body.appendChild(a)
+  a.click()
+  document.body.removeChild(a)
+  URL.revokeObjectURL(url)
+}
+
+function exportCsv() {
+  const header = ['Original URL', 'Shortened URL', 'Created At', 'Clicks', 'Note']
+  const body = links.value.map((l) => [
+    l.longUrl,
+    l.shortUrl,
+    l.createdAt,
+    String(l.clicks ?? 0),
+    l.note ?? '',
+  ])
+  downloadCsv('urls.csv', [header, ...body])
+}
+
 async function copyLink(link: ShortLink) {
   try {
-    await navigator.clipboard.writeText(`https://${link.shortUrl}`)
+    await navigator.clipboard.writeText(`https://${SHORT_DOMAIN}/${link.shortUrl}`)
     copiedCode.value = link.code
     setTimeout(() => {
       if (copiedCode.value === link.code) copiedCode.value = null
@@ -140,20 +169,6 @@ onMounted(load)
     <main class="app-main">
       <div class="urls">
         <div class="urls__inner">
-          <!-- Header Section -->
-          <div class="urls__head">
-            <div>
-              <h1 class="urls__title">URL Management</h1>
-              <p class="urls__subtitle">
-                Monitor and manage all your shortened links from a central dashboard.
-              </p>
-            </div>
-            <button class="urls__create-btn" @click="openCreate">
-              <span class="material-symbols-outlined">add</span>
-              Create New URL
-            </button>
-          </div>
-
           <!-- Management Card -->
           <div class="urls__card">
             <!-- Table Controls -->
@@ -172,7 +187,7 @@ onMounted(load)
                   <span class="material-symbols-outlined">filter_list</span>
                   Filter
                 </button>
-                <button class="urls__btn-ghost">
+                <button class="urls__btn-ghost" @click="exportCsv">
                   <span class="material-symbols-outlined">download</span>
                   Export
                 </button>
@@ -188,7 +203,6 @@ onMounted(load)
                     <th class="urls__th">Shortened URL</th>
                     <th class="urls__th">Created At</th>
                     <th class="urls__th">Clicks</th>
-                    <th class="urls__th urls__th--right">Actions</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -209,7 +223,12 @@ onMounted(load)
                     </td>
                     <td class="urls__td">
                       <div class="urls__short">
-                        <span class="urls__short-url">{{ link.shortUrl }}</span>
+                        <RouterLink
+                          :to="{ path: '/logs', query: { q: link.shortUrl } }"
+                          class="urls__short-url"
+                          :title="`View logs for ${link.shortUrl}`"
+                          >{{ link.shortUrl }}</RouterLink
+                        >
                         <button
                           class="urls__copy"
                           :title="copiedCode === link.code ? 'Copied!' : 'Copy'"
@@ -229,18 +248,9 @@ onMounted(load)
                         formatClicks(link.clicks ?? 0)
                       }}</span>
                     </td>
-                    <td class="urls__td urls__td--right">
-                      <RouterLink
-                        to="/logs"
-                        class="urls__action"
-                        title="View Logs"
-                      >
-                        <span class="material-symbols-outlined">analytics</span>
-                      </RouterLink>
-                    </td>
                   </tr>
                   <tr v-if="pagedLinks.length === 0">
-                    <td colspan="5" class="urls__empty">
+                    <td colspan="4" class="urls__empty">
                       {{ loading ? 'Loading…' : 'No URLs found.' }}
                     </td>
                   </tr>

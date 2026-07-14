@@ -33,13 +33,13 @@ onBeforeUnmount(() => document.removeEventListener('click', onClickOutside))
     </div>
     <div v-show="open" class="user-menu__dropdown">
       <RouterLink to="/settings" class="user-menu__item" @click="open = false"
-        >个人中心</RouterLink
+        >Settings</RouterLink
       >
       <a
         href="#"
         class="user-menu__item user-menu__item--danger user-menu__divider"
         @click.prevent="onLogout"
-        >退出</a
+        >Logout</a
       >
     </div>
   </div>

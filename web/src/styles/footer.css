@@ -2,8 +2,6 @@
   margin-top: auto;
   padding-top: 16px;
   padding-bottom: 16px;
-  background: rgb(var(--color-surface-container-low));
-  border-top: 1px solid rgb(var(--color-outline-variant) / 0.5);
 }
 .dark .footer {
   background: rgb(var(--color-surface));
@@ -15,4 +13,9 @@
   letter-spacing: 0.01em;
   font-weight: 600;
   color: rgb(var(--color-on-surface-variant));
+}
+.footer__link {
+  color: var(--text-muted);
+  text-decoration: none;
+  transition: color .2s;
 }
