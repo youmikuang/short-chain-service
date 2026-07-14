@@ -41,7 +41,7 @@ const logs = ref<LogRow[]>([])
 const search = ref('')
 
 async function loadLogs() {
-  const { items } = await fetchLogs({ search: search.value, pageSize: 5 })
+  const { items } = await fetchLogs({ search: search.value, pageSize: 4 })
   logs.value = items
 }
 

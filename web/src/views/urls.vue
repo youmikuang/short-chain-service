@@ -12,7 +12,7 @@ const links = ref<ShortLink[]>([])
 const loading = ref(false)
 const search = ref('')
 const page = ref(1)
-const pageSize = ref(8)
+const pageSize = ref(10)
 
 const filtered = computed(() => {
   const q = search.value.trim().toLowerCase()
@@ -20,8 +20,7 @@ const filtered = computed(() => {
   return links.value.filter(
     (l) =>
       l.longUrl.toLowerCase().includes(q) ||
-      l.shortUrl.toLowerCase().includes(q) ||
-      (l.note ?? '').toLowerCase().includes(q),
+      l.shortUrl.toLowerCase().includes(q),
   )
 })
 
@@ -54,16 +53,6 @@ function onSearch() {
   page.value = 1
 }
 
-function formatDate(iso: string): string {
-  const d = new Date(iso)
-  if (isNaN(d.getTime())) return iso
-  return d.toLocaleDateString('en-US', {
-    month: 'short',
-    day: 'numeric',
-    year: 'numeric',
-  })
-}
-
 function formatClicks(n: number): string {
   return n.toLocaleString('en-US')
 }
@@ -83,13 +72,12 @@ function downloadCsv(filename: string, data: string[][]) {
 }
 
 function exportCsv() {
-  const header = ['Original URL', 'Shortened URL', 'Created At', 'Clicks', 'Note']
+  const header = ['Original URL', 'Shortened URL', 'Created At', 'Clicks']
   const body = links.value.map((l) => [
     l.longUrl,
     l.shortUrl,
     l.createdAt,
     String(l.clicks ?? 0),
-    l.note ?? '',
   ])
   downloadCsv('urls.csv', [header, ...body])
 }
@@ -179,13 +167,13 @@ onMounted(load)
                   v-model="search"
                   type="text"
                   class="field-input urls__search-input"
-                  placeholder="Search by original or shortened URL..."
+                  placeholder="Search Original URL"
                 />
               </div>
               <div class="urls__toolbar-actions">
                 <button class="urls__btn-ghost">
-                  <span class="material-symbols-outlined">filter_list</span>
-                  Filter
+                  <span class="material-symbols-outlined">Sort</span>
+                  Sort
                 </button>
                 <button class="urls__btn-ghost" @click="exportCsv">
                   <span class="material-symbols-outlined">download</span>
@@ -216,9 +204,6 @@ onMounted(load)
                         <span class="urls__orig-url" :title="link.longUrl">{{
                           link.longUrl
                         }}</span>
-                        <span v-if="link.note" class="urls__orig-note">{{
-                          link.note
-                        }}</span>
                       </div>
                     </td>
                     <td class="urls__td">
@@ -241,7 +226,7 @@ onMounted(load)
                       </div>
                     </td>
                     <td class="urls__td urls__td--muted">
-                      {{ formatDate(link.createdAt) }}
+                      {{ link.createdAt }}
                     </td>
                     <td class="urls__td">
                       <span class="urls__clicks">{{
@@ -291,8 +276,6 @@ onMounted(load)
               </div>
             </div>
           </div>
-
-          <div class="urls__spacer"></div>
         </div>
       </div>
     </main>

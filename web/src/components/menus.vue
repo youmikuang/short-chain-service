@@ -1,9 +1,10 @@
 <script setup lang="ts">
 import { ref, onMounted, onBeforeUnmount } from 'vue'
+import { useRouter, RouterLink } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
-import { RouterLink } from 'vue-router'
 
 const auth = useAuthStore()
+const router = useRouter()
 const open = ref(false)
 const root = ref<HTMLElement | null>(null)
 
@@ -20,6 +21,7 @@ function onClickOutside(e: MouseEvent) {
 async function onLogout() {
   open.value = false
   await auth.logout()
+  router.push('/login')
 }
 
 onMounted(() => document.addEventListener('click', onClickOutside))

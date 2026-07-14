@@ -123,13 +123,37 @@ function handler(req: any, res: any) {
   }
 
   if (path === 'auth/login' && method === 'POST') {
-    return readBody(req).then((body) =>
-      send(res, {
-        user: data.profile,
+    return readBody(req).then((body) => {
+      let user = data.profile
+      const email = typeof body.email === 'string' ? body.email.trim() : ''
+      if (email) {
+        const local = email.split('@')[0] || email
+        const name = local
+          .replace(/[._-]+/g, ' ')
+          .replace(/\b\w/g, (c) => c.toUpperCase())
+          .trim()
+        const initials =
+          name
+            .split(/\s+/)
+            .map((w: string) => w[0])
+            .join('')
+            .slice(0, 2)
+            .toUpperCase() || local.slice(0, 1).toUpperCase()
+        user = {
+          ...data.profile,
+          fullName: name || local,
+          initials,
+          email,
+          githubId: local,
+        }
+        data.profile = user
+      }
+      return send(res, {
+        user,
         token: `mock-token-${Date.now()}`,
         provider: body.provider ?? 'github',
-      }),
-    )
+      })
+    })
   }
 
   if (path === 'auth/logout' && method === 'POST') {

@@ -88,8 +88,11 @@
 .token__token-input {
   flex: 1;
   min-width: 0;
-  background: rgb(var(--color-surface-container));
-  border: none;
+  background: var(--glass-bg);
+  -webkit-backdrop-filter: blur(12px) saturate(160%);
+  backdrop-filter: blur(12px) saturate(160%);
+  border: 1px solid var(--glass-border);
+  box-shadow: inset 0 1px 0 var(--glass-highlight);
   border-radius: 8px;
   padding: 12px;
   font-size: 16px;
@@ -99,8 +102,11 @@
 }
 .token__copy {
   padding: 12px;
-  background: rgb(var(--color-surface-container));
-  border: none;
+  background: var(--glass-bg);
+  -webkit-backdrop-filter: blur(12px) saturate(160%);
+  backdrop-filter: blur(12px) saturate(160%);
+  border: 1px solid var(--glass-border);
+  box-shadow: inset 0 1px 0 var(--glass-highlight);
   border-radius: 8px;
   color: rgb(var(--color-secondary));
   cursor: pointer;
@@ -246,9 +252,11 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 16px 24px;
-  border-bottom: 1px solid rgb(var(--color-outline-variant) / 0.2);
-  background: rgb(var(--color-surface-container-low));
+  padding: 15px 24px;
+  border-bottom: 1px solid var(--glass-border);
+  background: var(--glass-bg);
+  -webkit-backdrop-filter: blur(16px) saturate(160%);
+  backdrop-filter: blur(16px) saturate(160%);
 }
 .token__logs-bar-title {
   font-size: 14px;
@@ -297,7 +305,7 @@
   background: rgb(var(--color-surface-container-low));
 }
 .token__td {
-  padding: 16px 24px;
+  padding: 15px 24px;
   font-size: 14px;
   color: rgb(var(--color-on-surface));
 }

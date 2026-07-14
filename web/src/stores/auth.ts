@@ -20,8 +20,11 @@ export const useAuthStore = defineStore('auth', () => {
     }
   }
 
-  async function login(provider: 'github' | 'email') {
-    const res = await apiLogin(provider)
+  async function login(
+    provider: 'github' | 'email',
+    credentials?: { email?: string; password?: string },
+  ) {
+    const res = await apiLogin(provider, credentials)
     token.value = res.token
     user.value = res.user
     localStorage.setItem(TOKEN_KEY, res.token)

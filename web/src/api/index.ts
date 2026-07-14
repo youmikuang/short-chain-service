@@ -147,11 +147,14 @@ export interface LoginResult {
   provider: string
 }
 
-export function login(provider: 'github' | 'email'): Promise<LoginResult> {
+export function login(
+  provider: 'github' | 'email',
+  credentials?: { email?: string; password?: string },
+): Promise<LoginResult> {
   return request<LoginResult>('auth/login', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ provider }),
+    body: JSON.stringify({ provider, ...credentials }),
   })
 }
 

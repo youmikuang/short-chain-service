@@ -132,7 +132,7 @@ function onToggle(e: MouseEvent) {
   background: transparent;
   color: inherit;
   border: 0px;
-  transition: background 0.2s ease, color 0.2s ease, transform 0.15s ease;
+  transition: background 0.2s ease, color 0.2s ease, transform 0.15s ease, border-color 0.2s ease;
   cursor: pointer;
 }
 

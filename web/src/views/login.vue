@@ -7,13 +7,18 @@ import { useAuthStore } from '@/stores/auth'
 const router = useRouter()
 const auth = useAuthStore()
 const email = ref('')
+const password = ref('')
+const showPassword = ref(false)
 const loading = ref(false)
 
 async function doLogin(provider: 'github' | 'email') {
   if (loading.value) return
   loading.value = true
   try {
-    await auth.login(provider)
+    await auth.login(provider, {
+      email: email.value.trim(),
+      password: password.value,
+    })
     router.push('/')
   } catch {
     /* ignore for demo */
@@ -87,6 +92,30 @@ function continueWithEmail() {
               class="field-input"
             />
           </div>
+          <div>
+            <label class="sr-only" for="password">Password</label>
+            <div class="login__password">
+              <input
+                id="password"
+                v-model="password"
+                name="password"
+                :type="showPassword ? 'text' : 'password'"
+                placeholder="Password"
+                class="field-input"
+              />
+              <button
+                type="button"
+                class="login__password-toggle"
+                :aria-label="showPassword ? 'Hide password' : 'Show password'"
+                @click="showPassword = !showPassword"
+              >
+                <span class="material-symbols-outlined">{{ showPassword ? 'visibility_off' : 'visibility' }}</span>
+              </button>
+            </div>
+          </div>
+          <p class="login__hint">
+            No account yet? We'll create one for you automatically and sign you in.
+          </p>
           <button type="submit" class="btn btn-primary btn-block" :disabled="loading">Continue with Email</button>
           <p class="login__terms">
             By continuing, you agree to our

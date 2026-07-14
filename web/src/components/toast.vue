@@ -82,14 +82,18 @@ onBeforeUnmount(() => clearTimeout(timer))
   font-size: 14px;
   line-height: 20px;
   font-weight: 600;
-  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.25);
+  background: rgb(var(--color-primary) / 0.85);
+  -webkit-backdrop-filter: blur(20px) saturate(180%);
+  backdrop-filter: blur(20px) saturate(180%);
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.25), inset 0 1px 0 rgba(255, 255, 255, 0.3);
   overflow: hidden;
 }
 .toast--ok {
   background: rgb(var(--color-primary));
 }
 .toast--error {
-  background: rgb(var(--color-error));
+  background: rgb(var(--color-error) / 0.85);
 }
 .toast__icon {
   font-size: 22px;

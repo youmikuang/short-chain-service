@@ -11,9 +11,11 @@
   top: 0;
   z-index: 10;
   width: 100%;
-  background: rgb(var(--color-surface) / 0.8);
-  backdrop-filter: blur(12px);
-  border-bottom: 1px solid rgb(var(--color-outline-variant) / 0.3);
+  background: var(--glass-bg);
+  -webkit-backdrop-filter: blur(20px) saturate(180%);
+  backdrop-filter: blur(20px) saturate(180%);
+  border-bottom: 1px solid var(--glass-border);
+  box-shadow: inset 0 1px 0 var(--glass-highlight), 0 8px 24px rgba(0, 0, 0, 0.06);
 }
 .login__nav-inner {
   max-width: 1200px;
@@ -52,10 +54,13 @@
 .login__card {
   width: 100%;
   max-width: 448px;
-  background: rgb(var(--color-surface-container-lowest) / 0.95);
-  backdrop-filter: blur(4px);
+  margin-top: -50px;
+  background: var(--glass-bg);
+  -webkit-backdrop-filter: blur(24px) saturate(180%);
+  backdrop-filter: blur(24px) saturate(180%);
   border-radius: 12px;
-  box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.08), 0 2px 4px -2px rgb(0 0 0 / 0.08);
+  box-shadow: var(--glass-shadow), inset 0 1px 0 var(--glass-highlight);
+  border: 1px solid var(--glass-border);
   padding: 32px;
   text-align: center;
   display: flex;
@@ -105,18 +110,20 @@
   align-items: center;
   justify-content: center;
   gap: 12px;
-  background: rgb(var(--color-surface));
+  background: var(--glass-bg);
+  -webkit-backdrop-filter: blur(12px) saturate(160%);
+  backdrop-filter: blur(12px) saturate(160%);
   color: rgb(var(--color-on-surface));
-  border: 1px solid rgb(var(--color-outline-variant));
+  border: 1px solid var(--glass-border);
+  box-shadow: inset 0 1px 0 var(--glass-highlight);
   border-radius: 8px;
   padding: 12px 24px;
   cursor: pointer;
-  box-shadow: 0 1px 2px rgb(0 0 0 / 0.05);
   transition: background 0.2s ease, box-shadow 0.2s ease;
 }
 .login__github:hover {
-  background: rgb(var(--color-surface-container-high));
-  box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.08), 0 4px 6px -4px rgb(0 0 0 / 0.08);
+  background: rgb(var(--color-surface-container-high) / 0.6);
+  box-shadow: inset 0 1px 0 var(--glass-highlight), 0 10px 15px -3px rgb(0 0 0 / 0.08), 0 4px 6px -4px rgb(0 0 0 / 0.08);
 }
 .login__github svg {
   width: 20px;
@@ -145,6 +152,46 @@
   display: flex;
   flex-direction: column;
   gap: 16px;
+}
+.login__hint {
+  margin: -4px 0 0;
+  font-size: 13px;
+  line-height: 18px;
+  letter-spacing: 0.01em;
+  font-weight: 500;
+  color: rgb(var(--color-secondary) / 0.85);
+}
+.login__password {
+  position: relative;
+}
+.login__password .field-input {
+  padding-right: 48px;
+}
+.login__password-toggle {
+  position: absolute;
+  top: 50%;
+  right: 8px;
+  transform: translateY(-50%);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  padding: 0;
+  border: none;
+  background: transparent;
+  color: rgb(var(--color-secondary));
+  border-radius: 8px;
+  cursor: pointer;
+  transition: color 0.2s ease, background 0.2s ease;
+}
+.login__password-toggle:hover {
+  color: rgb(var(--color-on-surface));
+  background: rgb(var(--color-surface-container-high) / 0.6);
+}
+.login__password-toggle .material-symbols-outlined {
+  font-size: 22px;
+  line-height: 1;
 }
 .login__terms {
   font-size: 14px;

@@ -3,9 +3,6 @@
   padding-top: 16px;
   padding-bottom: 16px;
 }
-.dark .footer {
-  background: rgb(var(--color-surface));
-}
 .footer__text {
   text-align: center;
   font-size: 14px;

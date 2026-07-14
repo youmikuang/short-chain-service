@@ -190,8 +190,6 @@ watch(search, onSearch)
               </div>
             </div>
           </div>
-
-          <div class="logs__spacer"></div>
         </div>
       </div>
     </main>

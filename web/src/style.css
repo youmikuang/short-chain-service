@@ -52,6 +52,13 @@
   --color-on-error: 255 255 255;
   --color-error-container: 255 218 214;
   --color-on-error-container: 147 0 10;
+
+  /* ---- Glassmorphism (iOS 26/27 "Liquid Glass") tokens ---- */
+  --glass-bg: rgba(255, 255, 255, 0.55);
+  --glass-border: rgba(255, 255, 255, 0.45);
+  --glass-border-input: rgba(108, 105, 105, 0.45);
+  --glass-highlight: rgba(255, 255, 255, 0.65);
+  --glass-shadow: 0 8px 32px rgba(31, 38, 135, 0.10), 0 2px 8px rgba(0, 0, 0, 0.04);
 }
 
 .dark {
@@ -102,6 +109,13 @@
   --color-on-error: 60 10 10;
   --color-error-container: 90 20 20;
   --color-on-error-container: 255 218 214;
+
+  /* ---- Glassmorphism (iOS 26/27 "Liquid Glass") tokens ---- */
+  --glass-bg: rgba(30, 33, 36, 0.45);
+  --glass-border: rgba(255, 255, 255, 0.12);
+  --glass-border-input: rgba(255, 255, 255, 0.12);
+  --glass-highlight: rgba(255, 255, 255, 0.14);
+  --glass-shadow: 0 8px 32px rgba(0, 0, 0, 0.35);
 }
 
 /* ============================================================
@@ -130,6 +144,30 @@ body {
   line-height: 24px;
   font-weight: 400;
   -webkit-font-smoothing: antialiased;
+}
+
+/* ============================================================
+   Ambient aurora backdrop — gives the glass something to refract
+   (sits behind all content, in front of the solid body color)
+   ============================================================ */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background:
+    radial-gradient(42rem 42rem at 10% 6%, rgba(0, 114, 255, 0.20), transparent 60%),
+    radial-gradient(38rem 38rem at 90% 14%, rgba(120, 80, 255, 0.18), transparent 60%),
+    radial-gradient(44rem 44rem at 72% 94%, rgba(0, 199, 190, 0.16), transparent 60%),
+    radial-gradient(40rem 40rem at 16% 90%, rgba(255, 120, 180, 0.14), transparent 60%);
+}
+.dark body::before {
+  background:
+    radial-gradient(42rem 42rem at 10% 6%, rgba(40, 110, 255, 0.28), transparent 60%),
+    radial-gradient(38rem 38rem at 90% 14%, rgba(140, 90, 255, 0.24), transparent 60%),
+    radial-gradient(44rem 44rem at 72% 94%, rgba(0, 200, 190, 0.20), transparent 60%),
+    radial-gradient(40rem 40rem at 16% 90%, rgba(255, 90, 160, 0.18), transparent 60%);
 }
 
 /* Smooth theme switch: ease color/border/shadow across the page. */

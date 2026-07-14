@@ -123,6 +123,16 @@ async function copy() {
               </button>
             </div>
 
+            <div class="hero__features">
+              <span class="hero__feature"
+                ><span class="material-symbols-outlined">verified</span> No credit card
+                required</span
+              >
+              <span class="hero__feature"
+                ><span class="material-symbols-outlined">lock</span> SSL encrypted</span
+              >
+            </div>
+
             <div v-if="shortUrl" class="hero__result">
               <span class="material-symbols-outlined hero__result-icon">check_circle</span>
               <a :href="`https://${shortUrl}`" class="hero__result-link">{{ shortUrl }}</a>
@@ -136,16 +146,6 @@ async function copy() {
             </div>
 
             <div v-if="error" class="hero__error">{{ error }}</div>
-
-            <div class="hero__features">
-              <span class="hero__feature"
-                ><span class="material-symbols-outlined">verified</span> No credit card
-                required</span
-              >
-              <span class="hero__feature"
-                ><span class="material-symbols-outlined">lock</span> SSL encrypted</span
-              >
-            </div>
           </div>
         </div>
       </section>
