@@ -111,7 +111,7 @@ func (m *ShortLinkModel) FindPageWithUser(ctx context.Context, page, pageSize in
 		return nil, 0, err
 	}
 	offset := (page - 1) * pageSize
-	query := "select " + shortLinkJoinRows + ", u.nickname as user_name, u.email as user_email from " +
+	query := "select " + shortLinkJoinRows + ", COALESCE(u.nickname,'') as user_name, COALESCE(u.email,'') as user_email from " +
 		m.table + " sl left join `users` u on sl.user_id = u.id order by sl.id desc limit ? offset ?"
 	var items []ShortLinkWithUser
 	if err := m.conn.QueryRows(&items, query, pageSize, offset); err != nil {

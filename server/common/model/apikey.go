@@ -86,7 +86,7 @@ func (m *ApiKeyModel) FindPageWithUser(ctx context.Context, page, pageSize int64
 		return nil, 0, err
 	}
 	offset := (page - 1) * pageSize
-	query := "select " + apiKeyJoinRows + ", u.nickname as user_name, u.email as user_email from " +
+	query := "select " + apiKeyJoinRows + ", COALESCE(u.nickname,'') as user_name, COALESCE(u.email,'') as user_email from " +
 		m.table + " ak left join `users` u on ak.user_id = u.id order by ak.id desc limit ? offset ?"
 	var items []ApiKeyWithUser
 	if err := m.conn.QueryRows(&items, query, pageSize, offset); err != nil {
