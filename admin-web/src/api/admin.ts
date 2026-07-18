@@ -46,6 +46,7 @@ export interface LinkItem {
   short_url: string
   clicks: number
   status: number
+  source: string
   user_name: string
   user_email: string
   created_at: string

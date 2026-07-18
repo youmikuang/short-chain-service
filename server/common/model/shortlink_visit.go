@@ -15,6 +15,7 @@ type ShortLinkVisit struct {
 	IP        string
 	Referer   string
 	Status    int64
+	Source    string
 	CreatedAt time.Time
 }
 
@@ -32,13 +33,14 @@ const clickEventTable = "click_events"
 // 因此这里不显式传该列。调用方（rpc.Resolve）应以异步方式调用，避免阻塞跳转。
 func (m *ShortLinkVisitModel) Insert(ctx context.Context, data *ShortLinkVisit) error {
 	_, err := m.conn.ExecContext(ctx,
-		"INSERT INTO "+clickEventTable+" (code, long_url, user_id, ip, referer, status) VALUES (?, ?, ?, ?, ?, ?)",
-		data.Code, data.LongURL, data.UserId, data.IP, data.Referer, data.Status)
+		"INSERT INTO "+clickEventTable+" (code, long_url, user_id, ip, referer, status, source) VALUES (?, ?, ?, ?, ?, ?, ?)",
+		data.Code, data.LongURL, data.UserId, data.IP, data.Referer, data.Status, data.Source)
 	return err
 }
 
-// FindPageByUser 用户维度短链访问日志（仅本人短链），支持按 code / long_url 模糊搜索
-func (m *ShortLinkVisitModel) FindPageByUser(ctx context.Context, userId, page, pageSize int64, search string) ([]ShortLinkVisit, int64, error) {
+// FindPageByUser 用户维度短链访问日志（仅本人短链），支持按 code / long_url 模糊搜索，
+// source 可选（"web" / "api"/"rpc"），为空时不过滤。
+func (m *ShortLinkVisitModel) FindPageByUser(ctx context.Context, userId, page, pageSize int64, search, source string) ([]ShortLinkVisit, int64, error) {
 	if page <= 0 {
 		page = 1
 	}
@@ -51,6 +53,10 @@ func (m *ShortLinkVisitModel) FindPageByUser(ctx context.Context, userId, page, 
 		where += " AND (code LIKE ? OR long_url LIKE ?)"
 		args = append(args, "%"+search+"%", "%"+search+"%")
 	}
+	if source != "" {
+		where += " AND source = ?"
+		args = append(args, source)
+	}
 
 	var total int64
 	if err := m.conn.QueryRowContext(ctx, "SELECT count() FROM "+clickEventTable+where, args...).Scan(&total); err != nil {
@@ -58,7 +64,8 @@ func (m *ShortLinkVisitModel) FindPageByUser(ctx context.Context, userId, page, 
 	}
 
 	offset := (page - 1) * pageSize
-	query := "SELECT code, long_url, user_id, ip, referer, status, created_at FROM " + clickEventTable +
+	selCols := "code, long_url, user_id, ip, referer, status, source, created_at"
+	query := "SELECT " + selCols + " FROM " + clickEventTable +
 		where + " ORDER BY created_at DESC LIMIT ? OFFSET ?"
 	listArgs := append(append([]interface{}{}, args...), pageSize, offset)
 	rows, err := m.conn.QueryContext(ctx, query, listArgs...)
@@ -69,7 +76,7 @@ func (m *ShortLinkVisitModel) FindPageByUser(ctx context.Context, userId, page, 
 	var items []ShortLinkVisit
 	for rows.Next() {
 		var v ShortLinkVisit
-		if err := rows.Scan(&v.Code, &v.LongURL, &v.UserId, &v.IP, &v.Referer, &v.Status, &v.CreatedAt); err != nil {
+		if err := rows.Scan(&v.Code, &v.LongURL, &v.UserId, &v.IP, &v.Referer, &v.Status, &v.Source, &v.CreatedAt); err != nil {
 			return nil, 0, err
 		}
 		items = append(items, v)

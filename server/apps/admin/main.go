@@ -8,6 +8,7 @@ import (
 
 	"server/apps/admin/internal/config"
 	"server/apps/admin/internal/handler"
+	"server/apps/admin/internal/middleware"
 	"server/apps/admin/internal/svc"
 
 	"github.com/zeromicro/go-zero/core/conf"
@@ -45,6 +46,7 @@ func main() {
 
 	ctx := svc.NewServiceContext(c)
 	handler.RegisterHandlers(server, ctx)
+	server.Use(middleware.NewActionLogMiddleware(ctx.Models))
 
 	server.Start()
 }

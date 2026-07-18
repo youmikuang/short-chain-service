@@ -2,12 +2,14 @@ package middleware
 
 import (
 	"context"
+	"encoding/json"
+	"errors"
 	"net/http"
 	"server/apps/api/internal/svc"
 	"server/common/errorx"
-	"server/common/tool"
 	"strings"
 
+	"github.com/golang-jwt/jwt/v4"
 	"github.com/zeromicro/go-zero/rest/httpx"
 )
 
@@ -17,51 +19,73 @@ const APIKeyUIDKey = "uid"
 // APIKeyKey 是 API Key 鉴权后写入 context 的原始 Key（供 logic 透传给 rpc）
 const APIKeyKey = "api_key"
 
-// apiKeySkipPaths 是仅用 JWT 鉴权、不需要 X-API-Key 的路由（method+path）。
-// 这些路由由 go-zero 的 JWT 中间件保护，API Key 中间件应直接放行。
-var apiKeySkipPaths = map[string]bool{
-	"GET /api/short-links":    true, // 用户自己的短链列表
-	"GET /api/keys":           true, // 列出当前用户的 API Key
-	"POST /api/keys":          true, // 创建 API Key
-	"DELETE /api/keys/:id":    true, // 吊销 API Key
-	"GET /api/profile":        true, // 资料读取
-	"POST /api/profile":       true, // 资料更新
-	"POST /api/profile/password": true, // 改密码
-	"GET /api/settings":       true, // 设置读取
-	"PUT /api/settings":       true, // 设置更新
-	"GET /api/usage-trends":   true, // 用量趋势
-	"GET /api/logs":           true, // 访问日志
-}
-
-// NewAPIKeyMiddleware 校验请求头 X-API-Key（仅对 /api/* 生效，/r/* 跳转为公开端点）。
-// 校验通过后把 key 对应的 user_id 写入 context，供后续 logic 使用。
-// 注意：仅用 JWT 鉴权的路由（见 apiKeySkipPaths）会被直接放行，交由 JWT 中间件处理。
-func NewAPIKeyMiddleware(svcCtx *svc.ServiceContext) func(next http.HandlerFunc) http.HandlerFunc {
+// NewAuthMiddleware 校验请求身份：Bearer JWT 优先（web 前端，无需 API Key），
+// 缺失时回退到 X-API-Key（第三方）。注意：API Key 的合法性校验放在 rpc 核心服务，
+// 此处仅把原始 key 透传（写入 context），不在此做哈希比对。
+// 仅对 /api/* 生效，/r/* 跳转为公开端点（不在此中间件处理）。
+func NewAuthMiddleware(svcCtx *svc.ServiceContext) func(next http.HandlerFunc) http.HandlerFunc {
 	return func(next http.HandlerFunc) http.HandlerFunc {
 		return func(w http.ResponseWriter, r *http.Request) {
 			if !strings.HasPrefix(r.URL.Path, "/api/") {
 				next(w, r)
 				return
 			}
-			if apiKeySkipPaths[r.Method+" "+r.URL.Path] {
-				next(w, r)
+			// 1) Bearer JWT：web 前端鉴权，有效即可创建短链；key 与 web 无关，直接忽略
+			if h := r.Header.Get("Authorization"); strings.HasPrefix(h, "Bearer ") {
+				uid, err := parseJWTUid(r, svcCtx.Config.Auth.AccessSecret)
+				if err != nil {
+					httpx.ErrorCtx(r.Context(), w, errorx.Unauthorized("invalid Authorization"))
+					return
+				}
+				ctx := context.WithValue(r.Context(), "uid", uid)
+				next(w, r.WithContext(ctx))
 				return
 			}
-			key := r.Header.Get("X-API-Key")
-			if key == "" {
-				httpx.ErrorCtx(r.Context(), w, errorx.Unauthorized("missing X-API-Key"))
+			// 2) 回退 X-API-Key：原始 key 透传，交由 rpc 校验
+			if key := r.Header.Get("X-API-Key"); key != "" {
+				ctx := context.WithValue(r.Context(), APIKeyKey, key)
+				next(w, r.WithContext(ctx))
 				return
 			}
-			row, err := svcCtx.Models.ApiKey.FindOneByHash(r.Context(), tool.Sha256Hex(key))
-			if err != nil || row.Status != 1 {
-				httpx.ErrorCtx(r.Context(), w, errorx.Unauthorized("invalid X-API-Key"))
-				return
-			}
-			// 写入 user_id 与原始 key 到 context，供 CreateShortLink 透传给 rpc
-			ctx := r.Context()
-			ctx = context.WithValue(ctx, APIKeyUIDKey, float64(row.UserId))
-			ctx = context.WithValue(ctx, APIKeyKey, key)
-			next(w, r.WithContext(ctx))
+			httpx.ErrorCtx(r.Context(), w, errorx.Unauthorized("missing Authorization or X-API-Key"))
 		}
+	}
+}
+
+// parseJWTUid 校验 Authorization: Bearer <token> 并返回 uid（与 go-zero JWT 中间件同算法 HS256）。
+func parseJWTUid(r *http.Request, secret string) (float64, error) {
+	h := r.Header.Get("Authorization")
+	if !strings.HasPrefix(h, "Bearer ") {
+		return 0, errors.New("missing bearer token")
+	}
+	tokenStr := strings.TrimSpace(strings.TrimPrefix(h, "Bearer "))
+	token, err := jwt.Parse(tokenStr, func(t *jwt.Token) (interface{}, error) {
+		if _, ok := t.Method.(*jwt.SigningMethodHMAC); !ok {
+			return nil, errors.New("unexpected signing method")
+		}
+		return []byte(secret), nil
+	})
+	if err != nil || !token.Valid {
+		return 0, errors.New("invalid token")
+	}
+	claims, ok := token.Claims.(jwt.MapClaims)
+	if !ok {
+		return 0, errors.New("invalid claims")
+	}
+	v, ok := claims["uid"]
+	if !ok {
+		return 0, errors.New("uid missing in token")
+	}
+	switch n := v.(type) {
+	case float64:
+		return n, nil
+	case json.Number:
+		f, err := n.Float64()
+		if err != nil {
+			return 0, err
+		}
+		return f, nil
+	default:
+		return 0, errors.New("invalid uid type")
 	}
 }

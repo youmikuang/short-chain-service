@@ -26,6 +26,7 @@ func (l *ResolveLogic) Resolve(in *pb.ResolveReq) (*pb.ResolveResp, error) {
 	longURL, err := l.svcCtx.Redis.Get(l.ctx, "short_link:"+code).Result()
 	// 短链所属用户（用于写入访问明细日志，按用户隔离）
 	var ownerId int64
+	var source string
 	if err == redis.Nil {
 		// 回源 MySQL
 		row, derr := l.svcCtx.Models.ShortLink.FindOneByCode(l.ctx, code)
@@ -36,8 +37,10 @@ func (l *ResolveLogic) Resolve(in *pb.ResolveReq) (*pb.ResolveResp, error) {
 		}
 		longURL = row.LongURL
 		ownerId = row.UserId
+		source = row.Source
 		l.svcCtx.Redis.Set(l.ctx, "short_link:"+code, longURL, redisCacheTTL())
 		l.svcCtx.Redis.Set(l.ctx, "short_link:"+code+":uid", ownerId, redisCacheTTL())
+		l.svcCtx.Redis.Set(l.ctx, "short_link:"+code+":source", source, redisCacheTTL())
 	} else if err != nil {
 		return nil, err
 	} else {
@@ -47,6 +50,13 @@ func (l *ResolveLogic) Resolve(in *pb.ResolveReq) (*pb.ResolveResp, error) {
 		} else if row, derr := l.svcCtx.Models.ShortLink.FindOneByCode(l.ctx, code); derr == nil {
 			ownerId = row.UserId
 			l.svcCtx.Redis.Set(l.ctx, "short_link:"+code+":uid", ownerId, redisCacheTTL())
+		}
+		// source 优先从缓存读取，缺失再回源
+		if s, e := l.svcCtx.Redis.Get(l.ctx, "short_link:"+code+":source").Result(); e == nil {
+			source = s
+		} else if row, derr := l.svcCtx.Models.ShortLink.FindOneByCode(l.ctx, code); derr == nil {
+			source = row.Source
+			l.svcCtx.Redis.Set(l.ctx, "short_link:"+code+":source", source, redisCacheTTL())
 		}
 	}
 
@@ -70,6 +80,7 @@ func (l *ResolveLogic) Resolve(in *pb.ResolveReq) (*pb.ResolveResp, error) {
 			LongURL: longURL,
 			UserId:  ownerId,
 			Status:  200,
+			Source:  source,
 		})
 	}()
 

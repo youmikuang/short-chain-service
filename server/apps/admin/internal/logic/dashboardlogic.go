@@ -49,7 +49,7 @@ func (l *DashboardLogic) Dashboard() (resp *types.DashboardResp, err error) {
 	}
 
 	// 流量趋势（近 7 天）
-	traffic, err := m.AccessLog.CountByDay(l.ctx, 7)
+	traffic, err := m.ActionLog.CountByDay(l.ctx, 7)
 	if err != nil {
 		return nil, errorx.Internal(err.Error())
 	}

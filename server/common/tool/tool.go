@@ -6,6 +6,7 @@ import (
 	"errors"
 	"math/rand"
 	"net/url"
+	"strings"
 	"sync"
 	"time"
 )
@@ -53,6 +54,30 @@ func ExtractDomain(rawURL string) (string, error) {
 		return "", errors.New("empty host")
 	}
 	return host, nil
+}
+
+// NormalizeURL 归一化长链接，用于去重判断：去掉 fragment、小写化 scheme/host、
+// 去掉仅含 "/" 的路径、按字典序重排 query 参数。使 https://baidu.com/ 与
+// https://baidu.com、https://Baidu.com/?a=1&b=2 等视为同一链接。
+// 解析失败则原样返回（仅去空格）。
+func NormalizeURL(raw string) string {
+	s := strings.TrimSpace(raw)
+	u, err := url.Parse(s)
+	if err != nil {
+		return s
+	}
+	u.Fragment = ""
+	if u.Scheme != "" {
+		u.Scheme = strings.ToLower(u.Scheme)
+	}
+	if u.Host != "" {
+		u.Host = strings.ToLower(u.Host)
+	}
+	if u.Path == "/" {
+		u.Path = ""
+	}
+	u.RawQuery = u.Query().Encode() // Encode 会按 key 字典序排列
+	return u.String()
 }
 
 // Snowflake 简易雪花 ID 生成器（Nginx 固定实例下 workerId 固定分配）

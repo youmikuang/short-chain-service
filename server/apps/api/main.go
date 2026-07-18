@@ -46,7 +46,7 @@ func main() {
 
 	ctx := svc.NewServiceContext(c)
 	handler.RegisterHandlers(server, ctx)
-	server.Use(middleware.NewAccessLogMiddleware(ctx))
+	server.Use(middleware.NewActionLogMiddleware(ctx))
 
 	server.Start()
 }

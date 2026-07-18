@@ -4,7 +4,7 @@ import (
 	"database/sql"
 	"fmt"
 
-	"github.com/ClickHouse/clickhouse-go/v2"
+	_ "github.com/ClickHouse/clickhouse-go/v2"
 )
 
 // Config ClickHouse 连接配置（对应各服务 etc 中的 ClickHouse 段）

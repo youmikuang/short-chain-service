@@ -1,8 +1,5 @@
 # 短链服务架构文档
 
-> 版本：v3（go-zero 重构：开放 API + 管理后台 + 短链核心 gRPC）
-> 更新时间：2026-07-18（基于当前代码实际梳理，区分「已实现」与「规划中」）
-
 ---
 
 ## 一、架构总览
@@ -33,10 +30,10 @@
         │
         ▼
 【 存储 】
-   · MySQL    ：用户 / API Key / 用户设置 / 短链 / 黑名单 / 网关访问日志
+   · MySQL    ：用户 / API Key / 用户设置 / 短链 / 黑名单 / handler 操作日志(`action_logs`)
    · Redis    ：跳转缓存(short_link:{code}) + 黑名单 Set + 实时点击计数
    · Kafka    ：[规划中] 点击流异步通道（配置已就位，业务未接入）
-   · ClickHouse：短链访问明细 `click_events`（已接入，rpc.Resolve 异步写入，/api/logs 与 /api/usage-trends 直接查询）
+   · ClickHouse：短链访问明细 `click_events`（已接入，rpc.Resolve 异步写入，/api/logs 与 /api/usage-trends 直接查询）+ RPC 调用日志 `rpc_logs`（rpc 拦截器异步写入）
 ```
 
 > 设计取舍
@@ -101,8 +98,8 @@ short-chain-service/
 │   │   ├── errorx/          # 统一错误码
 │   │   ├── interceptors/    # gRPC 拦截器 / API 中间件
 │   │   ├── model/           # 数据模型：MySQL(sqlx) user/apikey/usersettings/
-│   │   │                   #   shortlink/domainblacklist/accesslog；
-│   │   │                   #   ClickHouse shortlink_visit(click_events)
+│   │   │                   #   shortlink/domainblacklist/actionlog；
+│   │   │                   #   ClickHouse shortlink_visit(click_events)/rpclog(rpc_logs)
 │   │   ├── tool/            # 工具类（加密/Base62/Snowflake/域名提取）
 │   │   └── xfilters/        # 通用过滤器
 │   └── deploy/              # 部署配置
@@ -204,7 +201,9 @@ GET /r/:code
 | `user_settings` | 用户偏好（email_notif / security_alerts / marketing_comm，按 user_id） |
 | `short_links` | 短链核心（code unique / long_url / user_id / clicks / status） |
 | `domain_blacklist` | 域名黑名单（创建/跳转时校验，admin 可管理） |
-| `access_logs` | 网关 HTTP 访问日志（运维排查，非用户访问明细） |
+| `action_logs` | handler 操作日志（web / admin-web 经网关与 admin 服务产生的操作记录） |
+| `click_events` | 短链访问明细（ClickHouse，每次 `/r/:code` 跳转异步写入） |
+| `rpc_logs` | 短链核心 gRPC 调用日志（ClickHouse，rpc 拦截器异步写入） |
 
 > **ClickHouse `click_events` 表**（非 MySQL，已启用）：短链被访问的明细（驱动 `/api/logs`、`/api/usage-trends`，按 `user_id` 隔离），由 `rpc.Resolve` 异步写入，`/api/logs` 分页与 `/api/usage-trends` 按天聚合直接查询。MySQL 中原有的 `short_link_visits` 表已废弃移除；表结构见 `deploy/sql/clickhouse.sql`。
 

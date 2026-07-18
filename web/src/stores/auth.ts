@@ -54,6 +54,10 @@ export const useAuthStore = defineStore('auth', () => {
       res = await apiRegister(email, password)
     }
     applySession(res.token, deriveProfile(res, email))
+    // 注册响应带回的 API Key 存入本地（web 创建短链时随请求带上，但网关按 JWT 鉴权，key 不参与校验）
+    if (res.apiKey) {
+      localStorage.setItem('slink_api_key', res.apiKey)
+    }
   }
 
   async function logout() {

@@ -21,8 +21,10 @@ type Config struct {
 	}
 	BlacklistRedisKey string
 	Rpc               zrpc.RpcClientConf
-	Admin struct {
+	Admin             struct {
 		Username string
 		Password string
 	}
+	// ShortDomain 短链对外域名
+	ShortDomain string
 }

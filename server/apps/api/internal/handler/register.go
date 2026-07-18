@@ -9,11 +9,11 @@ import (
 )
 
 // RegisterHandlers 注册路由，按鉴权方式分组：
-//   - apiKeyRoutes: 需 X-API-Key（第三方短链调用）
-//   - jwtRoutes:    需 JWT（用户自己的资源：API Key / 资料）
-//   - publicRoutes: 公开（注册/登录/GitHub/短链跳转）
+//   - shortLinkRoutes: 需 X-API-Key 或 Bearer JWT（创建/查询短链，兼容第三方与 web 前端）
+//   - jwtRoutes:       需 JWT（用户自己的资源：API Key / 资料）
+//   - publicRoutes:    公开（注册/登录/GitHub/短链跳转）
 func RegisterHandlers(server *rest.Server, svcCtx *svc.ServiceContext) {
-	apiKeyRoutes := []rest.Route{
+	shortLinkRoutes := []rest.Route{
 		{Method: http.MethodPost, Path: "/api/short-links", Handler: CreateShortLinkHandler(svcCtx)},
 		{Method: http.MethodGet, Path: "/api/short-links/:code", Handler: GetByCodeHandler(svcCtx)},
 	}
@@ -38,7 +38,8 @@ func RegisterHandlers(server *rest.Server, svcCtx *svc.ServiceContext) {
 		{Method: http.MethodGet, Path: "/r/:code", Handler: ResolveHandler(svcCtx)},
 	}
 
-	server.AddRoutes(rest.WithMiddlewares([]rest.Middleware{middleware.NewAPIKeyMiddleware(svcCtx)}, apiKeyRoutes...))
+	// 短链创建/查询：X-API-Key 或 Bearer JWT 任一有效即可
+	server.AddRoutes(rest.WithMiddlewares([]rest.Middleware{middleware.NewAuthMiddleware(svcCtx)}, shortLinkRoutes...))
 	server.AddRoutes(jwtRoutes, rest.WithJwt(svcCtx.Config.Auth.AccessSecret))
 	server.AddRoutes(publicRoutes)
 }

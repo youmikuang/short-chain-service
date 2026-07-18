@@ -5,6 +5,7 @@ import (
 
 	"server/apps/api/internal/config"
 	"server/common/clickhouse"
+	"server/common/interceptors"
 	"server/common/model"
 	pb "server/apps/rpc/pb"
 
@@ -26,7 +27,7 @@ type ServiceContext struct {
 
 func NewServiceContext(c config.Config) *ServiceContext {
 	conn := sqlx.NewMysql(c.Mysql.DataSource)
-	cli := zrpc.MustNewClient(c.Rpc)
+	cli := zrpc.MustNewClient(c.Rpc, zrpc.WithUnaryClientInterceptor(interceptors.UnaryClientInterceptor()))
 	chDB, err := clickhouse.NewClient(clickhouse.Config{
 		Host:     c.ClickHouse.Host,
 		Port:     c.ClickHouse.Port,

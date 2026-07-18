@@ -1,12 +1,8 @@
 <script setup lang="ts">
 import { ref, computed, onMounted, watch } from 'vue'
-import { RouterLink } from 'vue-router'
 import TheNavBar from '@/components/navbar.vue'
 import TheFooter from '@/components/footer.vue'
 import { fetchLinks, createShortLink, type ShortLink } from '@/api'
-
-// Canonical short-link domain used when building the full copyable URL.
-const SHORT_DOMAIN = 'slink.sh'
 
 const links = ref<ShortLink[]>([])
 const loading = ref(false)
@@ -21,26 +17,10 @@ function toggleTimeSort() {
   sortDir.value =
     sortDir.value === null ? 'desc' : sortDir.value === 'desc' ? 'asc' : null
   page.value = 1
+  load()
 }
 
-const filtered = computed(() => {
-  const q = search.value.trim().toLowerCase()
-  let list = links.value
-  if (q)
-    list = list.filter(
-      (l) =>
-        l.longUrl.toLowerCase().includes(q) ||
-        l.shortUrl.toLowerCase().includes(q),
-    )
-  if (sortDir.value) {
-    list = [...list].sort((a, b) => {
-      const ta = new Date(a.createdAt).getTime()
-      const tb = new Date(b.createdAt).getTime()
-      return sortDir.value === 'asc' ? ta - tb : tb - ta
-    })
-  }
-  return list
-})
+const filtered = computed(() => links.value)
 
 const totalPages = computed(() =>
   Math.max(1, Math.ceil(filtered.value.length / pageSize.value)),
@@ -61,18 +41,36 @@ const copiedCode = ref<string | null>(null)
 async function load() {
   loading.value = true
   try {
-    links.value = await fetchLinks()
+    links.value = await fetchLinks({
+      search: search.value.trim(),
+      sort: sortDir.value ?? '',
+    })
   } finally {
     loading.value = false
   }
 }
 
+let searchTimer: ReturnType<typeof setTimeout> | null = null
 function onSearch() {
   page.value = 1
+  if (searchTimer) clearTimeout(searchTimer)
+  searchTimer = setTimeout(() => load(), 300)
 }
 
 function formatClicks(n: number): string {
   return n.toLocaleString('en-US')
+}
+
+function sourceText(s?: string): string {
+  if (s === 'api') return 'RPC'
+  if (s === 'web') return 'Web'
+  return s || '-'
+}
+
+function sourceClass(s?: string): string {
+  if (s === 'api') return 'badge badge-api'
+  if (s === 'web') return 'badge badge-web'
+  return 'badge'
 }
 
 function downloadCsv(filename: string, data: string[][]) {
@@ -93,7 +91,7 @@ function exportCsv() {
   const header = ['Original URL', 'Shortened URL', 'Created At', 'Clicks']
   const body = links.value.map((l) => [
     l.longUrl,
-    l.shortUrl,
+    l.sUrl,
     l.createdAt,
     String(l.clicks ?? 0),
   ])
@@ -102,7 +100,7 @@ function exportCsv() {
 
 async function copyLink(link: ShortLink) {
   try {
-    await navigator.clipboard.writeText(`https://${SHORT_DOMAIN}/${link.shortUrl}`)
+    await navigator.clipboard.writeText(link.sUrl)
     copiedCode.value = link.code
     setTimeout(() => {
       if (copiedCode.value === link.code) copiedCode.value = null
@@ -214,6 +212,7 @@ onMounted(load)
                   <tr class="urls__thead-row">
                     <th class="urls__th">Original URL</th>
                     <th class="urls__th">Shortened URL</th>
+                    <th class="urls__th">Source</th>
                     <th class="urls__th">Created At</th>
                     <th class="urls__th">Clicks</th>
                   </tr>
@@ -233,11 +232,13 @@ onMounted(load)
                     </td>
                     <td class="urls__td">
                       <div class="urls__short">
-                        <RouterLink
-                          :to="{ path: '/logs', query: { q: link.shortUrl } }"
+                        <a
+                          :href="link.sUrl"
                           class="urls__short-url"
-                          :title="`View logs for ${link.shortUrl}`"
-                          >{{ link.shortUrl }}</RouterLink
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          :title="`Open ${link.sUrl} in a new tab`"
+                          >{{ link.sUrl }}</a
                         >
                         <button
                           class="urls__copy"
@@ -250,6 +251,9 @@ onMounted(load)
                         </button>
                       </div>
                     </td>
+                    <td class="urls__td">
+                      <span :class="sourceClass(link.source)">{{ sourceText(link.source) }}</span>
+                    </td>
                     <td class="urls__td urls__td--muted">
                       {{ link.createdAt }}
                     </td>
@@ -260,7 +264,7 @@ onMounted(load)
                     </td>
                   </tr>
                   <tr v-if="pagedLinks.length === 0">
-                    <td colspan="4" class="urls__empty">
+                    <td colspan="5" class="urls__empty">
                       {{ loading ? 'Loading…' : 'No URLs found.' }}
                     </td>
                   </tr>

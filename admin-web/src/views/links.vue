@@ -69,6 +69,7 @@ onMounted(load)
                 <th class="px-6 py-4 text-label-caps text-secondary font-bold">User</th>
                 <th class="px-6 py-4 text-label-caps text-secondary font-bold">Original URL</th>
                 <th class="px-6 py-4 text-label-caps text-secondary font-bold">Shortened URL</th>
+                <th class="px-6 py-4 text-label-caps text-secondary font-bold">Source</th>
                 <th class="px-6 py-4 text-label-caps text-secondary font-bold">Created At</th>
                 <th class="px-6 py-4 text-label-caps text-secondary font-bold text-right">Visits</th>
                 <th class="px-6 py-4 text-label-caps text-secondary font-bold">Status</th>
@@ -93,6 +94,14 @@ onMounted(load)
                 <td class="px-6 py-4">
                   <p class="text-technical-mono text-primary font-medium">{{ row.short_url }}</p>
                 </td>
+                <td class="px-6 py-4">
+                  <span
+                    class="inline-flex items-center rounded-full border px-2.5 py-0.5 text-[11px] font-medium"
+                    :class="row.source === 'web'
+                      ? 'bg-primary/10 text-primary border-primary/20'
+                      : 'bg-tertiary-container/10 text-tertiary border-tertiary/20'"
+                  >{{ row.source === 'web' ? 'Web' : 'API' }}</span>
+                </td>
                 <td class="px-6 py-4 text-body-sm text-secondary">{{ row.created_at }}</td>
                 <td class="px-6 py-4 text-body-sm text-on-surface text-right font-medium">{{ row.clicks }}</td>
                 <td class="px-6 py-4">
@@ -100,10 +109,10 @@ onMounted(load)
                 </td>
               </tr>
               <tr v-if="!loading && !items.length">
-                <td class="px-6 py-10 text-center text-secondary text-body-sm" colspan="6">No links found</td>
+                <td class="px-6 py-10 text-center text-secondary text-body-sm" colspan="7">No links found</td>
               </tr>
               <tr v-if="loading">
-                <td class="px-6 py-10 text-center text-secondary text-body-sm" colspan="6">Loading…</td>
+                <td class="px-6 py-10 text-center text-secondary text-body-sm" colspan="7">Loading…</td>
               </tr>
             </tbody>
           </table>

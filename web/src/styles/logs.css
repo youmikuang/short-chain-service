@@ -74,6 +74,35 @@
   align-items: center;
   gap: 12px;
 }
+.logs__source-filter {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px;
+  border-radius: 10px;
+  background: rgb(var(--color-surface-container) / 0.6);
+  border: 1px solid var(--glass-border);
+}
+.logs__source-btn {
+  padding: 6px 14px;
+  border: none;
+  border-radius: 7px;
+  background: transparent;
+  color: rgb(var(--color-on-surface-variant));
+  font-size: 13px;
+  line-height: 18px;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background 0.2s ease, color 0.2s ease;
+}
+.logs__source-btn:hover {
+  background: rgb(var(--color-surface-container));
+}
+.logs__source-btn--active {
+  background: rgb(var(--color-primary));
+  color: rgb(var(--color-on-primary));
+}
 .logs__btn-ghost {
   display: inline-flex;
   align-items: center;

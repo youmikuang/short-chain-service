@@ -5,38 +5,15 @@
 --
 -- 说明：
 --   * 带 UNIQUE 约束的表使用 INSERT IGNORE，可重复执行而不报错。
---   * access_logs 无唯一键，仅首次灌入即可（重复执行会产生重复日志）。
+--   * action_logs 无唯一键，仅首次灌入即可（重复执行会产生重复日志）。
 --   * 用户密码为占位哈希，admin 后台使用 admin-api.yaml 中的 Admin 凭据登录，不依赖本表。
-
--- ---------------------------------------------------------------------------
--- 迁移：补齐新增列（兼容已在运行的旧库）
--- schema.sql 使用 CREATE TABLE IF NOT EXISTS，对已存在的表不会追加列，
--- 这里用 information_schema 判断后按需 ALTER，可重复执行且不报错。
--- ---------------------------------------------------------------------------
-SET @s = (SELECT IF(
-  (SELECT COUNT(*) FROM information_schema.COLUMNS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'api_keys' AND COLUMN_NAME = 'quota') = 0,
-  'ALTER TABLE api_keys ADD COLUMN quota BIGINT NOT NULL DEFAULT 0',
-  'SELECT 1'));
-PREPARE stmt FROM @s; EXECUTE stmt; DEALLOCATE PREPARE stmt;
-
-SET @s = (SELECT IF(
-  (SELECT COUNT(*) FROM information_schema.COLUMNS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'api_keys' AND COLUMN_NAME = 'used') = 0,
-  'ALTER TABLE api_keys ADD COLUMN used BIGINT NOT NULL DEFAULT 0',
-  'SELECT 1'));
-PREPARE stmt FROM @s; EXECUTE stmt; DEALLOCATE PREPARE stmt;
-
-SET @s = (SELECT IF(
-  (SELECT COUNT(*) FROM information_schema.COLUMNS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'domain_blacklist' AND COLUMN_NAME = 'attempts') = 0,
-  'ALTER TABLE domain_blacklist ADD COLUMN attempts BIGINT NOT NULL DEFAULT 0',
-  'SELECT 1'));
-PREPARE stmt FROM @s; EXECUTE stmt; DEALLOCATE PREPARE stmt;
 
 -- ---------------------------------------------------------------------------
 -- users（账号体系）
 -- ---------------------------------------------------------------------------
 INSERT IGNORE INTO users (id, email, password_hash, nickname, github_id, avatar, status, created_at) VALUES
 -- 以下账号密码统一为 password123（bcrypt 哈希由 golang.org/x/crypto/bcrypt 生成）
-(1, 'john@enterprise.co', '$2a$10$Ql5OF34j4tJbwzi.lrmJj.j5oYEQWeKmGlmfsMBHqErWwuYSKTnLe', 'John Doe',       NULL, '', 1, NOW() - INTERVAL 120 DAY),
+(1, 'xhhsmd@gmail.com', '$2a$10$Ql5OF34j4tJbwzi.lrmJj.j5oYEQWeKmGlmfsMBHqErWwuYSKTnLe', 'John Doe',       NULL, '', 1, NOW() - INTERVAL 120 DAY),
 (2, 'sarah@infra-tech.io', '$2a$10$Ql5OF34j4tJbwzi.lrmJj.j5oYEQWeKmGlmfsMBHqErWwuYSKTnLe', 'Sarah Al-Farsi', NULL, '', 1, NOW() - INTERVAL 110 DAY),
 (3, 'marcus@shadow.dev',   '$2a$10$Ql5OF34j4tJbwzi.lrmJj.j5oYEQWeKmGlmfsMBHqErWwuYSKTnLe', 'Marcus K.',      NULL, '', 1, NOW() - INTERVAL 90 DAY),
 (4, 'api@datalabs.com',    '$2a$10$Ql5OF34j4tJbwzi.lrmJj.j5oYEQWeKmGlmfsMBHqErWwuYSKTnLe', 'Data Labs Inc',  NULL, '', 1, NOW() - INTERVAL 80 DAY),
@@ -94,9 +71,9 @@ INSERT IGNORE INTO domain_blacklist (domain, reason, attempts, created_at) VALUE
 ('login-verify-now.cc',     'Phishing', 15600, NOW() - INTERVAL 5 DAY);
 
 -- ---------------------------------------------------------------------------
--- access_logs（近 7 天访问日志，驱动 dashboard 流量趋势图）
+-- action_logs（近 7 天访问日志，驱动 dashboard 流量趋势图）
 -- ---------------------------------------------------------------------------
-INSERT INTO access_logs (user_id, method, endpoint, status, latency_ms, created_at) VALUES
+INSERT INTO action_logs (user_id, method, endpoint, status, latency_ms, created_at) VALUES
 -- 6 天前
 (1, 'GET',  '/api/resolve',   200, 12, NOW() - INTERVAL 6 DAY),
 (2, 'POST', '/api/shorten',   200, 31, NOW() - INTERVAL 6 DAY),

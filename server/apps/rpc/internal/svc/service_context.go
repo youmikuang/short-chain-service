@@ -6,7 +6,6 @@ import (
 	"server/apps/rpc/internal/config"
 	"server/common/clickhouse"
 	"server/common/model"
-	"server/common/tool"
 
 	"github.com/redis/go-redis/v9"
 	"github.com/zeromicro/go-zero/core/stores/sqlx"
@@ -14,13 +13,13 @@ import (
 
 // ServiceContext 短链核心服务上下文
 type ServiceContext struct {
-	Config         config.Config
-	Mysql          sqlx.SqlConn
-	Models         *model.Models
-	IdGen          *tool.Snowflake
-	Redis          *redis.Client
-	ClickHouse     *sql.DB
-	ClickHouseVisit *model.ShortLinkVisitModel
+	Config           config.Config
+	Mysql            sqlx.SqlConn
+	Models           *model.Models
+	Redis            *redis.Client
+	ClickHouse       *sql.DB
+	ClickHouseVisit  *model.ShortLinkVisitModel
+	ClickHouseRpcLog *model.RpcLogModel
 }
 
 func NewServiceContext(c config.Config) *ServiceContext {
@@ -42,12 +41,12 @@ func NewServiceContext(c config.Config) *ServiceContext {
 		panic(err)
 	}
 	return &ServiceContext{
-		Config:         c,
-		Mysql:          conn,
-		Models:         model.NewModels(conn),
-		IdGen:          tool.NewSnowflake(1),
-		Redis:          rdb,
-		ClickHouse:     chDB,
-		ClickHouseVisit: model.NewShortLinkVisitModel(chDB),
+		Config:           c,
+		Mysql:            conn,
+		Models:           model.NewModels(conn),
+		Redis:            rdb,
+		ClickHouse:       chDB,
+		ClickHouseVisit:  model.NewShortLinkVisitModel(chDB),
+		ClickHouseRpcLog: model.NewRpcLogModel(chDB),
 	}
 }

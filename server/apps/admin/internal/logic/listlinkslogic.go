@@ -37,9 +37,10 @@ func (l *ListLinksLogic) ListLinks(req *types.ListLinksReq) (resp *types.ListLin
 		resp.Items = append(resp.Items, types.LinkItem{
 			Code:      r.Code,
 			LongURL:   r.LongURL,
-			ShortURL:  "slnk.it/" + r.Code,
+			ShortURL:  l.svcCtx.Config.ShortDomain + "/" + r.Code,
 			Clicks:    r.Clicks,
 			Status:    int32(r.Status),
+			Source:    r.Source,
 			UserName:  r.UserName,
 			UserEmail: r.UserEmail,
 			CreatedAt: r.CreatedAt,

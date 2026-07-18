@@ -8,7 +8,7 @@ type Models struct {
 	User           *UserModel
 	ApiKey         *ApiKeyModel
 	UserSettings   *UserSettingsModel
-	AccessLog       *AccessLogModel
+	ActionLog       *ActionLogModel
 	ShortLink       *ShortLinkModel
 	DomainBlacklist *DomainBlacklistModel
 }
@@ -18,7 +18,7 @@ func NewModels(conn sqlx.SqlConn) *Models {
 		User:            NewUserModel(conn),
 		ApiKey:          NewApiKeyModel(conn),
 		UserSettings:    NewUserSettingsModel(conn),
-		AccessLog:       NewAccessLogModel(conn),
+		ActionLog:       NewActionLogModel(conn),
 		ShortLink:       NewShortLinkModel(conn),
 		DomainBlacklist: NewDomainBlacklistModel(conn),
 	}

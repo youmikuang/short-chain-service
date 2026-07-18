@@ -68,6 +68,7 @@ CREATE TABLE IF NOT EXISTS short_links (
     user_id    BIGINT       NOT NULL DEFAULT 0,
     clicks     BIGINT       NOT NULL DEFAULT 0,
     status     TINYINT      NOT NULL DEFAULT 1,
+    source     VARCHAR(16)  NOT NULL DEFAULT 'web' COMMENT '生成来源：web(网页) / api(第三方 API Key)',
     created_at DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     PRIMARY KEY (id),
@@ -89,9 +90,9 @@ CREATE TABLE IF NOT EXISTS domain_blacklist (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 -- ---------------------------------------------------------------------------
--- access_logs: HTTP 访问日志（网关自身访问记录，仅供运维排查）
+-- action_logs: handler 操作日志（web / admin-web 经网关与 admin 服务产生的操作记录）
 -- ---------------------------------------------------------------------------
-CREATE TABLE IF NOT EXISTS access_logs (
+CREATE TABLE IF NOT EXISTS action_logs (
     id         BIGINT       NOT NULL AUTO_INCREMENT,
     user_id    BIGINT       NOT NULL DEFAULT 0,
     method     VARCHAR(16)  NOT NULL DEFAULT '',
@@ -103,3 +104,8 @@ CREATE TABLE IF NOT EXISTS access_logs (
     KEY idx_created_at (created_at),
     KEY idx_endpoint (endpoint)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+-- 注：短链访问明细已迁移至 ClickHouse 表 click_events（见 deploy/sql/clickhouse.sql），
+--     不再使用 MySQL 的 short_link_visits 表。
+-- 注：网关 / 管理后台操作日志统一写入 action_logs（取代原 access_logs）；
+--     RPC 调用日志写入 ClickHouse 的 rpc_logs，不再落 MySQL。

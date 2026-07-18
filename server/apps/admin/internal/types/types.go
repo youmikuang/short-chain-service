@@ -53,6 +53,7 @@ type LinkItem struct {
 	ShortURL  string `json:"short_url"`
 	Clicks    int64  `json:"clicks"`
 	Status    int32  `json:"status"`
+	Source    string `json:"source"`
 	UserName  string `json:"user_name"`
 	UserEmail string `json:"user_email"`
 	CreatedAt string `json:"created_at"`

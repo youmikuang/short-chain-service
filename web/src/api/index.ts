@@ -5,6 +5,9 @@
 // served by Nginx. No mock data is used anywhere.
 
 const API_BASE = (import.meta.env as Record<string, string>).VITE_API_BASE ?? ''
+
+export const SHORT_DOMAIN =
+  (import.meta.env as Record<string, string>).VITE_SHORT_DOMAIN ?? 's.gaoheng.top'
 const TOKEN_KEY = 'slink_token'
 const API_KEY_KEY = 'slink_api_key'
 
@@ -48,9 +51,11 @@ export interface ApiKey {
 export interface ShortLink {
   code: string
   shortUrl: string
+  sUrl: string
   longUrl: string
   createdAt: string
   clicks?: number
+  source?: string
 }
 
 export interface UsagePoint {
@@ -124,6 +129,7 @@ export interface LoginResult {
   token: string
   userId: number
   nickname: string
+  apiKey?: string
 }
 
 // Backend responses use snake_case (`user_id`) and register omits `nickname`.
@@ -132,10 +138,11 @@ interface RawLoginResp {
   token: string
   user_id: number
   nickname?: string
+  api_key?: string
 }
 
 function normalizeLogin(r: RawLoginResp): LoginResult {
-  return { token: r.token, userId: r.user_id, nickname: r.nickname ?? '' }
+  return { token: r.token, userId: r.user_id, nickname: r.nickname ?? '', apiKey: r.api_key }
 }
 
 export function login(
@@ -242,26 +249,41 @@ export function createShortLink(longUrl: string): Promise<ShortLink> {
   })
 }
 
-export function fetchLinks(): Promise<ShortLink[]> {
+export interface FetchLinksParams {
+  search?: string
+  sort?: 'asc' | 'desc' | ''
+  page?: number
+  size?: number
+}
+
+export function fetchLinks(params: FetchLinksParams = {}): Promise<ShortLink[]> {
   // Lists the CURRENT user's own short links (JWT auth), served by the API
-  // gateway — not the admin service.
-  const qs = new URLSearchParams({ page: '1', size: '1000' })
+  // gateway — not the admin service. search / sort 由后端处理。
+  const qs = new URLSearchParams()
+  qs.set('page', String(params.page ?? 1))
+  qs.set('size', String(params.size ?? 1000))
+  if (params.search) qs.set('search', params.search)
+  if (params.sort) qs.set('sort', params.sort)
   return request<{
     total: number
     items: Array<{
       code: string
+      s_url: string
       long_url: string
       clicks: number
       status: number
       created_at: string
+      source?: string
     }>
   }>(`/api/short-links?${qs.toString()}`).then((r) =>
     (r.items ?? []).map((it) => ({
       code: it.code,
       shortUrl: it.code,
+      sUrl: it.s_url,
       longUrl: it.long_url,
       createdAt: it.created_at || '-',
       clicks: it.clicks,
+      source: it.source,
     })),
   )
 }
@@ -302,8 +324,8 @@ export function updatePassword(
   })
 }
 
-export function fetchUsageTrends(): Promise<UsagePoint[]> {
-  return request<{ items: UsagePoint[] }>('/api/usage-trends').then(
+export function fetchUsageTrends(days = 7): Promise<UsagePoint[]> {
+  return request<{ items: UsagePoint[] }>(`/api/usage-trends?days=${days}`).then(
     (r) => r.items ?? [],
   )
 }

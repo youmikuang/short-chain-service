@@ -26,8 +26,9 @@ type Config struct {
 		ClientSecret string
 		RedirectURL  string
 	}
-	Rpc zrpc.RpcClientConf // 指向 apps/api/rpc 核心服务（仅短链核心）
-	ClickHouse struct {
+	Rpc         zrpc.RpcClientConf // 指向 apps/api/rpc 核心服务（仅短链核心）
+	ShortDomain string             // ShortDomain 短链对外域名
+	ClickHouse  struct {
 		Host     string
 		Port     int
 		Database string

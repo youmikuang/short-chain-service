@@ -49,6 +49,7 @@ func main() {
 		pb.RegisterShortLinkServer(grpcServer, server.NewShortLinkServer(ctx))
 	})
 	// 内部服务间调用鉴权
+	s.AddUnaryInterceptors(interceptors.UnaryServerLogInterceptor(ctx.ClickHouseRpcLog))
 	s.AddUnaryInterceptors(interceptors.UnaryServerInterceptor())
 
 	defer s.Stop()

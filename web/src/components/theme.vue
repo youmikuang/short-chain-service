@@ -4,7 +4,6 @@ import { useThemeStore } from '@/stores/theme'
 const theme = useThemeStore()
 
 // View Transitions API circular reveal (BewlyCat style), matching
-// https://tools.gaoheng.top/ theme-btn behavior.
 function onToggle(e: MouseEvent) {
   const isAppearanceTransition =
     typeof document !== 'undefined' &&

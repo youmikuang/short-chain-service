@@ -80,6 +80,38 @@
   font-weight: 600;
   color: rgb(var(--color-secondary));
 }
+.token__token-field {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+/* Active / status badge (mirrors HTML: light blue pill + dot) */
+.token__badge-active {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 8px;
+  border-radius: 6px;
+  background: #dbeafe;
+  color: rgb(var(--color-primary));
+  font-size: 14px;
+  line-height: 20px;
+  letter-spacing: 0.01em;
+  font-weight: 600;
+}
+.token__badge-active--off {
+  background: rgb(var(--color-surface-container));
+  color: rgb(var(--color-secondary));
+}
+.token__badge-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 9999px;
+  background: rgb(var(--color-primary));
+}
+.token__badge-active--off .token__badge-dot {
+  background: rgb(var(--color-secondary));
+}
 .token__token-input-row {
   display: flex;
   align-items: center;
@@ -115,6 +147,11 @@
 .token__copy:hover {
   color: rgb(var(--color-primary));
 }
+.token__copy:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
 .token__usage {
   display: flex;
   flex-direction: column;
@@ -182,7 +219,7 @@
 .token__bar--90 { background: rgb(var(--color-primary) / 0.8); }
 .token__bar--90:hover { background: rgb(var(--color-primary)); }
 .token__bar--100 { background: rgb(var(--color-primary)); }
-.token__bar--100:hover { background: rgb(var(--color-primary-fixed-variant)); }
+.token__bar--100:hover { background: rgb(var(--color-primary-fixed)); }
 .token__bar-tip {
   position: absolute;
   top: -32px;

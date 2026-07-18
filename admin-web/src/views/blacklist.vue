@@ -24,6 +24,42 @@ function reasonClass(r: string) {
   return reasonClasses[r] || 'bg-surface-variant text-secondary'
 }
 
+const reasonOptions = Object.keys(reasonClasses)
+
+const showAddDialog = ref(false)
+const newDomain = ref('')
+const newReason = ref('Phishing')
+const addError = ref('')
+
+function openAdd() {
+  newDomain.value = ''
+  newReason.value = 'Phishing'
+  addError.value = ''
+  showAddDialog.value = true
+}
+function closeAdd() {
+  showAddDialog.value = false
+}
+
+async function onAddConfirm() {
+  const domain = newDomain.value.trim()
+  if (!domain) {
+    addError.value = 'Domain is required'
+    return
+  }
+  adding.value = true
+  addError.value = ''
+  try {
+    await addBlacklist(domain, newReason.value)
+    closeAdd()
+    await load(page.value, 10)
+  } catch (e) {
+    addError.value = (e as Error).message
+  } finally {
+    adding.value = false
+  }
+}
+
 const { page, total, loading, totalPages, go } = usePagination(load)
 
 async function load(p: number, size: number) {
@@ -37,21 +73,6 @@ async function load(p: number, size: number) {
     error.value = (e as Error).message
   } finally {
     loading.value = false
-  }
-}
-
-async function onAdd() {
-  const domain = window.prompt('Domain to block (e.g. evil-phishing.cc)')
-  if (!domain) return
-  const reason = window.prompt('Reason (Phishing / Spam / Malware)', 'Phishing') || 'Phishing'
-  adding.value = true
-  try {
-    await addBlacklist(domain.trim(), reason.trim())
-    await load(page.value, 10)
-  } catch (e) {
-    window.alert('Failed: ' + (e as Error).message)
-  } finally {
-    adding.value = false
   }
 }
 
@@ -76,7 +97,7 @@ onMounted(load)
           <button
             class="bg-primary hover:bg-primary-container text-white px-5 py-2.5 rounded-lg flex items-center gap-2 font-label-bold text-label-bold transition-all active:scale-95 shadow-sm disabled:opacity-50"
             :disabled="adding"
-            @click="onAdd"
+            @click="openAdd"
           >
             <span class="material-symbols-outlined text-[20px]">add_circle</span>
             Add New Blocked Domain
@@ -142,6 +163,65 @@ onMounted(load)
     </div>
 
     <AppFooter />
+
+    <!-- Add Blacklist Dialog -->
+    <div
+      v-if="showAddDialog"
+      class="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4"
+      @click.self="closeAdd"
+    >
+      <div class="w-full max-w-md rounded-2xl bg-surface shadow-xl border border-outline-variant">
+        <div class="flex items-center justify-between px-6 py-4 border-b border-outline-variant">
+          <h3 class="text-label-bold font-label-bold text-on-surface">Add Blocked Domain</h3>
+          <button class="p-1.5 hover:bg-surface-container-high rounded transition-colors" @click="closeAdd">
+            <span class="material-symbols-outlined text-[20px] text-secondary">close</span>
+          </button>
+        </div>
+
+        <div class="px-6 py-5 space-y-4">
+          <div>
+            <label class="block text-label-caps font-label-caps text-secondary mb-1.5">Domain Name</label>
+            <input
+              v-model="newDomain"
+              type="text"
+              placeholder="e.g. evil-phishing.cc"
+              class="w-full px-4 py-2.5 rounded-lg bg-surface-container-low border border-outline-variant text-on-surface placeholder:text-secondary/60 focus:outline-none focus:border-primary"
+              @keyup.enter="onAddConfirm"
+            />
+          </div>
+
+          <div>
+            <label class="block text-label-caps font-label-caps text-secondary mb-1.5">Reason</label>
+            <select
+              v-model="newReason"
+              class="w-full px-4 py-2.5 rounded-lg bg-surface-container-low border border-outline-variant text-on-surface focus:outline-none focus:border-primary appearance-none"
+            >
+              <option v-for="r in reasonOptions" :key="r" :value="r">{{ r }}</option>
+            </select>
+          </div>
+
+          <ErrorBanner :message="addError" />
+        </div>
+
+        <div class="flex justify-end gap-3 px-6 py-4 border-t border-outline-variant">
+          <button
+            class="px-5 py-2.5 rounded-lg text-secondary hover:bg-surface-container-high transition-colors font-label-bold text-label-bold"
+            @click="closeAdd"
+          >
+            Cancel
+          </button>
+          <button
+            class="bg-primary hover:bg-primary-container text-white px-5 py-2.5 rounded-lg flex items-center gap-2 font-label-bold text-label-bold transition-all active:scale-95 shadow-sm disabled:opacity-50"
+            :disabled="adding"
+            @click="onAddConfirm"
+          >
+            <span v-if="adding" class="material-symbols-outlined text-[20px] animate-spin">progress_activity</span>
+            <span v-else class="material-symbols-outlined text-[20px]">add_circle</span>
+            {{ adding ? 'Adding…' : 'Add Domain' }}
+          </button>
+        </div>
+      </div>
+    </div>
   </AdminLayout>
 </template>
 

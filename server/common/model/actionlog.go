@@ -7,7 +7,7 @@ import (
 	"github.com/zeromicro/go-zero/core/stores/sqlx"
 )
 
-type AccessLog struct {
+type ActionLog struct {
 	Id        int64  `db:"id"`
 	UserId    int64  `db:"user_id"`
 	Method    string `db:"method"`
@@ -17,24 +17,24 @@ type AccessLog struct {
 	CreatedAt string `db:"created_at"`
 }
 
-type AccessLogModel struct {
+type ActionLogModel struct {
 	conn  sqlx.SqlConn
 	table string
 }
 
-func NewAccessLogModel(conn sqlx.SqlConn) *AccessLogModel {
-	return &AccessLogModel{conn: conn, table: "`access_logs`"}
+func NewActionLogModel(conn sqlx.SqlConn) *ActionLogModel {
+	return &ActionLogModel{conn: conn, table: "`action_logs`"}
 }
 
-const accessLogRows = "id, user_id, method, endpoint, status, latency_ms, created_at"
+const actionLogRows = "id, user_id, method, endpoint, status, latency_ms, created_at"
 
-func (m *AccessLogModel) Insert(ctx context.Context, data *AccessLog) (sql.Result, error) {
+func (m *ActionLogModel) Insert(ctx context.Context, data *ActionLog) (sql.Result, error) {
 	query := "insert into " + m.table + " (user_id, method, endpoint, status, latency_ms) values (?, ?, ?, ?, ?)"
 	return m.conn.Exec(query, data.UserId, data.Method, data.Endpoint, data.Status, data.LatencyMs)
 }
 
-// FindPage 分页查询访问日志，支持按 endpoint 模糊搜索
-func (m *AccessLogModel) FindPage(ctx context.Context, search string, page, pageSize int64) ([]AccessLog, int64, error) {
+// FindPage 分页查询操作日志，支持按 endpoint 模糊搜索
+func (m *ActionLogModel) FindPage(ctx context.Context, search string, page, pageSize int64) ([]ActionLog, int64, error) {
 	if page <= 0 {
 		page = 1
 	}
@@ -54,17 +54,17 @@ func (m *AccessLogModel) FindPage(ctx context.Context, search string, page, page
 	}
 
 	offset := (page - 1) * pageSize
-	query := "select " + accessLogRows + " from " + m.table + where + " order by id desc limit ? offset ?"
+	query := "select " + actionLogRows + " from " + m.table + where + " order by id desc limit ? offset ?"
 	listArgs := append(append([]interface{}{}, args...), pageSize, offset)
-	var items []AccessLog
+	var items []ActionLog
 	if err := m.conn.QueryRows(&items, query, listArgs...); err != nil {
 		return nil, 0, err
 	}
 	return items, total, nil
 }
 
-// CountByDay 统计最近 days 天每天的访问量，返回存在数据的日期
-func (m *AccessLogModel) CountByDay(ctx context.Context, days int) (map[string]int64, error) {
+// CountByDay 统计最近 days 天每天的操作量，返回存在数据的日期
+func (m *ActionLogModel) CountByDay(ctx context.Context, days int) (map[string]int64, error) {
 	query := "select date(created_at) as day, count(*) as value from " + m.table +
 		" where created_at >= date_sub(curdate(), interval ? day) group by day"
 	var rows []struct {

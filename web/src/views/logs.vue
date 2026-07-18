@@ -115,7 +115,7 @@ watch(totalPages, (tp) => {
                   v-model="search"
                   @input="onSearch"
                   type="text"
-                  placeholder="Search Shortened URL"
+                  placeholder="Search Code"
                   class="field-input logs__search-input"
                 />
               </div>

@@ -7,6 +7,7 @@ type RegisterReq struct {
 type RegisterResp struct {
 	UserID int64  `json:"user_id"`
 	Token  string `json:"token"`
+	ApiKey string `json:"api_key"`
 }
 
 type LoginReq struct {
@@ -103,7 +104,7 @@ type UpdateSettingsResp struct {
 
 // --- 用量趋势 ---
 type UsageTrendsReq struct {
-	Days int64 `form:"days"`
+	Days int64 `form:"days,optional"`
 }
 type UsagePoint struct {
 	Day   string `json:"day"`
@@ -116,6 +117,7 @@ type UsageTrendsResp struct {
 // --- 访问日志 ---
 type LogsReq struct {
 	Search   string `form:"search,optional"`
+	Source   string `form:"source,optional"`
 	Page     int64  `form:"page,optional"`
 	PageSize int64  `form:"page_size,optional"`
 }
@@ -125,6 +127,7 @@ type LogItem struct {
 	LongURL   string `json:"long_url"`
 	Status    int64  `json:"status"`
 	IP        string `json:"ip"`
+	Source    string `json:"source"`
 }
 type LogsResp struct {
 	Total int64      `json:"total"`

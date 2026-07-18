@@ -2,6 +2,7 @@ package logic
 
 import (
 	"context"
+	"database/sql"
 	"encoding/json"
 	"errors"
 	"net/http"
@@ -16,6 +17,7 @@ import (
 	"server/common/model"
 	"server/common/tool"
 
+	"github.com/zeromicro/go-zero/core/logx"
 	"github.com/zeromicro/go-zero/core/stores/sqlx"
 )
 
@@ -96,11 +98,22 @@ func (l *RegisterLogic) Register(req *types.RegisterReq) (*types.RegisterResp, e
 	if err != nil {
 		return nil, errorx.Internal(err.Error())
 	}
+	// 注册即自动为新用户生成一个默认 API Key（明文仅在此返回一次，入库存哈希）
+	apiKey := "slk_" + tool.RandString(32)
+	if _, err := l.svcCtx.Models.ApiKey.Insert(l.ctx, &model.ApiKey{
+		UserId:  userID,
+		Name:    "default",
+		KeyHash: tool.Sha256Hex(apiKey),
+		Prefix:  apiKey[:8],
+		Status:  1,
+	}); err != nil {
+		return nil, errorx.Internal(err.Error())
+	}
 	token, err := issueToken(l.svcCtx.Config.Auth.AccessSecret, l.svcCtx.Config.Auth.AccessExpire, userID)
 	if err != nil {
 		return nil, errorx.Internal(err.Error())
 	}
-	return &types.RegisterResp{UserID: userID, Token: token}, nil
+	return &types.RegisterResp{UserID: userID, Token: token, ApiKey: apiKey}, nil
 }
 
 // ---------------------------------------------------------------------------
@@ -510,9 +523,15 @@ func (l *UsageTrendsLogic) UsageTrends(req *types.UsageTrendsReq) (*types.UsageT
 	if days <= 0 {
 		days = 30
 	}
-	counts, err := l.svcCtx.ClickHouseVisit.CountByDay(l.ctx, int(days))
-	if err != nil {
-		return nil, errorx.Internal(err.Error())
+	// ClickHouse 不可用时优雅降级：返回全 0 的连续日期序列，避免接口 500。
+	counts := make(map[string]int64)
+	if clickhouseAvailable(l.ctx, l.svcCtx.ClickHouse) {
+		got, err := l.svcCtx.ClickHouseVisit.CountByDay(l.ctx, int(days))
+		if err != nil {
+			logx.Errorf("ClickHouse CountByDay failed, degrade /api/usage-trends: %v", err)
+		} else {
+			counts = got
+		}
 	}
 	// 补齐连续日期（缺失的天补 0）
 	now := time.Now()
@@ -537,9 +556,22 @@ func (l *LogsLogic) Logs(req *types.LogsReq) (*types.LogsResp, error) {
 	if err != nil {
 		return nil, err
 	}
-	rows, total, err := l.svcCtx.ClickHouseVisit.FindPageByUser(l.ctx, uid, req.Page, req.PageSize, req.Search)
+	// source 过滤：前端传 "web" / "rpc"，后端统一映射为存储值（api=第三方 RPC/Key 调用）。
+	source := req.Source
+	if source == "rpc" {
+		source = "api"
+	}
+	if source != "" && source != "web" && source != "api" {
+		source = ""
+	}
+	// ClickHouse 不可用时优雅降级：返回空列表，避免接口 500。
+	if !clickhouseAvailable(l.ctx, l.svcCtx.ClickHouse) {
+		return &types.LogsResp{Total: 0, Items: []types.LogItem{}}, nil
+	}
+	rows, total, err := l.svcCtx.ClickHouseVisit.FindPageByUser(l.ctx, uid, req.Page, req.PageSize, req.Search, source)
 	if err != nil {
-		return nil, errorx.Internal(err.Error())
+		logx.Errorf("ClickHouse FindPageByUser failed, degrade /api/logs: %v", err)
+		return &types.LogsResp{Total: 0, Items: []types.LogItem{}}, nil
 	}
 	items := make([]types.LogItem, 0, len(rows))
 	for _, r := range rows {
@@ -549,9 +581,21 @@ func (l *LogsLogic) Logs(req *types.LogsReq) (*types.LogsResp, error) {
 			LongURL:   r.LongURL,
 			Status:    r.Status,
 			IP:        r.IP,
+			Source:    r.Source,
 		})
 	}
 	return &types.LogsResp{Total: total, Items: items}, nil
+}
+
+// clickhouseAvailable 以极短超时探测 ClickHouse 是否可连通。
+// 不可用时返回 false，让依赖 CH 的接口（/api/logs、/api/usage-trends）降级为空数据而非 500。
+func clickhouseAvailable(ctx context.Context, db *sql.DB) bool {
+	if db == nil {
+		return false
+	}
+	pingCtx, cancel := context.WithTimeout(ctx, 500*time.Millisecond)
+	defer cancel()
+	return db.PingContext(pingCtx) == nil
 }
 
 func boolToInt(b bool) int64 {

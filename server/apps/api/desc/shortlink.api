@@ -36,12 +36,15 @@ type ResolveResp {
 }
 
 type ListMyLinksReq {
-    Page int64 `form:"page,optional"`
-    Size int64 `form:"size,optional"`
+    Page   int64  `form:"page,optional"`
+    Size   int64  `form:"size,optional"`
+    Search string `form:"search,optional"`
+    Sort   string `form:"sort,optional"` // "" | "asc" | "desc"，按创建时间排序
 }
 
 type MyLinkItem {
     Code      string `json:"code"`
+    SUrl      string `json:"s_url"`
     LongURL   string `json:"long_url"`
     Clicks    int64  `json:"clicks"`
     Status    int32  `json:"status"`
