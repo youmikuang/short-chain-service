@@ -1,7 +1,7 @@
-# 短链服务基础架构设计
+# 短链服务架构文档
 
-> 版本：v3（go-zero 重构：Nginx 负载均衡 + 开放 API + 后台管理）
-> 更新时间：2026-07-14
+> 版本：v3（go-zero 重构：开放 API + 管理后台 + 短链核心 gRPC）
+> 更新时间：2026-07-18（基于当前代码实际梳理，区分「已实现」与「规划中」）
 
 ---
 
@@ -11,192 +11,222 @@
 【 用户 / 浏览器 】
         │
         ▼
-【 Nginx 负载均衡 + TLS终止 + 限流/WAF 】
-   └─ 路由:
-      /r/{code}  → 短链跳转服务 (server/apps/api)
-      /api/*     → 业务 API (server/apps/api: 注册/OAuth/Key/短链CRUD/黑名单)
-      /admin/*   → 管理后台 API (server/apps/admin) + Vue3 静态托管
-      /          → Vue3 官网 (web/)
+【 Nginx（生产）/ Vite 代理（开发） 】
+   · 开发：web(5173) / admin-web(5174) 经 Vite proxy 转发到后端
+   · 生产：Nginx 做 TLS 终止 + 路由 + 限流
+   ├─ /api/*     → apps/api        (HTTP 网关，:8888)
+   ├─ /admin/*   → apps/admin      (管理后台 API，:8889)
+   ├─ /r/{code}  → apps/api        (短链跳转，:8888，再调 rpc)
+   └─ /          → web / admin-web 静态资源
         │
         ▼
-【 Go 服务 (go-zero 单体仓库, 多实例, Nginx 固定实例) 】
-   ├─ apps/api (短链开放 API 服务):
-   │     ├─ api/   HTTP 网关: 纯 HTTP 接口
-   │     │     · 用户体系: 注册/登录/GitHub OAuth/API Key 管理/资料 (本地逻辑，不依赖 gRPC)
-   │     │     · 跳转 /r/{code}: Redis缓存 → 命中302 + 发Kafka(点击事件)
-   │     │     │                → 未命中 SingleFlight 回源 + 布隆防穿透
-   │     │     │                → 跳转前校验 域名黑名单(Redis Set) → 命中则拦截
-   │     │     · 短链 CRUD: 鉴权(API Key/JWT) 后内部 gRPC 调用 rpc/ 核心服务
-   │     ├─ rpc/   短链核心服务(gRPC/zrpc): 仅承载短链生成/查询/删除/批量 (ShortLink)
-   │     └─ Kafka 消费者: 点击事件 → ClickHouse(统计) + 聚合计数
-   └─ apps/admin (管理后台服务):
-         链接管理 · 访问次数 · 域名黑名单 的 API (供 admin 前端调用)
+【 Go 服务（go-zero 单体仓库 server/，共享一个 go.mod）】
+   ├─ apps/api    (HTTP 网关 :8888)
+   │     · 用户体系：注册/登录/GitHub OAuth/API Key/资料/设置/改密（本地逻辑，无 gRPC）
+   │     · 短链 CRUD / 跳转：经鉴权后内部 gRPC 调用 apps/rpc
+   │     · 日志/用量：查 ClickHouse `click_events`（按用户隔离）
+   ├─ apps/admin  (管理后台 API :8889)
+   │     · 登录 / 仪表盘 / 链接管理 / 域名黑名单 / Token 管理
+   └─ apps/rpc    (短链核心 gRPC :8081，仅内网，不对外暴露)
+         · ShortLink 服务：生成/查询/批量/删除/解析跳转
+         · Snowflake + Base62 短码；Redis 缓存；域名黑名单校验
         │
         ▼
-【 Kafka 】  ◄── 点击流 / 审计事件(削峰解耦)
-   ├─► ClickHouse(单机Docker)  ← 访问次数/分析统计
-   └─► (可选)落库聚合
-【 MySQL 】  ← 用户/API Key/短链/黑名单 持久化
-【 Redis 】  ← 跳转缓存 + 黑名单Set + 限流计数 + 实时点击数
-        │
-        ▼
-【 web/  Vue3 官网 】   【 admin 前端  Vue3 管理后台 】
-        │
-        ▼
-【 sdk/go  Go 调用包 】  ← 第三方: HTTP 客户端(带 Key) + gRPC 客户端(内部短链服务)
-        │
-        ▼
-   注:
-   · 用户体系(注册/登录/OAuth/Key/资料) = 纯 HTTP 接口，由 apps/api/api 本地处理，无 gRPC 调用
-   · 短链生成提供两种调用方式 ——
-       · 外部第三方: HTTP API (POST /api/short-links, 带 X-API-Key) → api/ 网关 → rpc/ (gRPC)
-       · 内部 Go 服务: 直连 apps/api/rpc 的 gRPC 服务 (ShortLink) → 走内部网络
+【 存储 】
+   · MySQL    ：用户 / API Key / 用户设置 / 短链 / 黑名单 / 网关访问日志
+   · Redis    ：跳转缓存(short_link:{code}) + 黑名单 Set + 实时点击计数
+   · Kafka    ：[规划中] 点击流异步通道（配置已就位，业务未接入）
+   · ClickHouse：短链访问明细 `click_events`（已接入，rpc.Resolve 异步写入，/api/logs 与 /api/usage-trends 直接查询）
 ```
+
+> 设计取舍
+> - 用户体系（注册/登录/OAuth/Key/资料/设置）与"会话/凭证"强相关，放在 `apps/api` 网关本地处理，延迟最低、无需跨进程。
+> - 短链的生成/解析/删除等核心逻辑统一在 `apps/rpc`，HTTP 与（未来的）内部 gRPC 调用都落到同一实现，避免逻辑分叉。
 
 ---
 
-## 二、技术栈
+## 二、服务与职责
+
+### apps/api（HTTP 网关，:8888）
+| 能力 | 说明 |
+|---|---|
+| 用户体系 | 注册、登录、GitHub OAuth、API Key 管理、资料、偏好设置、改密 —— 纯 HTTP，本地落库 |
+| 短链 CRUD | `POST /api/short-links`、`GET /api/short-links/:code`、`GET /api/short-links`（我的列表）等，鉴权后调 rpc |
+| 跳转 | `GET /r/:code` → 调 rpc `Resolve`，命中黑名单由 handler 拦截 |
+| 日志/用量 | `GET /api/logs`、`GET /api/usage-trends`，查 ClickHouse `click_events` |
+
+### apps/admin（管理后台 API，:8889）
+登录、仪表盘、链接管理（`listlinks`）、域名黑名单（`listblacklist`）、后台 Token 管理（`listtokens`/`provisiontoken`/`revoketoken`）。供 `admin-web` 前端调用。
+
+### apps/rpc（短链核心 gRPC，:8081）
+`ShortLink` 服务，方法见 proto：
+- `CreateShortLink`：黑名单校验 → Snowflake+Base62 生成 → 落 MySQL + 写 Redis 缓存
+- `GetByCode`：按 code 查询
+- `BatchCreate`：批量生成
+- `DeleteShortLink`：删除
+- `Resolve`：跳转解析（Redis→MySQL 回源、域名黑名单校验、实时计数、写访问明细）
+
+---
+
+## 三、技术栈
 
 | 层 | 选型 |
 |---|---|
-| 后端 | Go 1.26 · go-zero（api + zrpc）· go-redis · sqlx · sarama(Kafka) · clickhouse-go |
-| 存储 | MySQL(业务) · Redis(缓存/黑名单/限流) · ClickHouse(统计) · Kafka(消息) |
-| 前端 | Vue3 + Vite + Pinia + Vue Router · Element Plus(admin) / Naive UI |
-| 鉴权 | JWT(会话) · GitHub OAuth2 · 邮箱 SMTP 验证 · API Key(Bearer) |
-| 部署 | Docker Compose 一键起 MySQL/Redis/Kafka/ClickHouse/Nginx |
+| 后端 | Go · go-zero（rest + zrpc）· go-redis · sqlx · 内置限流/熔断/中间件 |
+| 存储 | MySQL（业务）· Redis（缓存/黑名单/计数）· ClickHouse（访问明细 `click_events`）· Kafka（[规划中] 异步管道） |
+| 前端 | Vue3 + Vite + Pinia + Vue Router；`web/`（官网）、`admin-web/`（管理后台） |
+| 鉴权 | JWT（会话）· GitHub OAuth2 · API Key（X-API-Key） |
+| 部署 | Docker Compose 起 MySQL/Redis/Kafka/ClickHouse/Nginx；开发用 Vite 代理 |
 
 ---
 
-## 三、目录划分
+## 四、目录结构（实际）
 
 ```
 short-chain-service/
-├── server/            # Go 后端 · go-zero 单体仓库 (共享一个 go.mod)
-│   ├── apps/          # 业务服务总目录
-│   │   ├── api/       # 短链开放 API 服务 (HTTP 网关 + 短链核心 gRPC)
-│   │   │   ├── api/   # HTTP 网关层: 纯 HTTP 接口
-│   │   │   │           #  · 用户体系(注册/登录/GitHub OAuth/API Key/资料) = 本地逻辑，无 gRPC
-│   │   │   │           #  · 短链 CRUD 经 API Key/JWT 鉴权后内部 gRPC 调用 rpc/
-│   │   │   └── rpc/   # 短链核心 gRPC 服务: pb/shortlink.proto + 生成; 生成/查询/删除短链
-│   │   └── admin/     # 管理后台服务 (链接管理/统计/黑名单 API)
-│   │       ├── api/
-│   │       └── rpc/
-│   ├── common/        # 全局公共代码 (避免模块间循环依赖)
-│   │   ├── ctxdata/       # JWT / Context 上下文解析
-│   │   ├── errorx/        # 全局统一错误码
-│   │   ├── interceptors/  # gRPC 拦截器 / API 中间件
-│   │   ├── tool/          # 工具类 (加密/随机/时间)
-│   │   └── xfilters/      # 敏感词过滤 / 通用过滤器
-│   ├── deploy/        # 部署配置
-│   │   ├── docker/        # Dockerfile
-│   │   ├── k8s/           # K8s yaml (可选)
-│   │   └── prometheus/    # 监控配置
-│   ├── go.mod
-│   └── go.sum
-├── web/              # Vue3 官网: 邮箱注册/登录/GitHub授权/申请Key
-├── admin/            # Vue3 管理后台前端 (构建产物由 server/apps/admin 静态托管)
-├── sdk/go/           # 可发布的 Go SDK (独立 go.mod): HTTP 客户端(带 Key) + gRPC 客户端
-├── docs/             # 架构 & API 文档
-└── go.mod            # 根模块 (可用 Go Workspace 聚合 server/ 与 sdk/go/)
+├── server/                  # Go 后端 · go-zero 单体仓库（一个 go.mod）
+│   ├── apps/
+│   │   ├── api/             # HTTP 网关 (:8888)
+│   │   │   ├── api/         # .api 描述 + 生成代码
+│   │   │   ├── internal/    # handler / logic / middleware / svc / types
+│   │   │   └── etc/api-api.yaml
+│   │   ├── admin/           # 管理后台 API (:8889)
+│   │   │   ├── api/  internal/  etc/
+│   │   └── rpc/             # 短链核心 gRPC (:8081)
+│   │       ├── pb/          # shortlink.proto + 生成
+│   │       ├── internal/    # logic(rpc 核心) / server / svc
+│   │       └── etc/shortlink.yaml
+│   ├── common/              # 跨模块公共代码（避免循环依赖）
+│   │   ├── ctxdata/         # JWT / Context 上下文解析
+│   │   ├── errorx/          # 统一错误码
+│   │   ├── interceptors/    # gRPC 拦截器 / API 中间件
+│   │   ├── model/           # 数据模型：MySQL(sqlx) user/apikey/usersettings/
+│   │   │                   #   shortlink/domainblacklist/accesslog；
+│   │   │                   #   ClickHouse shortlink_visit(click_events)
+│   │   ├── tool/            # 工具类（加密/Base62/Snowflake/域名提取）
+│   │   └── xfilters/        # 通用过滤器
+│   └── deploy/              # 部署配置
+│       ├── docker/          # Dockerfile
+│       ├── k8s/             # K8s yaml（可选）
+│       ├── sql/             # schema.sql（MySQL）/ clickhouse.sql
+│       └── prometheus/
+├── web/                     # Vue3 官网（邮箱注册/登录/GitHub 授权/申请 Key）
+├── admin-web/               # Vue3 管理后台前端（构建产物由 apps/admin 静态托管）
+├── docs/                    # 架构 & API 文档
+└── README.md
 ```
 
+> 说明：`sdk/go`（可发布 Go SDK）当前**尚未创建**；Nginx 生产配置为规划项，开发期由 Vite proxy 转发。
+
 ---
 
-## 四、核心数据流
+## 五、鉴权模型
 
-### 1. 短链跳转 + 黑名单拦截
-- 查 Redis 缓存 → 命中直接 302；未命中 SingleFlight 回源 MySQL 并回填（随机 TTL 防雪崩）。
-- 回源/跳转前：从 `long_url` 提取域名，`SISMEMBER blacklist` 校验，**命中则返回拦截页（不跳转）**，防钓鱼/滥用。
-- 每次跳转发 Kafka 点击事件。
+两套机制并存，由 `apps/api/internal/handler/register.go` 路由分组控制：
 
-### 2. 访问次数统计
-- 实时：`Redis INCR short_link:{code}:clicks`（接口/后台即时展示）。
-- 历史分析：Kafka → 消费者写 ClickHouse（`click_events` 表，按 code/时间聚合）。
+- **API Key 中间件**（`middleware/apikey.go`）：对所有 `/api/*` 强制要求 `X-API-Key`，校验 `sha256(key)` 命中 `api_keys` 表且 `status=1`，通过后将 `user_id` 写入 context 供 logic 使用。
+- **JWT 中间件**（`rest.WithJwt`）：保护"用户自己的资源"路由（资料、Key 管理、设置、日志等）。
 
-### 3. 鉴权与 Key 调用
+跳过表 `apiKeySkipPaths`：仅用 JWT 鉴权、不需要 API Key 的路由，API Key 中间件直接放行，交由 JWT 中间件处理。当前包含：
+`GET /api/short-links`、`GET|POST /api/keys`、`DELETE /api/keys/:id`、`GET|POST /api/profile`、`POST /api/profile/password`、`GET|PUT /api/settings`、`GET /api/usage-trends`、`GET /api/logs`。
+
+> 注意：短链**创建**（`POST /api/short-links`）需 API Key；**列出我的短链**（`GET /api/short-links`）走 JWT。
+
+---
+
+## 六、核心数据流
+
+### 1. 短链创建
+```
+POST /api/short-links (X-API-Key 或 JWT)
+  → api.CreateShortLinkLogic
+  → rpc.CreateShortLink
+       · 提取域名 → 命中 domain_blacklist（MySQL 优先，回退 Redis Set）则拒绝
+       · 短码 = Base62(Snowflake.NextID())
+       · 落 MySQL(short_links) + 写 Redis(short_link:{code} → long_url，随机 TTL 防雪崩)
+  → 返回 { code, long_url }
+```
+
+### 2. 短链跳转 + 黑名单拦截
+```
+GET /r/:code
+  → api.ResolveLogic → rpc.Resolve
+       · Redis 命中直接取 long_url；未命中回源 MySQL 并回填（含 owner user_id 缓存）
+       · 提取 long_url 域名 → SISMEMBER 黑名单 → 命中返回 Blocked（handler 拦截，不跳转）
+       · 实时计数：Redis INCR short_link:{code}:clicks + MySQL IncrClicks
+       · 异步写 ClickHouse `click_events`（code/long_url/user_id/ip/referer/status），驱动 /api/logs 与 /api/usage-trends
+  → 302 跳转 long_url
+```
+
+### 3. 访问统计（当前实现）
+- **实时计数**：Redis `short_link:{code}:clicks`（列表/详情即时展示）。
+- **访问明细（已接入 ClickHouse）**：每次跳转由 `rpc.Resolve` **异步**写入 ClickHouse 表 `click_events`（code / long_url / user_id / ip / referer / status / created_at，按 `user_id` 隔离）；`/api/logs` 分页查询、`/api/usage-trends` 按天聚合均直接查 ClickHouse。表结构见 `deploy/sql/clickhouse.sql`。
+- **[规划中] 异步管道**：`shortlink.yaml` 仍保留 `KafkaBrokers` + `ClickEventsTopic` 配置，未来可改为「resolve → Kafka → 消费者批量写 ClickHouse」进一步解耦；当前为 rpc 直接异步写 ClickHouse。
+
+### 4. 用户体系（纯 HTTP，无 RPC）
 - 邮箱注册（SMTP 验证码）→ 登录发 JWT；GitHub OAuth 回调建号/绑定。
-- 登录后申请 API Key（仅展示一次，库存 hash）。
-- 调用 API 必须带 `X-API-Key`，中间件校验 + 按 Key 限流。
+- 登录后可在 `/api/keys` 管理 API Key（明文仅返回一次，入库存 `sha256`）。
+- 偏好设置 `user_settings`（邮件通知/安全告警/营销通讯），`/api/settings` 读写。
 
-### 4. 短码生成（Nginx 固定实例下的解法）
-- 不再有 K8s 动态扩缩，**每个实例固定分配 workerId**（环境变量/配置），Snowflake 可直接用；再 Base62 编码 + 混淆防遍历。
-- 若以后想更短，可切 Leaf-segment 号段模式。
+### 5. 接口清单（apps/api）
 
-### 5. 接口调用方式
+| 方法 & 路径 | 鉴权 | 说明 |
+|---|---|---|
+| POST /api/auth/register | 公开 | 邮箱注册 → JWT |
+| POST /api/auth/login | 公开 | 邮箱登录 → JWT |
+| GET /api/auth/github | 公开 | GitHub OAuth 授权 URL |
+| GET /api/auth/github/callback | 公开 | GitHub 回调 → JWT |
+| POST /api/short-links | API Key | 创建短链（核心逻辑在 rpc） |
+| GET /api/short-links | JWT | 列出我的短链 |
+| GET /api/short-links/:code | API Key | 按 code 查询 |
+| GET /r/:code | 公开 | 短链跳转（调 rpc.Resolve） |
+| GET /api/keys | JWT | 列出我的 API Key |
+| POST /api/keys | JWT | 创建 API Key |
+| DELETE /api/keys/:id | JWT | 吊销 API Key |
+| GET /api/profile | JWT | 获取资料 |
+| POST /api/profile | JWT | 更新资料 |
+| POST /api/profile/password | JWT | 修改密码 |
+| GET /api/settings | JWT | 读取偏好设置 |
+| PUT /api/settings | JWT | 更新偏好设置 |
+| GET /api/usage-trends | JWT | 用量趋势（按天聚合） |
+| GET /api/logs | JWT | 短链访问明细日志 |
 
-#### 5.1 用户体系（纯 HTTP，无 RPC）
-用户体系**只提供 HTTP 接口，不暴露 gRPC**，所有逻辑在 `apps/api/api` 网关本地处理，不依赖 `apps/api/rpc` 核心服务：
-
-- `POST /api/auth/register` 邮箱注册 → 返回 JWT
-- `POST /api/auth/login` 邮箱登录 → 返回 JWT
-- `GET  /api/auth/github` 获取 GitHub OAuth 授权 URL
-- `GET  /api/auth/github/callback` GitHub 回调 → 返回 JWT
-- `POST /api/keys` 创建 API Key（JWT 鉴权）
-- `GET  /api/keys` 列出我的 API Key（JWT 鉴权）
-- `DELETE /api/keys/:id` 吊销 API Key（JWT 鉴权）
-- `GET  /api/profile` 获取当前用户资料（JWT 鉴权）
-
-> 设计取舍：用户体系与"会话/凭证"强相关（JWT 签发、OAuth、Key 哈希），放在网关本地处理最直观、延迟最低，无需跨进程 gRPC；其数据模型（`users` / `api_keys`）由网关直接落库。
-
-#### 5.2 短链调用方式（HTTP API + gRPC 双通道）
-短链的生成/管理能力同时以两种方式对外提供，**二者最终都落到 `apps/api/rpc` 核心服务**，保证业务逻辑唯一、一致：
-
-- **HTTP API（外部第三方调用）**
-  - 入口：`POST /api/short-links`（及短链 CRUD 接口），请求头携带 `X-API-Key`，由 `apps/api/api` 网关鉴权 + 按 Key 限流后，内部调用 `apps/api/rpc`（gRPC）。
-  - 适用：浏览器 / 脚本 / 异构语言服务，经 Nginx 公网暴露。
-  - 客户端：`sdk/go` 提供封装好的 HTTP 客户端（自动带 Key、重试）。
-- **RPC / gRPC（内部 Go 服务调用）**
-  - 入口：`apps/api/rpc` 暴露的 `ShortLink` gRPC 服务（如 `CreateShortLink` / `GetByCode` / `BatchCreate` / `DeleteShortLink`）。
-  - 适用：单体仓库内其他微服务、或同内网的其他 Go 服务，直连 gRPC，免去每次 HTTP 编解码与 Key 校验开销。
-  - 鉴权：内部调用走 `common/interceptors` 做服务标识 / mTLS 校验，也可按需携带 Key；**gRPC 端口不对外网暴露（仅内网）**。
-  - 客户端：`sdk/go` 同时提供 gRPC 客户端 stub。
-- **一致性**：无论走 HTTP 还是 RPC，短码生成（Snowflake + Base62）、黑名单校验、Redis 缓存、Kafka 事件均在同一 `rpc` 核心实现，避免逻辑分叉。
+> 字段命名约定：请求/响应 JSON 统一使用 **camelCase**（前端 `web/`、`admin-web/` 均按 camelCase 收发）。
 
 ---
 
-## 五、关键数据模型（初版）
+## 七、关键数据模型（MySQL: short_chain）
 
-- `users(id, email unique, password_hash, github_id, nickname, status)`
-- `api_keys(id, user_id, key_hash, name, rate_limit, status)`
-- `short_links(id, code unique, long_url, domain, user_id, api_key_id, status)`
-- `domain_blacklist(id, domain, reason, creator_id)`
-- ClickHouse `click_events(code, user_id, ip, ua, referer, event_time)`
+| 表 | 用途 |
+|---|---|
+| `users` | 账号体系（email unique / github_id / password_hash / nickname / status） |
+| `api_keys` | API Key（key_hash=sha256，prefix 用于展示，quota/used 限流） |
+| `user_settings` | 用户偏好（email_notif / security_alerts / marketing_comm，按 user_id） |
+| `short_links` | 短链核心（code unique / long_url / user_id / clicks / status） |
+| `domain_blacklist` | 域名黑名单（创建/跳转时校验，admin 可管理） |
+| `access_logs` | 网关 HTTP 访问日志（运维排查，非用户访问明细） |
 
----
-
-## 六、与上一版的关键变化
-
-1. **去掉 K8s** → Nginx 多实例负载均衡，Snowflake workerId 改为固定分配。
-2. **新增账号体系**（邮箱 + GitHub OAuth + API Key），短链变为"需 Key 调用"的开放服务。
-3. **新增域名黑名单**，在跳转前拦截，admin 可管理。
-4. **新增访问统计**，Kafka → ClickHouse（单机 Docker）做分析，Redis 做实时计数。
-5. **新增三套前端/包**：`web` 官网、`admin` 管理后台（均 Vue3）、`sdk/go` 可发布 Go 包。
+> **ClickHouse `click_events` 表**（非 MySQL，已启用）：短链被访问的明细（驱动 `/api/logs`、`/api/usage-trends`，按 `user_id` 隔离），由 `rpc.Resolve` 异步写入，`/api/logs` 分页与 `/api/usage-trends` 按天聚合直接查询。MySQL 中原有的 `short_link_visits` 表已废弃移除；表结构见 `deploy/sql/clickhouse.sql`。
 
 ---
 
-### v3 本次调整（相对 v2）
+## 八、短码生成
 
-1. **后端框架由 Gin/Echo 切换为 go-zero**：用 `.api` 描述文件 + `goctl` 生成 HTTP 代码，内部服务间用 `zrpc`（gRPC）通信；内置 `sqlx`/`redis`/`kafka` 集成与限流、熔断、中间件能力。
-2. **`api` 与 `admin` 合并进 `server/` 单体仓库**：二者作为 `server/apps/` 下的两个业务模块（`apps/api` 短链开放 API 服务、`apps/admin` 管理后台服务），共享同一个 `go.mod` 与 `common/` 公共库，避免重复依赖与循环引用。
-3. **公共能力下沉到 `common/`**：`ctxdata`（JWT 解析）、`errorx`（统一错误码）、`interceptors`（拦截器/中间件）、`tool`、`xfilters` 等跨模块复用。
-4. **部署配置归入 `server/deploy/`**：`docker/`、`k8s/`、`prometheus/` 统一管理；根 `deploy/` 不再单独存在。
-5. **用户体系为纯 HTTP 接口**：注册/登录/GitHub OAuth/API Key 管理/资料全部由 `apps/api/api` 网关本地处理，**不提供 gRPC**，不依赖 `apps/api/rpc`。
-6. **短链生成提供双调用方式**：HTTP API（外部带 Key）+ gRPC RPC（内部 Go 服务直连），核心逻辑统一在 `apps/api/rpc`，`sdk/go` 同时提供两种客户端。
+- 算法：**Snowflake（IdGen.NextID）+ Base62 编码**（见 `common/tool` + `rpc/internal/logic/createshortlinklogic.go`）。
+- 缓存：`short_link:{code}` 存 long_url，TTL = 30min + 随机 0~10min，防集中失效/雪崩；另缓存 `short_link:{code}:uid` 供访问明细按用户隔离。
+- 去重：`short_links.code` 唯一索引。
 
 ---
 
-## 七、落地建议顺序
+## 九、落地建议顺序
 
-1. `server/deploy/docker/`：先把依赖（MySQL/Redis/Kafka/ClickHouse）用 Docker 跑起来。
-2. `server/apps/api` 骨架：`goctl` 生成 `.api` + 跳转 `/r/{code}` + Redis + 黑名单最小可用。
-3. `server/apps/admin` 骨架：管理后台 API（链接管理/统计/黑名单）。
-4. `web/` 与 `admin/` 的 Vue3 脚手架；`admin` 构建产物交由 `server/apps/admin` 静态托管。
-5. `sdk/go` 包：封装 HTTP 客户端（带 Key）+ gRPC 客户端两种调用方式。
+1. `server/deploy/docker/`：先起依赖（MySQL/Redis；Kafka/ClickHouse 按需）。
+2. `apps/rpc`：短链核心（生成/解析/删除）+ Redis + 黑名单最小可用。
+3. `apps/api`：网关骨架（用户体系 + 短链 CRUD/跳转 + 日志/用量）。
+4. `apps/admin`：管理后台 API（链接/黑名单/Token）。
+5. `web/` 与 `admin-web/`：Vue3 前端；`admin-web` 构建产物交由 `apps/admin` 静态托管。
+6. [规划] `sdk/go`：封装 HTTP 客户端（带 Key）+ gRPC 客户端；[规划] Kafka→ClickHouse 异步分析接入。
 
+---
 
-
-
-
-## ClickHouse 密码
-
-账号 default ， 密码：L4Pt8w6sxk6ueNZ
+> 敏感配置（数据库 / ClickHouse / JWT 密钥 / GitHub OAuth 等）集中在各 `etc/*.yaml` 与部署配置中管理，不在此文档列出。

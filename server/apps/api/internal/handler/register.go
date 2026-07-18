@@ -28,6 +28,7 @@ func RegisterHandlers(server *rest.Server, svcCtx *svc.ServiceContext) {
 		{Method: http.MethodPut, Path: "/api/settings", Handler: UpdateSettingsHandler(svcCtx)},
 		{Method: http.MethodGet, Path: "/api/usage-trends", Handler: UsageTrendsHandler(svcCtx)},
 		{Method: http.MethodGet, Path: "/api/logs", Handler: LogsHandler(svcCtx)},
+		{Method: http.MethodGet, Path: "/api/short-links", Handler: ListMyLinksHandler(svcCtx)},
 	}
 	publicRoutes := []rest.Route{
 		{Method: http.MethodPost, Path: "/api/auth/register", Handler: RegisterHandler(svcCtx)},

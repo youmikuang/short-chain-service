@@ -77,6 +77,27 @@ func (m *ShortLinkModel) Delete(ctx context.Context, code string) error {
 	return err
 }
 
+// FindPageByUser 用户维度分页列表（仅本人创建的短链）
+func (m *ShortLinkModel) FindPageByUser(ctx context.Context, userId, page, pageSize int64) ([]ShortLink, int64, error) {
+	if page <= 0 {
+		page = 1
+	}
+	if pageSize <= 0 {
+		pageSize = 20
+	}
+	var total int64
+	if err := m.conn.QueryRow(&total, "select count(*) from "+m.table+" where user_id = ?", userId); err != nil {
+		return nil, 0, err
+	}
+	offset := (page - 1) * pageSize
+	query := "select " + shortLinkRows + " from " + m.table + " where user_id = ? order by id desc limit ? offset ?"
+	var items []ShortLink
+	if err := m.conn.QueryRows(&items, query, userId, pageSize, offset); err != nil {
+		return nil, 0, err
+	}
+	return items, total, nil
+}
+
 // CountWhere 按状态统计短链数量
 func (m *ShortLinkModel) CountWhere(ctx context.Context, status int64) (int64, error) {
 	var total int64

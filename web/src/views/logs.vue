@@ -17,7 +17,9 @@ const filtered = computed(() => {
   if (!q) return allRows.value
   return allRows.value.filter(
     (r) =>
-      r.endpoint.toLowerCase().includes(q) ||
+      r.code.toLowerCase().includes(q) ||
+      r.longUrl.toLowerCase().includes(q) ||
+      r.ip.toLowerCase().includes(q) ||
       r.timestamp.toLowerCase().includes(q) ||
       String(r.status).includes(q),
   )
@@ -39,7 +41,7 @@ async function load() {
     const { items } = await fetchLogs({ page: 1, pageSize: 100000 })
     allRows.value = items
   } catch {
-    // Backend /api/logs is not implemented yet; show an empty table.
+    // /api/logs 查询失败（如 ClickHouse 不可用）时显示空表。
     allRows.value = []
   }
 }
@@ -73,12 +75,13 @@ function downloadCsv(filename: string, data: string[][]) {
 }
 
 function exportCsv() {
-  const header = ['Timestamp', 'Endpoint/URL', 'Status', 'Latency']
+  const header = ['Timestamp', 'Shortened URL', 'Long URL', 'IP', 'Status']
   const body = filtered.value.map((r) => [
     r.timestamp,
-    r.endpoint,
+    '/r/' + r.code,
+    r.longUrl,
+    r.ip,
     String(r.status),
-    r.latency,
   ])
   downloadCsv('logs.csv', [header, ...body])
 }
@@ -129,28 +132,30 @@ watch(totalPages, (tp) => {
             </div>
 
             <div class="logs__table-wrap">
-              <table class="logs__table">
+                <table class="logs__table">
                 <thead>
                   <tr class="logs__thead-row">
                     <th class="logs__th">Timestamp</th>
                     <th class="logs__th">Shortened URL</th>
+                    <th class="logs__th">Long URL</th>
+                    <th class="logs__th">IP</th>
                     <th class="logs__th">Status</th>
-                    <th class="logs__th">Latency</th>
                   </tr>
                 </thead>
                 <tbody>
                   <tr v-for="(row, i) in rows" :key="i" class="logs__row">
                     <td class="logs__td logs__td--muted">{{ row.timestamp }}</td>
                     <td class="logs__td">
-                      <span class="logs__endpoint">{{ row.endpoint }}</span>
+                      <span class="logs__endpoint">/r/{{ row.code }}</span>
                     </td>
+                    <td class="logs__td logs__td--muted logs__td--break">{{ row.longUrl }}</td>
+                    <td class="logs__td logs__td--muted">{{ row.ip }}</td>
                     <td class="logs__td">
                       <span :class="statusClass(row.status)">{{ statusText(row.status) }}</span>
                     </td>
-                    <td class="logs__td">{{ row.latency }}</td>
                   </tr>
                   <tr v-if="rows.length === 0">
-                    <td colspan="4" class="logs__empty">No logs found.</td>
+                    <td colspan="5" class="logs__empty">No logs found.</td>
                   </tr>
                 </tbody>
               </table>

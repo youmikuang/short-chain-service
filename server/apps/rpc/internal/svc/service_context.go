@@ -1,7 +1,10 @@
 package svc
 
 import (
+	"database/sql"
+
 	"server/apps/rpc/internal/config"
+	"server/common/clickhouse"
 	"server/common/model"
 	"server/common/tool"
 
@@ -11,11 +14,13 @@ import (
 
 // ServiceContext 短链核心服务上下文
 type ServiceContext struct {
-	Config config.Config
-	Mysql  sqlx.SqlConn
-	Models *model.Models
-	IdGen  *tool.Snowflake
-	Redis  *redis.Client
+	Config         config.Config
+	Mysql          sqlx.SqlConn
+	Models         *model.Models
+	IdGen          *tool.Snowflake
+	Redis          *redis.Client
+	ClickHouse     *sql.DB
+	ClickHouseVisit *model.ShortLinkVisitModel
 }
 
 func NewServiceContext(c config.Config) *ServiceContext {
@@ -26,11 +31,23 @@ func NewServiceContext(c config.Config) *ServiceContext {
 	})
 	conn := sqlx.NewMysql(c.Mysql.DataSource)
 	// workerId 由部署时固定分配（环境变量/配置），此处取实例号
+	chDB, err := clickhouse.NewClient(clickhouse.Config{
+		Host:     c.ClickHouse.Host,
+		Port:     c.ClickHouse.Port,
+		Database: c.ClickHouse.Database,
+		Username: c.ClickHouse.Username,
+		Password: c.ClickHouse.Password,
+	})
+	if err != nil {
+		panic(err)
+	}
 	return &ServiceContext{
-		Config: c,
-		Mysql:  conn,
-		Models: model.NewModels(conn),
-		IdGen:  tool.NewSnowflake(1),
-		Redis:  rdb,
+		Config:         c,
+		Mysql:          conn,
+		Models:         model.NewModels(conn),
+		IdGen:          tool.NewSnowflake(1),
+		Redis:          rdb,
+		ClickHouse:     chDB,
+		ClickHouseVisit: model.NewShortLinkVisitModel(chDB),
 	}
 }

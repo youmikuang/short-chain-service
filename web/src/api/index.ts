@@ -60,9 +60,10 @@ export interface UsagePoint {
 
 export interface LogRow {
   timestamp: string
-  endpoint: string
+  code: string
+  longUrl: string
   status: number
-  latency: string
+  ip: string
 }
 
 export interface SettingsData {
@@ -125,24 +126,36 @@ export interface LoginResult {
   nickname: string
 }
 
+// Backend responses use snake_case (`user_id`) and register omits `nickname`.
+// Normalize both to a consistent camelCase LoginResult.
+interface RawLoginResp {
+  token: string
+  user_id: number
+  nickname?: string
+}
+
+function normalizeLogin(r: RawLoginResp): LoginResult {
+  return { token: r.token, userId: r.user_id, nickname: r.nickname ?? '' }
+}
+
 export function login(
   email: string,
   password: string,
 ): Promise<LoginResult> {
-  return request<LoginResult>('/api/auth/login', {
+  return request<RawLoginResp>('/api/auth/login', {
     method: 'POST',
     body: JSON.stringify({ email, password }),
-  })
+  }).then(normalizeLogin)
 }
 
 export function register(
   email: string,
   password: string,
 ): Promise<LoginResult> {
-  return request<LoginResult>('/api/auth/register', {
+  return request<RawLoginResp>('/api/auth/register', {
     method: 'POST',
     body: JSON.stringify({ email, password }),
-  })
+  }).then(normalizeLogin)
 }
 
 export function githubAuthUrl(redirect: string): Promise<{ url: string }> {
@@ -168,19 +181,29 @@ export interface SaveProfileParams {
   email: string
 }
 
-// NOTE: the backend does not yet implement profile updates; kept so the UI
-// can call the (future) real endpoint instead of using mock data.
 export function saveProfile(params: SaveProfileParams): Promise<Profile> {
-  return request<Profile>('/api/profile', {
-    method: 'POST',
-    body: JSON.stringify(params),
-  })
+  return request<{ user_id: number; email: string; nickname: string }>(
+    '/api/profile',
+    {
+      method: 'POST',
+      body: JSON.stringify(params),
+    },
+  ).then((p) => deriveProfile(p, p.email))
 }
 
 // --- API Keys -----------------------------------------------------------
 
 export function listApiKeys(): Promise<{ items: ApiKey[] }> {
-  return request<{ items: ApiKey[] }>('/api/keys')
+  return request<{
+    items: Array<{ id: number; name: string; status: number; created_at: string }>
+  }>('/api/keys').then((r) => ({
+    items: (r.items ?? []).map((k) => ({
+      id: k.id,
+      name: k.name,
+      status: k.status,
+      createdAt: k.created_at,
+    })),
+  }))
 }
 
 export function createApiKey(
@@ -220,16 +243,24 @@ export function createShortLink(longUrl: string): Promise<ShortLink> {
 }
 
 export function fetchLinks(): Promise<ShortLink[]> {
+  // Lists the CURRENT user's own short links (JWT auth), served by the API
+  // gateway — not the admin service.
   const qs = new URLSearchParams({ page: '1', size: '1000' })
   return request<{
     total: number
-    items: Array<{ code: string; long_url: string; clicks: number; status: number }>
-  }>(`/admin/api/links?${qs.toString()}`).then((r) =>
-    r.items.map((it) => ({
+    items: Array<{
+      code: string
+      long_url: string
+      clicks: number
+      status: number
+      created_at: string
+    }>
+  }>(`/api/short-links?${qs.toString()}`).then((r) =>
+    (r.items ?? []).map((it) => ({
       code: it.code,
       shortUrl: it.code,
       longUrl: it.long_url,
-      createdAt: '-',
+      createdAt: it.created_at || '-',
       clicks: it.clicks,
     })),
   )
@@ -272,14 +303,36 @@ export function updatePassword(
 }
 
 export function fetchUsageTrends(): Promise<UsagePoint[]> {
-  return request<UsagePoint[]>('/api/usage-trends')
+  return request<{ items: UsagePoint[] }>('/api/usage-trends').then(
+    (r) => r.items ?? [],
+  )
 }
 
 export function fetchLogs(params: FetchLogsParams = {}): Promise<FetchLogsResult> {
   const qs = new URLSearchParams()
   if (params.search) qs.set('search', params.search)
   if (params.page) qs.set('page', String(params.page))
-  if (params.pageSize) qs.set('pageSize', String(params.pageSize))
+  // Backend expects the snake_case form field `page_size`.
+  if (params.pageSize) qs.set('page_size', String(params.pageSize))
   const query = qs.toString()
-  return request<FetchLogsResult>(`/api/logs${query ? `?${query}` : ''}`)
+  // Backend returns short-link visit events: { items: [{ code, long_url, ... }] }
+  return request<{
+    total: number
+    items: Array<{
+      timestamp: string
+      code: string
+      long_url: string
+      status: number
+      ip: string
+    }>
+  }>(`/api/logs${query ? `?${query}` : ''}`).then((r) => ({
+    total: r.total,
+    items: (r.items ?? []).map((it) => ({
+      timestamp: it.timestamp,
+      code: it.code,
+      longUrl: it.long_url,
+      status: it.status,
+      ip: it.ip,
+    })),
+  }))
 }

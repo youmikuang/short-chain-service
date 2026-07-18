@@ -28,3 +28,22 @@ type ResolveResp struct {
 	LongURL string `json:"long_url"`
 	Blocked bool   `json:"blocked"`
 }
+
+// --- 用户自己的短链列表 ---
+type ListMyLinksReq struct {
+	Page int64 `form:"page,optional"`
+	Size int64 `form:"size,optional"`
+}
+
+type MyLinkItem struct {
+	Code      string `json:"code"`
+	LongURL   string `json:"long_url"`
+	Clicks    int64  `json:"clicks"`
+	Status    int32  `json:"status"`
+	CreatedAt string `json:"created_at"`
+}
+
+type ListMyLinksResp struct {
+	Total int64        `json:"total"`
+	Items []MyLinkItem `json:"items"`
+}

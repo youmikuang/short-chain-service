@@ -125,7 +125,7 @@ onMounted(async () => {
               <div>
                 <h2 class="token__card-title">API Keys</h2>
                 <span class="token-pill">
-                  <span class="token-dot"></span> {{ keys.length }} key(s)
+                  <span class="token-dot"></span> {{ keys.length ? 'Active' : 'None' }}
                 </span>
               </div>
               <span class="material-symbols-outlined token__token-icon">key</span>
@@ -161,20 +161,16 @@ onMounted(async () => {
               </div>
             </div>
 
-            <ul class="token__keys">
-              <li v-for="k in keys" :key="k.id" class="token__key">
-                <div class="token__key-info">
-                  <span class="token__key-name">{{ k.name }}</span>
-                  <span class="token__key-meta">
-                    {{ statusText(k.status) }} · {{ k.createdAt || '—' }}
-                  </span>
-                </div>
-                <button class="token__revoke" @click="onRevoke(k.id)">Revoke</button>
-              </li>
-              <li v-if="keys.length === 0" class="token__key token__key--empty">
-                No API keys yet.
-              </li>
-            </ul>
+            <div v-if="keys.length" class="token__key">
+              <div class="token__key-info">
+                <span class="token__key-name">{{ keys[0].name }}</span>
+                <span class="token__key-meta">
+                  {{ statusText(keys[0].status) }} · {{ keys[0].createdAt || '—' }}
+                </span>
+              </div>
+              <button class="token__revoke" @click="onRevoke(keys[0].id)">Revoke</button>
+            </div>
+            <p v-else class="token__empty-note">No API key yet. Create one above.</p>
           </div>
 
           <!-- Usage Trends -->

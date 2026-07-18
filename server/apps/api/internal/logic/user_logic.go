@@ -4,7 +4,6 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
-	"fmt"
 	"net/http"
 	"net/url"
 	"strconv"
@@ -22,17 +21,36 @@ import (
 
 // uidFromCtx 从 JWT 上下文取出用户ID
 // go-zero 的 jwt 中间件会把每个 claim 写入 request context（key 为 claim 名），
-// 例如 token 载荷 {"uid": 1} 可通过 ctx.Value("uid") 取到（数值为 float64）。
+// 例如 token 载荷 {"uid": 1} 可通过 ctx.Value("uid") 取到。
+// 注意：go-zero v1.7.3 的 token 解析器使用了 jwt.WithJSONNumber()，
+// 因此数值型 claim 在 context 中是 json.Number（而非 float64），需兼容处理。
 func uidFromCtx(ctx context.Context) (int64, error) {
 	v := ctx.Value("uid")
 	if v == nil {
 		return 0, errorx.Unauthorized("uid missing in token")
 	}
-	f, ok := v.(float64)
-	if !ok {
+	switch t := v.(type) {
+	case float64:
+		return int64(t), nil
+	case json.Number:
+		n, err := t.Int64()
+		if err != nil {
+			return 0, errorx.Unauthorized("invalid uid")
+		}
+		return n, nil
+	case int64:
+		return t, nil
+	case int:
+		return int64(t), nil
+	case string:
+		n, err := strconv.ParseInt(t, 10, 64)
+		if err != nil {
+			return 0, errorx.Unauthorized("invalid uid")
+		}
+		return n, nil
+	default:
 		return 0, errorx.Unauthorized("invalid uid")
 	}
-	return int64(f), nil
 }
 
 // ---------------------------------------------------------------------------
@@ -492,7 +510,7 @@ func (l *UsageTrendsLogic) UsageTrends(req *types.UsageTrendsReq) (*types.UsageT
 	if days <= 0 {
 		days = 30
 	}
-	counts, err := l.svcCtx.Models.AccessLog.CountByDay(l.ctx, int(days))
+	counts, err := l.svcCtx.ClickHouseVisit.CountByDay(l.ctx, int(days))
 	if err != nil {
 		return nil, errorx.Internal(err.Error())
 	}
@@ -515,17 +533,22 @@ func NewLogsLogic(ctx context.Context, svcCtx *svc.ServiceContext) *LogsLogic {
 	return &LogsLogic{ctx: ctx, svcCtx: svcCtx}
 }
 func (l *LogsLogic) Logs(req *types.LogsReq) (*types.LogsResp, error) {
-	rows, total, err := l.svcCtx.Models.AccessLog.FindPage(l.ctx, req.Search, req.Page, req.PageSize)
+	uid, err := uidFromCtx(l.ctx)
+	if err != nil {
+		return nil, err
+	}
+	rows, total, err := l.svcCtx.ClickHouseVisit.FindPageByUser(l.ctx, uid, req.Page, req.PageSize, req.Search)
 	if err != nil {
 		return nil, errorx.Internal(err.Error())
 	}
 	items := make([]types.LogItem, 0, len(rows))
 	for _, r := range rows {
 		items = append(items, types.LogItem{
-			Timestamp: r.CreatedAt,
-			Endpoint:  r.Endpoint,
+			Timestamp: r.CreatedAt.Format(time.DateTime),
+			Code:      r.Code,
+			LongURL:   r.LongURL,
 			Status:    r.Status,
-			Latency:   fmt.Sprintf("%dms", r.LatencyMs),
+			IP:        r.IP,
 		})
 	}
 	return &types.LogsResp{Total: total, Items: items}, nil

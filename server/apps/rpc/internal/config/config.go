@@ -15,4 +15,11 @@ type Config struct {
 	BlacklistRedisKey string
 	ClickEventsTopic  string
 	KafkaBrokers      []string
+	ClickHouse        struct {
+		Host     string
+		Port     int
+		Database string
+		Username string
+		Password string
+	}
 }

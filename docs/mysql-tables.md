@@ -168,13 +168,14 @@ users 1 ──< access_logs    (user_id)
 -- ClickHouse
 CREATE TABLE click_events (
   code        String,
+  long_url    String,
   user_id     UInt64 DEFAULT 0,
   ip          String DEFAULT '',
-  ua          String DEFAULT '',
   referer     String DEFAULT '',
+  status      UInt32 DEFAULT 200,
   created_at  DateTime DEFAULT now()
 ) ENGINE = MergeTree()
-ORDER BY (code, created_at);
+ORDER BY (user_id, created_at);
 ```
 
 建表脚本：`server/deploy/sql/clickhouse.sql`。

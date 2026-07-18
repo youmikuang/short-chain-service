@@ -89,7 +89,7 @@ CREATE TABLE IF NOT EXISTS domain_blacklist (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 -- ---------------------------------------------------------------------------
--- access_logs: HTTP 访问日志（驱动 /api/logs 与 /api/usage-trends）
+-- access_logs: HTTP 访问日志（网关自身访问记录，仅供运维排查）
 -- ---------------------------------------------------------------------------
 CREATE TABLE IF NOT EXISTS access_logs (
     id         BIGINT       NOT NULL AUTO_INCREMENT,

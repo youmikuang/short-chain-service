@@ -25,3 +25,11 @@ Github:
 # 直连短链核心 gRPC 服务（开发环境免去 Etcd 依赖；生产可切回 Etcd 服务发现）
 Rpc:
   Target: 127.0.0.1:8081
+
+# 短链访问明细（驱动 /api/logs 与 /api/usage-trends）存放于 ClickHouse
+ClickHouse:
+  Host: 127.0.0.1
+  Port: 9000
+  Database: short_chain
+  Username: default
+  Password: ""

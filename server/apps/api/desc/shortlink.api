@@ -35,6 +35,24 @@ type ResolveResp {
     Blocked bool   `json:"blocked"`
 }
 
+type ListMyLinksReq {
+    Page int64 `form:"page,optional"`
+    Size int64 `form:"size,optional"`
+}
+
+type MyLinkItem {
+    Code      string `json:"code"`
+    LongURL   string `json:"long_url"`
+    Clicks    int64  `json:"clicks"`
+    Status    int32  `json:"status"`
+    CreatedAt string `json:"created_at"`
+}
+
+type ListMyLinksResp {
+    Total int64        `json:"total"`
+    Items []MyLinkItem `json:"items"`
+}
+
 @server(
     prefix: /api
 )
@@ -44,6 +62,16 @@ service shortlink-api {
 
     @handler GetByCode
     get /short-links/:code (GetByCodeReq) returns (GetByCodeResp)
+}
+
+// 用户自己的短链列表（JWT 鉴权，供前端 dashboard 使用）
+@server(
+    jwt:    Auth
+    prefix: /api
+)
+service shortlink-user-api {
+    @handler ListMyLinks
+    get /short-links (ListMyLinksReq) returns (ListMyLinksResp)
 }
 
 @server(

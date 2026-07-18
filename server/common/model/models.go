@@ -8,8 +8,8 @@ type Models struct {
 	User           *UserModel
 	ApiKey         *ApiKeyModel
 	UserSettings   *UserSettingsModel
-	AccessLog      *AccessLogModel
-	ShortLink      *ShortLinkModel
+	AccessLog       *AccessLogModel
+	ShortLink       *ShortLinkModel
 	DomainBlacklist *DomainBlacklistModel
 }
 

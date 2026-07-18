@@ -5,6 +5,7 @@ import (
 	"server/apps/rpc/internal/svc"
 	"server/apps/rpc/pb"
 	"server/common/errorx"
+	"server/common/model"
 	"server/common/tool"
 
 	"github.com/redis/go-redis/v9"
@@ -23,6 +24,8 @@ func NewResolveLogic(ctx context.Context, svcCtx *svc.ServiceContext) *ResolveLo
 func (l *ResolveLogic) Resolve(in *pb.ResolveReq) (*pb.ResolveResp, error) {
 	code := in.GetCode()
 	longURL, err := l.svcCtx.Redis.Get(l.ctx, "short_link:"+code).Result()
+	// 短链所属用户（用于写入访问明细日志，按用户隔离）
+	var ownerId int64
 	if err == redis.Nil {
 		// 回源 MySQL
 		row, derr := l.svcCtx.Models.ShortLink.FindOneByCode(l.ctx, code)
@@ -32,9 +35,19 @@ func (l *ResolveLogic) Resolve(in *pb.ResolveReq) (*pb.ResolveResp, error) {
 			return nil, errorx.Internal(derr.Error())
 		}
 		longURL = row.LongURL
+		ownerId = row.UserId
 		l.svcCtx.Redis.Set(l.ctx, "short_link:"+code, longURL, redisCacheTTL())
+		l.svcCtx.Redis.Set(l.ctx, "short_link:"+code+":uid", ownerId, redisCacheTTL())
 	} else if err != nil {
 		return nil, err
+	} else {
+		// 缓存命中：尝试从 uid 缓存取所属用户，缺失则回源补齐
+		if v, e := l.svcCtx.Redis.Get(l.ctx, "short_link:"+code+":uid").Int64(); e == nil {
+			ownerId = v
+		} else if row, derr := l.svcCtx.Models.ShortLink.FindOneByCode(l.ctx, code); derr == nil {
+			ownerId = row.UserId
+			l.svcCtx.Redis.Set(l.ctx, "short_link:"+code+":uid", ownerId, redisCacheTTL())
+		}
 	}
 
 	// 域名黑名单校验
@@ -49,6 +62,16 @@ func (l *ResolveLogic) Resolve(in *pb.ResolveReq) (*pb.ResolveResp, error) {
 	// 实时点击计数：Redis incr + MySQL 落库（保证 admin 列表准确）
 	l.svcCtx.Redis.Incr(l.ctx, "short_link:"+code+":clicks")
 	_ = l.svcCtx.Models.ShortLink.IncrClicks(l.ctx, code)
+
+	// 写入短链访问明细到 ClickHouse（异步，不阻塞跳转；访问日志允许少量丢失）
+	go func() {
+		_ = l.svcCtx.ClickHouseVisit.Insert(context.Background(), &model.ShortLinkVisit{
+			Code:    code,
+			LongURL: longURL,
+			UserId:  ownerId,
+			Status:  200,
+		})
+	}()
 
 	return &pb.ResolveResp{LongUrl: longURL, Blocked: false}, nil
 }
