@@ -26,7 +26,8 @@ CREATE TABLE IF NOT EXISTS click_events (
     ip          String      DEFAULT '' COMMENT '访问者 IP',
     referer     String      DEFAULT '' COMMENT '来源 Referer',
     status      UInt32      DEFAULT 200 COMMENT 'HTTP 状态码（200 正常，其余为异常）',
-    source      String      DEFAULT 'web' COMMENT '生成来源：web（网页 JWT）/ api（第三方 API Key）',
+    source      String      DEFAULT 'web' COMMENT '生成来源：web（网页 JWT）/ rpc（第三方 API Key 经核心服务）',
+    latency_ms  UInt32      DEFAULT 0 COMMENT '解析耗时（毫秒），用于访问性能统计',
     created_at  DateTime    DEFAULT now() COMMENT '访问时间',
     -- 跳数索引：加速 /api/logs 中 code / long_url 的模糊搜索（LIKE '%x%'）
     INDEX idx_code      code      TYPE ngrambf_v1(3, 1024, 2, 0) GRANULARITY 1,
@@ -38,7 +39,16 @@ ORDER BY (user_id, created_at);
 -- 兼容老表：若 click_events 在 source 列之前已创建，自动补列（幂等，可重复执行）。
 -- 这样 logs 与 url（short_links）一致，都带有生成来源 source 字段。
 ALTER TABLE IF EXISTS click_events
-    ADD COLUMN IF NOT EXISTS source String DEFAULT 'web' COMMENT '生成来源：web（网页 JWT）/ api（第三方 API Key）';
+    ADD COLUMN IF NOT EXISTS source String DEFAULT 'web' COMMENT '生成来源：web（网页 JWT）/ rpc（第三方 API Key 经核心服务）';
+
+-- 存量迁移：早期写入的 click_events.source='api' 统一改名为 'rpc'，
+-- 与 short_links 及新建数据的命名保持一致（幂等：仅影响仍为 'api' 的行）。
+-- ClickHouse 的 UPDATE 是异步 mutation，大表可能耗时，可在低峰期执行。
+ALTER TABLE IF EXISTS click_events UPDATE source = 'rpc' WHERE source = 'api';
+
+-- 兼容老表：补充解析耗时列（用于访问性能统计）。
+ALTER TABLE IF EXISTS click_events
+    ADD COLUMN IF NOT EXISTS latency_ms UInt32 DEFAULT 0 COMMENT '解析耗时（毫秒）';
 
 -- ---------------------------------------------------------------------------
 -- rpc_logs: 短链核心 gRPC 服务的调用日志（由 rpc 拦截器异步写入，仅供运维排查）

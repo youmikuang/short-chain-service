@@ -2,6 +2,7 @@ package logic
 
 import (
 	"context"
+	"time"
 	"server/apps/rpc/internal/svc"
 	"server/apps/rpc/pb"
 	"server/common/errorx"
@@ -9,6 +10,8 @@ import (
 	"server/common/tool"
 
 	"github.com/redis/go-redis/v9"
+	"github.com/zeromicro/go-zero/core/logx"
+	"google.golang.org/grpc/metadata"
 )
 
 type ResolveLogic struct {
@@ -22,7 +25,19 @@ func NewResolveLogic(ctx context.Context, svcCtx *svc.ServiceContext) *ResolveLo
 
 // Resolve 跳转解析：缓存命中直接返回；未命中回源 MySQL；跳转前校验域名黑名单
 func (l *ResolveLogic) Resolve(in *pb.ResolveReq) (*pb.ResolveResp, error) {
+	start := time.Now()
 	code := in.GetCode()
+
+	// 从网关透传的 gRPC metadata 取访问者 IP / Referer（网关从 HTTP 请求提取）
+	ip, referer := "", ""
+	if md, ok := metadata.FromIncomingContext(l.ctx); ok {
+		if v := md.Get("x-client-ip"); len(v) > 0 {
+			ip = v[0]
+		}
+		if v := md.Get("x-referer"); len(v) > 0 {
+			referer = v[0]
+		}
+	}
 	longURL, err := l.svcCtx.Redis.Get(l.ctx, "short_link:"+code).Result()
 	// 短链所属用户（用于写入访问明细日志，按用户隔离）
 	var ownerId int64
@@ -74,17 +89,49 @@ func (l *ResolveLogic) Resolve(in *pb.ResolveReq) (*pb.ResolveResp, error) {
 	_ = l.svcCtx.Models.ShortLink.IncrClicks(l.ctx, code)
 
 	// 写入短链访问明细到 ClickHouse（异步，不阻塞跳转；访问日志允许少量丢失）
+	latencyMs := time.Since(start).Milliseconds()
 	go func() {
-		_ = l.svcCtx.ClickHouseVisit.Insert(context.Background(), &model.ShortLinkVisit{
-			Code:    code,
-			LongURL: longURL,
-			UserId:  ownerId,
-			Status:  200,
-			Source:  source,
-		})
+		if err := l.svcCtx.ClickHouseVisit.Insert(context.Background(), &model.ShortLinkVisit{
+			Code:      code,
+			LongURL:   longURL,
+			UserId:    ownerId,
+			IP:        ip,
+			Referer:   referer,
+			Status:    200,
+			Source:    source,
+			LatencyMs: latencyMs,
+		}); err != nil {
+			logx.Errorf("ClickHouse visit insert failed for code %s: %v", code, err)
+		}
 	}()
 
 	return &pb.ResolveResp{LongUrl: longURL, Blocked: false}, nil
+}
+
+// ProbeClickHouse 自检方法：写入一条探针记录到 click_events 并读回，
+// 用于验证 ClickHouse 写入链路（配置/端口/驱动）是否正常。不在正常请求路径中调用，
+// 仅供测试 / 运维排查使用（如 go test ./apps/rpc/internal/logic/ -run TestClickHouseProbe）。
+func (l *ResolveLogic) ProbeClickHouse(ctx context.Context) error {
+	probe := &model.ShortLinkVisit{
+		Code:    "probe-" + time.Now().Format("20060102150405"),
+		LongURL: "https://example.com/probe",
+		UserId:  0,
+		Status:  200,
+		Source:  "rpc",
+	}
+	if err := l.svcCtx.ClickHouseVisit.Insert(ctx, probe); err != nil {
+		return errorx.Internal("clickhouse insert failed: " + err.Error())
+	}
+	rows, _, err := l.svcCtx.ClickHouseVisit.FindPageByUser(ctx, 0, 1, 50, probe.Code, "")
+	if err != nil {
+		return errorx.Internal("clickhouse read-back failed: " + err.Error())
+	}
+	for _, r := range rows {
+		if r.Code == probe.Code {
+			return nil
+		}
+	}
+	return errorx.Internal("clickhouse probe row not found after insert")
 }
 
 // isBlacklisted 校验域名是否命中黑名单（优先 MySQL，回退 Redis）

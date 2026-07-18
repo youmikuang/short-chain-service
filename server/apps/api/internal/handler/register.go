@@ -35,7 +35,6 @@ func RegisterHandlers(server *rest.Server, svcCtx *svc.ServiceContext) {
 		{Method: http.MethodPost, Path: "/api/auth/login", Handler: LoginHandler(svcCtx)},
 		{Method: http.MethodGet, Path: "/api/auth/github", Handler: GitHubAuthURLHandler(svcCtx)},
 		{Method: http.MethodGet, Path: "/api/auth/github/callback", Handler: GitHubCallbackHandler(svcCtx)},
-		{Method: http.MethodGet, Path: "/r/:code", Handler: ResolveHandler(svcCtx)},
 	}
 
 	// 短链创建/查询：X-API-Key 或 Bearer JWT 任一有效即可

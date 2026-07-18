@@ -1,6 +1,6 @@
 # server Makefile —— go-zero 单体仓库构建脚本
 
-.PHONY: gen gen-rpc build tidy run-api run-rpc run-admin docker
+.PHONY: gen gen-rpc build tidy run-api run-rpc run-admin run-jump docker
 
 # 安装工具
 # protoc + 插件: go install google.golang.org/protobuf/cmd/protoc-gen-go@latest
@@ -28,16 +28,19 @@ tidy:
 	go mod tidy
 
 build:
-	go build ./apps/api/api && go build ./apps/api/rpc && go build ./apps/admin/api
+	go build ./apps/api && go build ./apps/rpc && go build ./apps/admin && go build ./apps/jump
 
 run-api:
-	go run apps/api/api -f apps/api/api/etc/api-api.yaml
+	go run apps/api -f apps/api/etc/api-api.yaml
 
 run-rpc:
-	go run apps/api/rpc -f apps/api/rpc/etc/shortlink.yaml
+	go run apps/rpc -f apps/rpc/etc/shortlink.yaml
 
 run-admin:
-	go run apps/admin/api -f apps/admin/api/etc/admin-api.yaml
+	go run apps/admin -f apps/admin/etc/admin-api.yaml
+
+run-jump:
+	go run apps/jump -f apps/jump/etc/jump-api.yaml
 
 docker:
 	docker build -f deploy/docker/Dockerfile -t shortlink-server .

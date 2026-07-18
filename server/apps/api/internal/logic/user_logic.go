@@ -2,7 +2,6 @@ package logic
 
 import (
 	"context"
-	"database/sql"
 	"encoding/json"
 	"errors"
 	"net/http"
@@ -524,14 +523,15 @@ func (l *UsageTrendsLogic) UsageTrends(req *types.UsageTrendsReq) (*types.UsageT
 		days = 30
 	}
 	// ClickHouse 不可用时优雅降级：返回全 0 的连续日期序列，避免接口 500。
+	// 不再每次先 Ping 探测（多一次往返），直接查；并加超时上下文，CH 慢/挂时快速失败。
 	counts := make(map[string]int64)
-	if clickhouseAvailable(l.ctx, l.svcCtx.ClickHouse) {
-		got, err := l.svcCtx.ClickHouseVisit.CountByDay(l.ctx, int(days))
-		if err != nil {
-			logx.Errorf("ClickHouse CountByDay failed, degrade /api/usage-trends: %v", err)
-		} else {
-			counts = got
-		}
+	chCtx, cancel := context.WithTimeout(l.ctx, 3*time.Second)
+	defer cancel()
+	got, err := l.svcCtx.ClickHouseVisit.CountByDay(chCtx, int(days))
+	if err != nil {
+		logx.Errorf("ClickHouse CountByDay failed, degrade /api/usage-trends: %v", err)
+	} else {
+		counts = got
 	}
 	// 补齐连续日期（缺失的天补 0）
 	now := time.Now()
@@ -556,19 +556,16 @@ func (l *LogsLogic) Logs(req *types.LogsReq) (*types.LogsResp, error) {
 	if err != nil {
 		return nil, err
 	}
-	// source 过滤：前端传 "web" / "rpc"，后端统一映射为存储值（api=第三方 RPC/Key 调用）。
+	// source 过滤：前端传 "web" / "rpc"，与存储值一致（rpc=第三方 API Key 调用，web=网页 JWT）。
 	source := req.Source
-	if source == "rpc" {
-		source = "api"
-	}
-	if source != "" && source != "web" && source != "api" {
+	if source != "" && source != "web" && source != "rpc" {
 		source = ""
 	}
 	// ClickHouse 不可用时优雅降级：返回空列表，避免接口 500。
-	if !clickhouseAvailable(l.ctx, l.svcCtx.ClickHouse) {
-		return &types.LogsResp{Total: 0, Items: []types.LogItem{}}, nil
-	}
-	rows, total, err := l.svcCtx.ClickHouseVisit.FindPageByUser(l.ctx, uid, req.Page, req.PageSize, req.Search, source)
+	// 不再每次先 Ping 探测（多一次往返），直接查；并加超时上下文，CH 慢/挂时快速失败。
+	chCtx, cancel := context.WithTimeout(l.ctx, 3*time.Second)
+	defer cancel()
+	rows, total, err := l.svcCtx.ClickHouseVisit.FindPageByUser(chCtx, uid, req.Page, req.PageSize, req.Search, source)
 	if err != nil {
 		logx.Errorf("ClickHouse FindPageByUser failed, degrade /api/logs: %v", err)
 		return &types.LogsResp{Total: 0, Items: []types.LogItem{}}, nil
@@ -582,21 +579,14 @@ func (l *LogsLogic) Logs(req *types.LogsReq) (*types.LogsResp, error) {
 			Status:    r.Status,
 			IP:        r.IP,
 			Source:    r.Source,
+			LatencyMs: r.LatencyMs,
 		})
 	}
 	return &types.LogsResp{Total: total, Items: items}, nil
 }
 
-// clickhouseAvailable 以极短超时探测 ClickHouse 是否可连通。
-// 不可用时返回 false，让依赖 CH 的接口（/api/logs、/api/usage-trends）降级为空数据而非 500。
-func clickhouseAvailable(ctx context.Context, db *sql.DB) bool {
-	if db == nil {
-		return false
-	}
-	pingCtx, cancel := context.WithTimeout(ctx, 500*time.Millisecond)
-	defer cancel()
-	return db.PingContext(pingCtx) == nil
-}
+// clickhouseAvailable 已移除：原先每次接口先 Ping 一次会多一次往返（远程 ClickHouse
+// 跨公网下代价很高）。现改为直接查询 + 3s 超时上下文，CH 慢/挂时快速降级，详见 Logs / UsageTrends。
 
 func boolToInt(b bool) int64 {
 	if b {

@@ -22,7 +22,7 @@ const APIKeyKey = "api_key"
 // NewAuthMiddleware 校验请求身份：Bearer JWT 优先（web 前端，无需 API Key），
 // 缺失时回退到 X-API-Key（第三方）。注意：API Key 的合法性校验放在 rpc 核心服务，
 // 此处仅把原始 key 透传（写入 context），不在此做哈希比对。
-// 仅对 /api/* 生效，/r/* 跳转为公开端点（不在此中间件处理）。
+// 仅对 /api/* 生效；短链跳转 /r/* 已由独立的 jump 服务处理，不经过本中间件。
 func NewAuthMiddleware(svcCtx *svc.ServiceContext) func(next http.HandlerFunc) http.HandlerFunc {
 	return func(next http.HandlerFunc) http.HandlerFunc {
 		return func(w http.ResponseWriter, r *http.Request) {

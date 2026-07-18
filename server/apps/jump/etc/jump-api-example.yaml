@@ -1,0 +1,7 @@
+Name: slink-jump
+Host: 0.0.0.0
+Port: 8890
+
+# 直连短链核心 gRPC 服务（与 api 共用同一 rpc 核心；开发环境免去 Etcd 依赖）
+Rpc:
+  Target: 127.0.0.1:8081

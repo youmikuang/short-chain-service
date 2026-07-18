@@ -135,7 +135,7 @@ const logs = ref<LogRow[]>([])
 
 async function loadLogs() {
   try {
-    const r = await fetchLogs({ pageSize: 5 })
+    const r = await fetchLogs({ pageSize: 4 })
     logs.value = r.items
   } catch {
     logs.value = []
@@ -175,13 +175,6 @@ onMounted(async () => {
             <div class="token__token-head">
               <div>
                 <h2 class="token__card-title">Production Key</h2>
-                <span v-if="keys.length && keys[0]?.status === 1" class="token__badge-active">
-                  <span class="token__badge-dot"></span> Active
-                </span>
-                <span v-else class="token__badge-active token__badge-active--off">
-                  <span class="token__badge-dot"></span>
-                  {{ keys.length ? 'Revoked' : 'None' }}
-                </span>
               </div>
               <span class="material-symbols-outlined token__token-icon">key</span>
             </div>
@@ -246,7 +239,7 @@ onMounted(async () => {
         <div id="logs" class="token__logs">
           <div class="token__logs-card card">
             <div class="token__logs-bar">
-              <h3 class="token__logs-bar-title">Recent API Activity</h3>
+              <h3 class="token__logs-bar-title">Recent Logs</h3>
               <RouterLink to="/logs" class="token__view-all">
                 View All
                 <span class="material-symbols-outlined" style="font-size: 18px; margin-left: 4px;">arrow_forward</span>
@@ -271,7 +264,7 @@ onMounted(async () => {
                     <td class="token__td">
                       <span :class="statusClass(row.status)">{{ statusText(row.status) }}</span>
                     </td>
-                    <td class="token__td">—</td>
+                    <td class="token__td">{{ row.latency_ms }}ms</td>
                   </tr>
                   <tr v-if="logs.length === 0">
                     <td colspan="4" class="token__empty">No logs found.</td>

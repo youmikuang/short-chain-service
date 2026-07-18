@@ -68,7 +68,9 @@ export interface LogRow {
   code: string
   longUrl: string
   status: number
+  latency_ms: number
   ip: string
+  source?: string
 }
 
 export interface SettingsData {
@@ -240,12 +242,16 @@ export function createShortLink(longUrl: string): Promise<ShortLink> {
     apiKeyHeader(),
   ).then((res) => {
     if (!res.ok) throw new Error(`shorten failed: ${res.status}`)
-    return res.json().then((r: { code: string; long_url: string }) => ({
-      code: r.code,
-      shortUrl: r.code,
-      longUrl: r.long_url,
-      createdAt: '-',
-    }))
+    return res.json().then((r: { code: string; long_url: string }) => {
+      const sUrl = `${SHORT_DOMAIN}/r/${r.code}`
+      return {
+        code: r.code,
+        shortUrl: sUrl,
+        sUrl,
+        longUrl: r.long_url,
+        createdAt: '-',
+      }
+    })
   })
 }
 
@@ -346,6 +352,8 @@ export function fetchLogs(params: FetchLogsParams = {}): Promise<FetchLogsResult
       long_url: string
       status: number
       ip: string
+      source?: string
+      latency_ms: number
     }>
   }>(`/api/logs${query ? `?${query}` : ''}`).then((r) => ({
     total: r.total,
@@ -355,6 +363,8 @@ export function fetchLogs(params: FetchLogsParams = {}): Promise<FetchLogsResult
       longUrl: it.long_url,
       status: it.status,
       ip: it.ip,
+      source: it.source,
+      latency_ms: it.latency_ms,
     })),
   }))
 }

@@ -128,6 +128,7 @@ type LogItem struct {
 	Status    int64  `json:"status"`
 	IP        string `json:"ip"`
 	Source    string `json:"source"`
+	LatencyMs int64  `json:"latency_ms"`
 }
 type LogsResp struct {
 	Total int64      `json:"total"`

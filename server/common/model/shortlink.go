@@ -31,7 +31,7 @@ func NewShortLinkModel(conn sqlx.SqlConn) *ShortLinkModel {
 const shortLinkRows = "id, code, long_url, user_id, clicks, status, source, created_at, updated_at"
 
 // shortLinkJoinRows 联表查询时给列加表别名，避免与 users.id 冲突
-const shortLinkJoinRows = "sl.id, sl.code, sl.long_url, sl.user_id, sl.clicks, sl.status, sl.created_at, sl.updated_at"
+const shortLinkJoinRows = "sl.id, sl.code, sl.long_url, sl.user_id, sl.clicks, sl.status, sl.source, sl.created_at, sl.updated_at"
 
 func (m *ShortLinkModel) Insert(ctx context.Context, data *ShortLink) (sql.Result, error) {
 	query := "insert into " + m.table + " (code, long_url, user_id, clicks, status, source) values (?, ?, ?, ?, ?, ?)"

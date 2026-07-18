@@ -26,15 +26,6 @@ type GetByCodeResp {
     Status  int32  `json:"status"`
 }
 
-type ResolveReq {
-    Code string `path:"code"`
-}
-
-type ResolveResp {
-    LongURL string `json:"long_url"`
-    Blocked bool   `json:"blocked"`
-}
-
 type ListMyLinksReq {
     Page   int64  `form:"page,optional"`
     Size   int64  `form:"size,optional"`
@@ -77,10 +68,5 @@ service shortlink-user-api {
     get /short-links (ListMyLinksReq) returns (ListMyLinksResp)
 }
 
-@server(
-    prefix: /r
-)
-service shortlink-redirect {
-    @handler Resolve
-    get /:code (ResolveReq) returns (ResolveResp)
-}
+// 注：/r/:code 短链跳转已拆分到独立的 jump 服务（server/apps/jump），
+// 不再由本 api 服务处理，故此处不再定义 shortlink-redirect 服务。

@@ -20,15 +20,6 @@ type GetByCodeResp struct {
 	Status  int32  `json:"status"`
 }
 
-type ResolveReq struct {
-	Code string `path:"code"`
-}
-
-type ResolveResp struct {
-	LongURL string `json:"long_url"`
-	Blocked bool   `json:"blocked"`
-}
-
 // --- 用户自己的短链列表 ---
 type ListMyLinksReq struct {
 	Page   int64  `form:"page,optional"`

@@ -68,7 +68,7 @@ CREATE TABLE IF NOT EXISTS short_links (
     user_id    BIGINT       NOT NULL DEFAULT 0,
     clicks     BIGINT       NOT NULL DEFAULT 0,
     status     TINYINT      NOT NULL DEFAULT 1,
-    source     VARCHAR(16)  NOT NULL DEFAULT 'web' COMMENT '生成来源：web(网页) / api(第三方 API Key)',
+    source     VARCHAR(16)  NOT NULL DEFAULT 'web' COMMENT '生成来源：web(网页) / rpc(第三方 API Key 经核心服务)',
     created_at DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     PRIMARY KEY (id),
@@ -109,3 +109,9 @@ CREATE TABLE IF NOT EXISTS action_logs (
 --     不再使用 MySQL 的 short_link_visits 表。
 -- 注：网关 / 管理后台操作日志统一写入 action_logs（取代原 access_logs）；
 --     RPC 调用日志写入 ClickHouse 的 rpc_logs，不再落 MySQL。
+
+-- ---------------------------------------------------------------------------
+-- 存量迁移：早期 short_links.source='api' 统一改名为 'rpc'，
+-- 与新建数据及 click_events 的命名保持一致（幂等：仅影响仍为 'api' 的行）。
+-- ---------------------------------------------------------------------------
+UPDATE short_links SET source = 'rpc' WHERE source = 'api';

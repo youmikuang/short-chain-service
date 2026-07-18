@@ -16,6 +16,7 @@ type ShortLinkVisit struct {
 	Referer   string
 	Status    int64
 	Source    string
+	LatencyMs int64
 	CreatedAt time.Time
 }
 
@@ -33,13 +34,17 @@ const clickEventTable = "click_events"
 // 因此这里不显式传该列。调用方（rpc.Resolve）应以异步方式调用，避免阻塞跳转。
 func (m *ShortLinkVisitModel) Insert(ctx context.Context, data *ShortLinkVisit) error {
 	_, err := m.conn.ExecContext(ctx,
-		"INSERT INTO "+clickEventTable+" (code, long_url, user_id, ip, referer, status, source) VALUES (?, ?, ?, ?, ?, ?, ?)",
-		data.Code, data.LongURL, data.UserId, data.IP, data.Referer, data.Status, data.Source)
+		"INSERT INTO "+clickEventTable+" (code, long_url, user_id, ip, referer, status, source, latency_ms) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
+		data.Code, data.LongURL, data.UserId, data.IP, data.Referer, data.Status, data.Source, data.LatencyMs)
 	return err
 }
 
 // FindPageByUser 用户维度短链访问日志（仅本人短链），支持按 code / long_url 模糊搜索，
-// source 可选（"web" / "api"/"rpc"），为空时不过滤。
+// source 可选（"web" / "rpc"），为空时不过滤。
+//
+// 性能优化：用 count() OVER () 窗口函数在同一条查询里同时拿到「满足条件的总行数」
+// 与「当前分页数据」，把原本的 count 查询 + 数据查询两次往返合并为一次，
+// 对跨公网的远程 ClickHouse 能显著减少延迟。
 func (m *ShortLinkVisitModel) FindPageByUser(ctx context.Context, userId, page, pageSize int64, search, source string) ([]ShortLinkVisit, int64, error) {
 	if page <= 0 {
 		page = 1
@@ -58,13 +63,9 @@ func (m *ShortLinkVisitModel) FindPageByUser(ctx context.Context, userId, page, 
 		args = append(args, source)
 	}
 
-	var total int64
-	if err := m.conn.QueryRowContext(ctx, "SELECT count() FROM "+clickEventTable+where, args...).Scan(&total); err != nil {
-		return nil, 0, err
-	}
-
 	offset := (page - 1) * pageSize
-	selCols := "code, long_url, user_id, ip, referer, status, source, created_at"
+	// count() OVER () 在 LIMIT 之前计算，total 即为满足 WHERE 的总行数（每一行相同）。
+	selCols := "code, long_url, user_id, ip, referer, status, source, latency_ms, created_at, count() OVER () AS total_count"
 	query := "SELECT " + selCols + " FROM " + clickEventTable +
 		where + " ORDER BY created_at DESC LIMIT ? OFFSET ?"
 	listArgs := append(append([]interface{}{}, args...), pageSize, offset)
@@ -73,10 +74,11 @@ func (m *ShortLinkVisitModel) FindPageByUser(ctx context.Context, userId, page, 
 		return nil, 0, err
 	}
 	defer rows.Close()
-	var items []ShortLinkVisit
+	items := make([]ShortLinkVisit, 0, pageSize)
+	var total int64
 	for rows.Next() {
 		var v ShortLinkVisit
-		if err := rows.Scan(&v.Code, &v.LongURL, &v.UserId, &v.IP, &v.Referer, &v.Status, &v.Source, &v.CreatedAt); err != nil {
+		if err := rows.Scan(&v.Code, &v.LongURL, &v.UserId, &v.IP, &v.Referer, &v.Status, &v.Source, &v.LatencyMs, &v.CreatedAt, &total); err != nil {
 			return nil, 0, err
 		}
 		items = append(items, v)

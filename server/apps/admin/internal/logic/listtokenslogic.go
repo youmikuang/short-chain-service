@@ -25,7 +25,7 @@ func (l *ListTokensLogic) ListTokens(req *types.ListTokensReq) (resp *types.List
 	if size <= 0 {
 		size = 20
 	}
-	rows, total, derr := l.svcCtx.Models.ApiKey.FindPageWithUser(l.ctx, page, size)
+	rows, total, derr := l.svcCtx.Models.ApiKey.FindPageWithUser(page, size)
 	if derr != nil {
 		return nil, errorx.Internal(derr.Error())
 	}

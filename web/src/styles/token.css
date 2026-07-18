@@ -83,6 +83,7 @@
 .token__token-field {
   display: flex;
   flex-direction: column;
+  padding-top: 20px;
   gap: 8px;
 }
 /* Active / status badge (mirrors HTML: light blue pill + dot) */
@@ -156,7 +157,7 @@
   display: flex;
   flex-direction: column;
   gap: 8px;
-  padding-top: 16px;
+  padding-top: 50px;
   border-top: 1px solid rgb(var(--color-outline-variant) / 0.3);
 }
 .token__usage-row {

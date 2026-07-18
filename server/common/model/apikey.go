@@ -74,7 +74,7 @@ func (m *ApiKeyModel) CountWhere(ctx context.Context, status int64) (int64, erro
 }
 
 // FindPageWithUser 管理后台分页列表（联表取用户昵称/邮箱）
-func (m *ApiKeyModel) FindPageWithUser(ctx context.Context, page, pageSize int64) ([]ApiKeyWithUser, int64, error) {
+func (m *ApiKeyModel) FindPageWithUser(page, pageSize int64) ([]ApiKeyWithUser, int64, error) {
 	if page <= 0 {
 		page = 1
 	}

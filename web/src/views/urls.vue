@@ -62,13 +62,13 @@ function formatClicks(n: number): string {
 }
 
 function sourceText(s?: string): string {
-  if (s === 'api') return 'RPC'
+  if (s === 'rpc') return 'RPC'
   if (s === 'web') return 'Web'
   return s || '-'
 }
 
 function sourceClass(s?: string): string {
-  if (s === 'api') return 'badge badge-api'
+  if (s === 'rpc') return 'badge badge-api'
   if (s === 'web') return 'badge badge-web'
   return 'badge'
 }

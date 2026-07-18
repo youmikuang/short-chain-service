@@ -29,7 +29,7 @@ func (l *CreateShortLinkLogic) CreateShortLink(in *pb.CreateShortLinkReq) (*pb.C
 	//   - web：网关已用 JWT 鉴权并传入 user_id，key 不参与，直接使用 user_id；
 	//   - 第三方：无 JWT（user_id=0），必须带 X-API-Key，由 rpc 校验合法性并以 key 归属用户为准。
 	ownerId := in.GetUserId()
-	source := "api" // 第三方 API Key 调用
+	source := "rpc" // 第三方 API Key 调用（经 rpc 核心服务）
 	if ownerId != 0 {
 		source = "web" // 网页（JWT）调用
 	} else if in.GetApiKey() == "" {
@@ -56,7 +56,7 @@ func (l *CreateShortLinkLogic) CreateShortLink(in *pb.CreateShortLinkReq) (*pb.C
 	}
 
 	// 去重复用：同一用户 + 同一长链接只存一条；若已存在，则把 source 更新为
-	// 「最后生成」的来源（web / api 谁后生成算谁的），并刷新缓存。
+	// 「最后生成」的来源（web / rpc 谁后生成算谁的），并刷新缓存。
 	if exist, err := l.svcCtx.Models.ShortLink.FindOneByUserAndURL(l.ctx, ownerId, longURL); err == nil {
 		if exist.Source != source {
 			if uerr := l.svcCtx.Models.ShortLink.UpdateSource(l.ctx, exist.Code, source); uerr != nil {
