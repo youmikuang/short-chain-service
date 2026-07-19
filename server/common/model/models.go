@@ -5,11 +5,11 @@ import "github.com/zeromicro/go-zero/core/stores/sqlx"
 // Models 聚合所有数据访问模型，由各个服务（api 网关 / rpc 核心 / admin）
 // 使用各自的 sqlx 连接初始化一次后注入 ServiceContext。
 type Models struct {
-	User           *UserModel
-	ApiKey         *ApiKeyModel
-	UserSettings   *UserSettingsModel
+	User            *UserModel
+	ApiKey          *ApiKeyModel
+	UserSettings    *UserSettingsModel
 	ActionLog       *ActionLogModel
-	ShortLink       *ShortLinkModel
+	Slink           *SlinkModel
 	DomainBlacklist *DomainBlacklistModel
 }
 
@@ -19,7 +19,7 @@ func NewModels(conn sqlx.SqlConn) *Models {
 		ApiKey:          NewApiKeyModel(conn),
 		UserSettings:    NewUserSettingsModel(conn),
 		ActionLog:       NewActionLogModel(conn),
-		ShortLink:       NewShortLinkModel(conn),
+		Slink:           NewSlinkModel(conn),
 		DomainBlacklist: NewDomainBlacklistModel(conn),
 	}
 }

@@ -2,7 +2,7 @@
 // versions:
 // 	protoc-gen-go v1.36.11
 // 	protoc        v7.34.1
-// source: apps/api/rpc/pb/shortlink.proto
+// source: apps/api/rpc/pb/slink.proto
 
 package pb
 
@@ -21,7 +21,7 @@ const (
 	_ = protoimpl.EnforceVersion(protoimpl.MaxVersion - 20)
 )
 
-type CreateShortLinkReq struct {
+type CreateslinkReq struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	LongUrl       string                 `protobuf:"bytes,1,opt,name=long_url,json=longUrl,proto3" json:"long_url,omitempty"`
 	UserId        int64                  `protobuf:"varint,2,opt,name=user_id,json=userId,proto3" json:"user_id,omitempty"`
@@ -30,21 +30,21 @@ type CreateShortLinkReq struct {
 	sizeCache     protoimpl.SizeCache
 }
 
-func (x *CreateShortLinkReq) Reset() {
-	*x = CreateShortLinkReq{}
-	mi := &file_apps_api_rpc_pb_shortlink_proto_msgTypes[0]
+func (x *CreateslinkReq) Reset() {
+	*x = CreateslinkReq{}
+	mi := &file_apps_api_rpc_pb_slink_proto_msgTypes[0]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
 
-func (x *CreateShortLinkReq) String() string {
+func (x *CreateslinkReq) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*CreateShortLinkReq) ProtoMessage() {}
+func (*CreateslinkReq) ProtoMessage() {}
 
-func (x *CreateShortLinkReq) ProtoReflect() protoreflect.Message {
-	mi := &file_apps_api_rpc_pb_shortlink_proto_msgTypes[0]
+func (x *CreateslinkReq) ProtoReflect() protoreflect.Message {
+	mi := &file_apps_api_rpc_pb_slink_proto_msgTypes[0]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -55,33 +55,33 @@ func (x *CreateShortLinkReq) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-// Deprecated: Use CreateShortLinkReq.ProtoReflect.Descriptor instead.
-func (*CreateShortLinkReq) Descriptor() ([]byte, []int) {
-	return file_apps_api_rpc_pb_shortlink_proto_rawDescGZIP(), []int{0}
+// Deprecated: Use CreateslinkReq.ProtoReflect.Descriptor instead.
+func (*CreateslinkReq) Descriptor() ([]byte, []int) {
+	return file_apps_api_rpc_pb_slink_proto_rawDescGZIP(), []int{0}
 }
 
-func (x *CreateShortLinkReq) GetLongUrl() string {
+func (x *CreateslinkReq) GetLongUrl() string {
 	if x != nil {
 		return x.LongUrl
 	}
 	return ""
 }
 
-func (x *CreateShortLinkReq) GetUserId() int64 {
+func (x *CreateslinkReq) GetUserId() int64 {
 	if x != nil {
 		return x.UserId
 	}
 	return 0
 }
 
-func (x *CreateShortLinkReq) GetApiKey() string {
+func (x *CreateslinkReq) GetApiKey() string {
 	if x != nil {
 		return x.ApiKey
 	}
 	return ""
 }
 
-type CreateShortLinkResp struct {
+type CreateslinkResp struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Code          string                 `protobuf:"bytes,1,opt,name=code,proto3" json:"code,omitempty"`
 	LongUrl       string                 `protobuf:"bytes,2,opt,name=long_url,json=longUrl,proto3" json:"long_url,omitempty"`
@@ -89,21 +89,21 @@ type CreateShortLinkResp struct {
 	sizeCache     protoimpl.SizeCache
 }
 
-func (x *CreateShortLinkResp) Reset() {
-	*x = CreateShortLinkResp{}
-	mi := &file_apps_api_rpc_pb_shortlink_proto_msgTypes[1]
+func (x *CreateslinkResp) Reset() {
+	*x = CreateslinkResp{}
+	mi := &file_apps_api_rpc_pb_slink_proto_msgTypes[1]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
 
-func (x *CreateShortLinkResp) String() string {
+func (x *CreateslinkResp) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*CreateShortLinkResp) ProtoMessage() {}
+func (*CreateslinkResp) ProtoMessage() {}
 
-func (x *CreateShortLinkResp) ProtoReflect() protoreflect.Message {
-	mi := &file_apps_api_rpc_pb_shortlink_proto_msgTypes[1]
+func (x *CreateslinkResp) ProtoReflect() protoreflect.Message {
+	mi := &file_apps_api_rpc_pb_slink_proto_msgTypes[1]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -114,19 +114,19 @@ func (x *CreateShortLinkResp) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-// Deprecated: Use CreateShortLinkResp.ProtoReflect.Descriptor instead.
-func (*CreateShortLinkResp) Descriptor() ([]byte, []int) {
-	return file_apps_api_rpc_pb_shortlink_proto_rawDescGZIP(), []int{1}
+// Deprecated: Use CreateslinkResp.ProtoReflect.Descriptor instead.
+func (*CreateslinkResp) Descriptor() ([]byte, []int) {
+	return file_apps_api_rpc_pb_slink_proto_rawDescGZIP(), []int{1}
 }
 
-func (x *CreateShortLinkResp) GetCode() string {
+func (x *CreateslinkResp) GetCode() string {
 	if x != nil {
 		return x.Code
 	}
 	return ""
 }
 
-func (x *CreateShortLinkResp) GetLongUrl() string {
+func (x *CreateslinkResp) GetLongUrl() string {
 	if x != nil {
 		return x.LongUrl
 	}
@@ -142,7 +142,7 @@ type GetByCodeReq struct {
 
 func (x *GetByCodeReq) Reset() {
 	*x = GetByCodeReq{}
-	mi := &file_apps_api_rpc_pb_shortlink_proto_msgTypes[2]
+	mi := &file_apps_api_rpc_pb_slink_proto_msgTypes[2]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -154,7 +154,7 @@ func (x *GetByCodeReq) String() string {
 func (*GetByCodeReq) ProtoMessage() {}
 
 func (x *GetByCodeReq) ProtoReflect() protoreflect.Message {
-	mi := &file_apps_api_rpc_pb_shortlink_proto_msgTypes[2]
+	mi := &file_apps_api_rpc_pb_slink_proto_msgTypes[2]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -167,7 +167,7 @@ func (x *GetByCodeReq) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetByCodeReq.ProtoReflect.Descriptor instead.
 func (*GetByCodeReq) Descriptor() ([]byte, []int) {
-	return file_apps_api_rpc_pb_shortlink_proto_rawDescGZIP(), []int{2}
+	return file_apps_api_rpc_pb_slink_proto_rawDescGZIP(), []int{2}
 }
 
 func (x *GetByCodeReq) GetCode() string {
@@ -189,7 +189,7 @@ type GetByCodeResp struct {
 
 func (x *GetByCodeResp) Reset() {
 	*x = GetByCodeResp{}
-	mi := &file_apps_api_rpc_pb_shortlink_proto_msgTypes[3]
+	mi := &file_apps_api_rpc_pb_slink_proto_msgTypes[3]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -201,7 +201,7 @@ func (x *GetByCodeResp) String() string {
 func (*GetByCodeResp) ProtoMessage() {}
 
 func (x *GetByCodeResp) ProtoReflect() protoreflect.Message {
-	mi := &file_apps_api_rpc_pb_shortlink_proto_msgTypes[3]
+	mi := &file_apps_api_rpc_pb_slink_proto_msgTypes[3]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -214,7 +214,7 @@ func (x *GetByCodeResp) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetByCodeResp.ProtoReflect.Descriptor instead.
 func (*GetByCodeResp) Descriptor() ([]byte, []int) {
-	return file_apps_api_rpc_pb_shortlink_proto_rawDescGZIP(), []int{3}
+	return file_apps_api_rpc_pb_slink_proto_rawDescGZIP(), []int{3}
 }
 
 func (x *GetByCodeResp) GetCode() string {
@@ -255,7 +255,7 @@ type BatchCreateReq struct {
 
 func (x *BatchCreateReq) Reset() {
 	*x = BatchCreateReq{}
-	mi := &file_apps_api_rpc_pb_shortlink_proto_msgTypes[4]
+	mi := &file_apps_api_rpc_pb_slink_proto_msgTypes[4]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -267,7 +267,7 @@ func (x *BatchCreateReq) String() string {
 func (*BatchCreateReq) ProtoMessage() {}
 
 func (x *BatchCreateReq) ProtoReflect() protoreflect.Message {
-	mi := &file_apps_api_rpc_pb_shortlink_proto_msgTypes[4]
+	mi := &file_apps_api_rpc_pb_slink_proto_msgTypes[4]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -280,7 +280,7 @@ func (x *BatchCreateReq) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use BatchCreateReq.ProtoReflect.Descriptor instead.
 func (*BatchCreateReq) Descriptor() ([]byte, []int) {
-	return file_apps_api_rpc_pb_shortlink_proto_rawDescGZIP(), []int{4}
+	return file_apps_api_rpc_pb_slink_proto_rawDescGZIP(), []int{4}
 }
 
 func (x *BatchCreateReq) GetLongUrls() []string {
@@ -299,14 +299,14 @@ func (x *BatchCreateReq) GetUserId() int64 {
 
 type BatchCreateResp struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
-	Items         []*CreateShortLinkResp `protobuf:"bytes,1,rep,name=items,proto3" json:"items,omitempty"`
+	Items         []*CreateslinkResp `protobuf:"bytes,1,rep,name=items,proto3" json:"items,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
 
 func (x *BatchCreateResp) Reset() {
 	*x = BatchCreateResp{}
-	mi := &file_apps_api_rpc_pb_shortlink_proto_msgTypes[5]
+	mi := &file_apps_api_rpc_pb_slink_proto_msgTypes[5]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -318,7 +318,7 @@ func (x *BatchCreateResp) String() string {
 func (*BatchCreateResp) ProtoMessage() {}
 
 func (x *BatchCreateResp) ProtoReflect() protoreflect.Message {
-	mi := &file_apps_api_rpc_pb_shortlink_proto_msgTypes[5]
+	mi := &file_apps_api_rpc_pb_slink_proto_msgTypes[5]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -331,17 +331,17 @@ func (x *BatchCreateResp) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use BatchCreateResp.ProtoReflect.Descriptor instead.
 func (*BatchCreateResp) Descriptor() ([]byte, []int) {
-	return file_apps_api_rpc_pb_shortlink_proto_rawDescGZIP(), []int{5}
+	return file_apps_api_rpc_pb_slink_proto_rawDescGZIP(), []int{5}
 }
 
-func (x *BatchCreateResp) GetItems() []*CreateShortLinkResp {
+func (x *BatchCreateResp) GetItems() []*CreateslinkResp {
 	if x != nil {
 		return x.Items
 	}
 	return nil
 }
 
-type DeleteShortLinkReq struct {
+type DeleteslinkReq struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Code          string                 `protobuf:"bytes,1,opt,name=code,proto3" json:"code,omitempty"`
 	UserId        int64                  `protobuf:"varint,2,opt,name=user_id,json=userId,proto3" json:"user_id,omitempty"`
@@ -349,21 +349,21 @@ type DeleteShortLinkReq struct {
 	sizeCache     protoimpl.SizeCache
 }
 
-func (x *DeleteShortLinkReq) Reset() {
-	*x = DeleteShortLinkReq{}
-	mi := &file_apps_api_rpc_pb_shortlink_proto_msgTypes[6]
+func (x *DeleteslinkReq) Reset() {
+	*x = DeleteslinkReq{}
+	mi := &file_apps_api_rpc_pb_slink_proto_msgTypes[6]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
 
-func (x *DeleteShortLinkReq) String() string {
+func (x *DeleteslinkReq) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*DeleteShortLinkReq) ProtoMessage() {}
+func (*DeleteslinkReq) ProtoMessage() {}
 
-func (x *DeleteShortLinkReq) ProtoReflect() protoreflect.Message {
-	mi := &file_apps_api_rpc_pb_shortlink_proto_msgTypes[6]
+func (x *DeleteslinkReq) ProtoReflect() protoreflect.Message {
+	mi := &file_apps_api_rpc_pb_slink_proto_msgTypes[6]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -374,47 +374,47 @@ func (x *DeleteShortLinkReq) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-// Deprecated: Use DeleteShortLinkReq.ProtoReflect.Descriptor instead.
-func (*DeleteShortLinkReq) Descriptor() ([]byte, []int) {
-	return file_apps_api_rpc_pb_shortlink_proto_rawDescGZIP(), []int{6}
+// Deprecated: Use DeleteslinkReq.ProtoReflect.Descriptor instead.
+func (*DeleteslinkReq) Descriptor() ([]byte, []int) {
+	return file_apps_api_rpc_pb_slink_proto_rawDescGZIP(), []int{6}
 }
 
-func (x *DeleteShortLinkReq) GetCode() string {
+func (x *DeleteslinkReq) GetCode() string {
 	if x != nil {
 		return x.Code
 	}
 	return ""
 }
 
-func (x *DeleteShortLinkReq) GetUserId() int64 {
+func (x *DeleteslinkReq) GetUserId() int64 {
 	if x != nil {
 		return x.UserId
 	}
 	return 0
 }
 
-type DeleteShortLinkResp struct {
+type DeleteslinkResp struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Ok            bool                   `protobuf:"varint,1,opt,name=ok,proto3" json:"ok,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
 
-func (x *DeleteShortLinkResp) Reset() {
-	*x = DeleteShortLinkResp{}
-	mi := &file_apps_api_rpc_pb_shortlink_proto_msgTypes[7]
+func (x *DeleteslinkResp) Reset() {
+	*x = DeleteslinkResp{}
+	mi := &file_apps_api_rpc_pb_slink_proto_msgTypes[7]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
 
-func (x *DeleteShortLinkResp) String() string {
+func (x *DeleteslinkResp) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*DeleteShortLinkResp) ProtoMessage() {}
+func (*DeleteslinkResp) ProtoMessage() {}
 
-func (x *DeleteShortLinkResp) ProtoReflect() protoreflect.Message {
-	mi := &file_apps_api_rpc_pb_shortlink_proto_msgTypes[7]
+func (x *DeleteslinkResp) ProtoReflect() protoreflect.Message {
+	mi := &file_apps_api_rpc_pb_slink_proto_msgTypes[7]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -425,12 +425,12 @@ func (x *DeleteShortLinkResp) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-// Deprecated: Use DeleteShortLinkResp.ProtoReflect.Descriptor instead.
-func (*DeleteShortLinkResp) Descriptor() ([]byte, []int) {
-	return file_apps_api_rpc_pb_shortlink_proto_rawDescGZIP(), []int{7}
+// Deprecated: Use DeleteslinkResp.ProtoReflect.Descriptor instead.
+func (*DeleteslinkResp) Descriptor() ([]byte, []int) {
+	return file_apps_api_rpc_pb_slink_proto_rawDescGZIP(), []int{7}
 }
 
-func (x *DeleteShortLinkResp) GetOk() bool {
+func (x *DeleteslinkResp) GetOk() bool {
 	if x != nil {
 		return x.Ok
 	}
@@ -446,7 +446,7 @@ type ResolveReq struct {
 
 func (x *ResolveReq) Reset() {
 	*x = ResolveReq{}
-	mi := &file_apps_api_rpc_pb_shortlink_proto_msgTypes[8]
+	mi := &file_apps_api_rpc_pb_slink_proto_msgTypes[8]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -458,7 +458,7 @@ func (x *ResolveReq) String() string {
 func (*ResolveReq) ProtoMessage() {}
 
 func (x *ResolveReq) ProtoReflect() protoreflect.Message {
-	mi := &file_apps_api_rpc_pb_shortlink_proto_msgTypes[8]
+	mi := &file_apps_api_rpc_pb_slink_proto_msgTypes[8]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -471,7 +471,7 @@ func (x *ResolveReq) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ResolveReq.ProtoReflect.Descriptor instead.
 func (*ResolveReq) Descriptor() ([]byte, []int) {
-	return file_apps_api_rpc_pb_shortlink_proto_rawDescGZIP(), []int{8}
+	return file_apps_api_rpc_pb_slink_proto_rawDescGZIP(), []int{8}
 }
 
 func (x *ResolveReq) GetCode() string {
@@ -491,7 +491,7 @@ type ResolveResp struct {
 
 func (x *ResolveResp) Reset() {
 	*x = ResolveResp{}
-	mi := &file_apps_api_rpc_pb_shortlink_proto_msgTypes[9]
+	mi := &file_apps_api_rpc_pb_slink_proto_msgTypes[9]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -503,7 +503,7 @@ func (x *ResolveResp) String() string {
 func (*ResolveResp) ProtoMessage() {}
 
 func (x *ResolveResp) ProtoReflect() protoreflect.Message {
-	mi := &file_apps_api_rpc_pb_shortlink_proto_msgTypes[9]
+	mi := &file_apps_api_rpc_pb_slink_proto_msgTypes[9]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -516,7 +516,7 @@ func (x *ResolveResp) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ResolveResp.ProtoReflect.Descriptor instead.
 func (*ResolveResp) Descriptor() ([]byte, []int) {
-	return file_apps_api_rpc_pb_shortlink_proto_rawDescGZIP(), []int{9}
+	return file_apps_api_rpc_pb_slink_proto_rawDescGZIP(), []int{9}
 }
 
 func (x *ResolveResp) GetLongUrl() string {
@@ -533,85 +533,47 @@ func (x *ResolveResp) GetBlocked() bool {
 	return false
 }
 
-var File_apps_api_rpc_pb_shortlink_proto protoreflect.FileDescriptor
+var File_apps_api_rpc_pb_slink_proto protoreflect.FileDescriptor
 
-const file_apps_api_rpc_pb_shortlink_proto_rawDesc = "" +
-	"\n" +
-	"\x1fapps/api/rpc/pb/shortlink.proto\x12\x02pb\"a\n" +
-	"\x12CreateShortLinkReq\x12\x19\n" +
-	"\blong_url\x18\x01 \x01(\tR\alongUrl\x12\x17\n" +
-	"\auser_id\x18\x02 \x01(\x03R\x06userId\x12\x17\n" +
-	"\aapi_key\x18\x03 \x01(\tR\x06apiKey\"D\n" +
-	"\x13CreateShortLinkResp\x12\x12\n" +
-	"\x04code\x18\x01 \x01(\tR\x04code\x12\x19\n" +
-	"\blong_url\x18\x02 \x01(\tR\alongUrl\"\"\n" +
-	"\fGetByCodeReq\x12\x12\n" +
-	"\x04code\x18\x01 \x01(\tR\x04code\"n\n" +
-	"\rGetByCodeResp\x12\x12\n" +
-	"\x04code\x18\x01 \x01(\tR\x04code\x12\x19\n" +
-	"\blong_url\x18\x02 \x01(\tR\alongUrl\x12\x16\n" +
-	"\x06clicks\x18\x03 \x01(\x03R\x06clicks\x12\x16\n" +
-	"\x06status\x18\x04 \x01(\x05R\x06status\"F\n" +
-	"\x0eBatchCreateReq\x12\x1b\n" +
-	"\tlong_urls\x18\x01 \x03(\tR\blongUrls\x12\x17\n" +
-	"\auser_id\x18\x02 \x01(\x03R\x06userId\"@\n" +
-	"\x0fBatchCreateResp\x12-\n" +
-	"\x05items\x18\x01 \x03(\v2\x17.pb.CreateShortLinkRespR\x05items\"A\n" +
-	"\x12DeleteShortLinkReq\x12\x12\n" +
-	"\x04code\x18\x01 \x01(\tR\x04code\x12\x17\n" +
-	"\auser_id\x18\x02 \x01(\x03R\x06userId\"%\n" +
-	"\x13DeleteShortLinkResp\x12\x0e\n" +
-	"\x02ok\x18\x01 \x01(\bR\x02ok\" \n" +
-	"\n" +
-	"ResolveReq\x12\x12\n" +
-	"\x04code\x18\x01 \x01(\tR\x04code\"B\n" +
-	"\vResolveResp\x12\x19\n" +
-	"\blong_url\x18\x01 \x01(\tR\alongUrl\x12\x18\n" +
-	"\ablocked\x18\x02 \x01(\bR\ablocked2\xa9\x02\n" +
-	"\tShortLink\x12B\n" +
-	"\x0fCreateShortLink\x12\x16.pb.CreateShortLinkReq\x1a\x17.pb.CreateShortLinkResp\x120\n" +
-	"\tGetByCode\x12\x10.pb.GetByCodeReq\x1a\x11.pb.GetByCodeResp\x126\n" +
-	"\vBatchCreate\x12\x12.pb.BatchCreateReq\x1a\x13.pb.BatchCreateResp\x12B\n" +
-	"\x0fDeleteShortLink\x12\x16.pb.DeleteShortLinkReq\x1a\x17.pb.DeleteShortLinkResp\x12*\n" +
-	"\aResolve\x12\x0e.pb.ResolveReq\x1a\x0f.pb.ResolveRespB\x17Z\x15server/apps/rpc/pb;pbb\x06proto3"
+const file_apps_api_rpc_pb_slink_proto_rawDesc = "\n\x1bapps/api/rpc/pb/slink.proto\x12\x02pb\"]\n\x0eCreateslinkReq\x12\x19\n\blong_url\x18\x01 \x01(\tR\alongUrl\x12\x17\n\auser_id\x18\x02 \x01(\x03R\x06userId\x12\x17\n\aapi_key\x18\x03 \x01(\tR\x06apiKey\"@\n\x0fCreateslinkResp\x12\x12\n\x04code\x18\x01 \x01(\tR\x04code\x12\x19\n\blong_url\x18\x02 \x01(\tR\alongUrl\"\"\n\fGetByCodeReq\x12\x12\n\x04code\x18\x01 \x01(\tR\x04code\"n\n\rGetByCodeResp\x12\x12\n\x04code\x18\x01 \x01(\tR\x04code\x12\x19\n\blong_url\x18\x02 \x01(\tR\alongUrl\x12\x16\n\x06clicks\x18\x03 \x01(\x03R\x06clicks\x12\x16\n\x06status\x18\x04 \x01(\x05R\x06status\"F\n\x0eBatchCreateReq\x12\x1b\n\tlong_urls\x18\x01 \x03(\tR\blongUrls\x12\x17\n\auser_id\x18\x02 \x01(\x03R\x06userId\"<\n\x0fBatchCreateResp\x12)\n\x05items\x18\x01 \x03(\v2\x13.pb.CreateslinkRespR\x05items\"=\n\x0eDeleteslinkReq\x12\x12\n\x04code\x18\x01 \x01(\tR\x04code\x12\x17\n\auser_id\x18\x02 \x01(\x03R\x06userId\"!\n\x0fDeleteslinkResp\x12\x0e\n\x02ok\x18\x01 \x01(\bR\x02ok\" \n\nResolveReq\x12\x12\n\x04code\x18\x01 \x01(\tR\x04code\"B\n\vResolveResp\x12\x19\n\blong_url\x18\x01 \x01(\tR\alongUrl\x12\x18\n\ablocked\x18\x02 \x01(\bR\ablocked2\x8d\x02\n\x05slink\x126\n\vCreateslink\x12\x12.pb.CreateslinkReq\x1a\x13.pb.CreateslinkResp\x120\n\tGetByCode\x12\x10.pb.GetByCodeReq\x1a\x11.pb.GetByCodeResp\x126\n\vBatchCreate\x12\x12.pb.BatchCreateReq\x1a\x13.pb.BatchCreateResp\x126\n\vDeleteslink\x12\x12.pb.DeleteslinkReq\x1a\x13.pb.DeleteslinkResp\x12*\n\aResolve\x12\x0e.pb.ResolveReq\x1a\x0f.pb.ResolveRespB\x17Z\x15server/apps/rpc/pb;pbb\x06proto3"
 
 var (
-	file_apps_api_rpc_pb_shortlink_proto_rawDescOnce sync.Once
-	file_apps_api_rpc_pb_shortlink_proto_rawDescData []byte
+	file_apps_api_rpc_pb_slink_proto_rawDescOnce sync.Once
+	file_apps_api_rpc_pb_slink_proto_rawDescData []byte
 )
 
-func file_apps_api_rpc_pb_shortlink_proto_rawDescGZIP() []byte {
-	file_apps_api_rpc_pb_shortlink_proto_rawDescOnce.Do(func() {
-		file_apps_api_rpc_pb_shortlink_proto_rawDescData = protoimpl.X.CompressGZIP(unsafe.Slice(unsafe.StringData(file_apps_api_rpc_pb_shortlink_proto_rawDesc), len(file_apps_api_rpc_pb_shortlink_proto_rawDesc)))
+func file_apps_api_rpc_pb_slink_proto_rawDescGZIP() []byte {
+	file_apps_api_rpc_pb_slink_proto_rawDescOnce.Do(func() {
+		file_apps_api_rpc_pb_slink_proto_rawDescData = protoimpl.X.CompressGZIP(unsafe.Slice(unsafe.StringData(file_apps_api_rpc_pb_slink_proto_rawDesc), len(file_apps_api_rpc_pb_slink_proto_rawDesc)))
 	})
-	return file_apps_api_rpc_pb_shortlink_proto_rawDescData
+	return file_apps_api_rpc_pb_slink_proto_rawDescData
 }
 
-var file_apps_api_rpc_pb_shortlink_proto_msgTypes = make([]protoimpl.MessageInfo, 10)
-var file_apps_api_rpc_pb_shortlink_proto_goTypes = []any{
-	(*CreateShortLinkReq)(nil),  // 0: pb.CreateShortLinkReq
-	(*CreateShortLinkResp)(nil), // 1: pb.CreateShortLinkResp
+var file_apps_api_rpc_pb_slink_proto_msgTypes = make([]protoimpl.MessageInfo, 10)
+var file_apps_api_rpc_pb_slink_proto_goTypes = []any{
+	(*CreateslinkReq)(nil),  // 0: pb.CreateslinkReq
+	(*CreateslinkResp)(nil), // 1: pb.CreateslinkResp
 	(*GetByCodeReq)(nil),        // 2: pb.GetByCodeReq
 	(*GetByCodeResp)(nil),       // 3: pb.GetByCodeResp
 	(*BatchCreateReq)(nil),      // 4: pb.BatchCreateReq
 	(*BatchCreateResp)(nil),     // 5: pb.BatchCreateResp
-	(*DeleteShortLinkReq)(nil),  // 6: pb.DeleteShortLinkReq
-	(*DeleteShortLinkResp)(nil), // 7: pb.DeleteShortLinkResp
+	(*DeleteslinkReq)(nil),  // 6: pb.DeleteslinkReq
+	(*DeleteslinkResp)(nil), // 7: pb.DeleteslinkResp
 	(*ResolveReq)(nil),          // 8: pb.ResolveReq
 	(*ResolveResp)(nil),         // 9: pb.ResolveResp
 }
-var file_apps_api_rpc_pb_shortlink_proto_depIdxs = []int32{
-	1, // 0: pb.BatchCreateResp.items:type_name -> pb.CreateShortLinkResp
-	0, // 1: pb.ShortLink.CreateShortLink:input_type -> pb.CreateShortLinkReq
-	2, // 2: pb.ShortLink.GetByCode:input_type -> pb.GetByCodeReq
-	4, // 3: pb.ShortLink.BatchCreate:input_type -> pb.BatchCreateReq
-	6, // 4: pb.ShortLink.DeleteShortLink:input_type -> pb.DeleteShortLinkReq
-	8, // 5: pb.ShortLink.Resolve:input_type -> pb.ResolveReq
-	1, // 6: pb.ShortLink.CreateShortLink:output_type -> pb.CreateShortLinkResp
-	3, // 7: pb.ShortLink.GetByCode:output_type -> pb.GetByCodeResp
-	5, // 8: pb.ShortLink.BatchCreate:output_type -> pb.BatchCreateResp
-	7, // 9: pb.ShortLink.DeleteShortLink:output_type -> pb.DeleteShortLinkResp
-	9, // 10: pb.ShortLink.Resolve:output_type -> pb.ResolveResp
+var file_apps_api_rpc_pb_slink_proto_depIdxs = []int32{
+	1, // 0: pb.BatchCreateResp.items:type_name -> pb.CreateslinkResp
+	0, // 1: pb.slink.Createslink:input_type -> pb.CreateslinkReq
+	2, // 2: pb.slink.GetByCode:input_type -> pb.GetByCodeReq
+	4, // 3: pb.slink.BatchCreate:input_type -> pb.BatchCreateReq
+	6, // 4: pb.slink.Deleteslink:input_type -> pb.DeleteslinkReq
+	8, // 5: pb.slink.Resolve:input_type -> pb.ResolveReq
+	1, // 6: pb.slink.Createslink:output_type -> pb.CreateslinkResp
+	3, // 7: pb.slink.GetByCode:output_type -> pb.GetByCodeResp
+	5, // 8: pb.slink.BatchCreate:output_type -> pb.BatchCreateResp
+	7, // 9: pb.slink.Deleteslink:output_type -> pb.DeleteslinkResp
+	9, // 10: pb.slink.Resolve:output_type -> pb.ResolveResp
 	6, // [6:11] is the sub-list for method output_type
 	1, // [1:6] is the sub-list for method input_type
 	1, // [1:1] is the sub-list for extension type_name
@@ -619,26 +581,26 @@ var file_apps_api_rpc_pb_shortlink_proto_depIdxs = []int32{
 	0, // [0:1] is the sub-list for field type_name
 }
 
-func init() { file_apps_api_rpc_pb_shortlink_proto_init() }
-func file_apps_api_rpc_pb_shortlink_proto_init() {
-	if File_apps_api_rpc_pb_shortlink_proto != nil {
+func init() { file_apps_api_rpc_pb_slink_proto_init() }
+func file_apps_api_rpc_pb_slink_proto_init() {
+	if File_apps_api_rpc_pb_slink_proto != nil {
 		return
 	}
 	type x struct{}
 	out := protoimpl.TypeBuilder{
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
-			RawDescriptor: unsafe.Slice(unsafe.StringData(file_apps_api_rpc_pb_shortlink_proto_rawDesc), len(file_apps_api_rpc_pb_shortlink_proto_rawDesc)),
+			RawDescriptor: unsafe.Slice(unsafe.StringData(file_apps_api_rpc_pb_slink_proto_rawDesc), len(file_apps_api_rpc_pb_slink_proto_rawDesc)),
 			NumEnums:      0,
 			NumMessages:   10,
 			NumExtensions: 0,
 			NumServices:   1,
 		},
-		GoTypes:           file_apps_api_rpc_pb_shortlink_proto_goTypes,
-		DependencyIndexes: file_apps_api_rpc_pb_shortlink_proto_depIdxs,
-		MessageInfos:      file_apps_api_rpc_pb_shortlink_proto_msgTypes,
+		GoTypes:           file_apps_api_rpc_pb_slink_proto_goTypes,
+		DependencyIndexes: file_apps_api_rpc_pb_slink_proto_depIdxs,
+		MessageInfos:      file_apps_api_rpc_pb_slink_proto_msgTypes,
 	}.Build()
-	File_apps_api_rpc_pb_shortlink_proto = out.File
-	file_apps_api_rpc_pb_shortlink_proto_goTypes = nil
-	file_apps_api_rpc_pb_shortlink_proto_depIdxs = nil
+	File_apps_api_rpc_pb_slink_proto = out.File
+	file_apps_api_rpc_pb_slink_proto_goTypes = nil
+	file_apps_api_rpc_pb_slink_proto_depIdxs = nil
 }

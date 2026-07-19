@@ -17,7 +17,7 @@ func NewGetByCodeLogic(ctx context.Context, svcCtx *svc.ServiceContext) *GetByCo
 }
 
 func (l *GetByCodeLogic) GetByCode(req *types.GetByCodeReq) (resp *types.GetByCodeResp, err error) {
-	out, err := l.svcCtx.ShortLinkRpc.GetByCode(l.ctx, &pb.GetByCodeReq{Code: req.Code})
+	out, err := l.svcCtx.slinkRpc.GetByCode(l.ctx, &pb.GetByCodeReq{Code: req.Code})
 	if err != nil {
 		return nil, err
 	}

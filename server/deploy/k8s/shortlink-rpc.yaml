@@ -1,31 +1,31 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: shortlink-rpc
+  name: slink-rpc
 spec:
   replicas: 2
   selector:
     matchLabels:
-      app: shortlink-rpc
+      app: slink-rpc
   template:
     metadata:
       labels:
-        app: shortlink-rpc
+        app: slink-rpc
     spec:
       containers:
-        - name: shortlink-rpc
-          image: shortlink-server:latest
-          args: ["/app/bin/shortlink-rpc", "-f", "/app/etc/shortlink.yaml"]
+        - name: slink-rpc
+          image: slink-server:latest
+          args: ["/app/bin/slink-rpc", "-f", "/app/etc/slink.yaml"]
           ports:
             - containerPort: 8081
 ---
 apiVersion: v1
 kind: Service
 metadata:
-  name: shortlink-rpc
+  name: slink-rpc
 spec:
   selector:
-    app: shortlink-rpc
+    app: slink-rpc
   ports:
     - port: 8081
       targetPort: 8081

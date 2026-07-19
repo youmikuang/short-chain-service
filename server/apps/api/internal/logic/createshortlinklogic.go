@@ -9,17 +9,17 @@ import (
 	pb "server/apps/rpc/pb"
 )
 
-type CreateShortLinkLogic struct {
+type CreateslinkLogic struct {
 	ctx    context.Context
 	svcCtx *svc.ServiceContext
 }
 
-func NewCreateShortLinkLogic(ctx context.Context, svcCtx *svc.ServiceContext) *CreateShortLinkLogic {
-	return &CreateShortLinkLogic{ctx: ctx, svcCtx: svcCtx}
+func NewCreateslinkLogic(ctx context.Context, svcCtx *svc.ServiceContext) *CreateslinkLogic {
+	return &CreateslinkLogic{ctx: ctx, svcCtx: svcCtx}
 }
 
-// CreateShortLink 网关：已通过 API Key/JWT 鉴权，委托 rpc 核心服务
-func (l *CreateShortLinkLogic) CreateShortLink(req *types.CreateShortLinkReq) (resp *types.CreateShortLinkResp, err error) {
+// Createslink 网关：已通过 API Key/JWT 鉴权，委托 rpc 核心服务
+func (l *CreateslinkLogic) Createslink(req *types.CreateslinkReq) (resp *types.CreateslinkResp, err error) {
 	uid := int64(0)
 	if v, ok := l.ctx.Value(middleware.APIKeyUIDKey).(float64); ok {
 		uid = int64(v)
@@ -31,7 +31,7 @@ func (l *CreateShortLinkLogic) CreateShortLink(req *types.CreateShortLinkReq) (r
 		apiKey = v
 	}
 
-	out, err := l.svcCtx.ShortLinkRpc.CreateShortLink(l.ctx, &pb.CreateShortLinkReq{
+	out, err := l.svcCtx.slinkRpc.Createslink(l.ctx, &pb.CreateslinkReq{
 		LongUrl: req.LongURL,
 		UserId:  uid,
 		ApiKey:  apiKey,
@@ -39,5 +39,5 @@ func (l *CreateShortLinkLogic) CreateShortLink(req *types.CreateShortLinkReq) (r
 	if err != nil {
 		return nil, err
 	}
-	return &types.CreateShortLinkResp{Code: out.Code, LongURL: out.LongUrl}, nil
+	return &types.CreateslinkResp{Code: out.Code, LongURL: out.LongUrl}, nil
 }

@@ -2,7 +2,7 @@
 // versions:
 // - protoc-gen-go-grpc v1.6.2
 // - protoc             v7.34.1
-// source: apps/api/rpc/pb/shortlink.proto
+// source: apps/api/rpc/pb/slink.proto
 
 package pb
 
@@ -19,259 +19,259 @@ import (
 const _ = grpc.SupportPackageIsVersion9
 
 const (
-	ShortLink_CreateShortLink_FullMethodName = "/pb.ShortLink/CreateShortLink"
-	ShortLink_GetByCode_FullMethodName       = "/pb.ShortLink/GetByCode"
-	ShortLink_BatchCreate_FullMethodName     = "/pb.ShortLink/BatchCreate"
-	ShortLink_DeleteShortLink_FullMethodName = "/pb.ShortLink/DeleteShortLink"
-	ShortLink_Resolve_FullMethodName         = "/pb.ShortLink/Resolve"
+	slink_Createslink_FullMethodName = "/pb.slink/Createslink"
+	slink_GetByCode_FullMethodName       = "/pb.slink/GetByCode"
+	slink_BatchCreate_FullMethodName     = "/pb.slink/BatchCreate"
+	slink_Deleteslink_FullMethodName = "/pb.slink/Deleteslink"
+	slink_Resolve_FullMethodName         = "/pb.slink/Resolve"
 )
 
-// ShortLinkClient is the client API for ShortLink service.
+// SlinkClient is the client API for slink service.
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 //
-// ShortLink 短链核心服务（对内 gRPC，对外不暴露）
-type ShortLinkClient interface {
-	CreateShortLink(ctx context.Context, in *CreateShortLinkReq, opts ...grpc.CallOption) (*CreateShortLinkResp, error)
+// slink 短链核心服务（对内 gRPC，对外不暴露）
+type SlinkClient interface {
+	Createslink(ctx context.Context, in *CreateslinkReq, opts ...grpc.CallOption) (*CreateslinkResp, error)
 	GetByCode(ctx context.Context, in *GetByCodeReq, opts ...grpc.CallOption) (*GetByCodeResp, error)
 	BatchCreate(ctx context.Context, in *BatchCreateReq, opts ...grpc.CallOption) (*BatchCreateResp, error)
-	DeleteShortLink(ctx context.Context, in *DeleteShortLinkReq, opts ...grpc.CallOption) (*DeleteShortLinkResp, error)
+	Deleteslink(ctx context.Context, in *DeleteslinkReq, opts ...grpc.CallOption) (*DeleteslinkResp, error)
 	Resolve(ctx context.Context, in *ResolveReq, opts ...grpc.CallOption) (*ResolveResp, error)
 }
 
-type shortLinkClient struct {
+type slinkClient struct {
 	cc grpc.ClientConnInterface
 }
 
-func NewShortLinkClient(cc grpc.ClientConnInterface) ShortLinkClient {
-	return &shortLinkClient{cc}
+func NewslinkClient(cc grpc.ClientConnInterface) SlinkClient {
+	return &slinkClient{cc}
 }
 
-func (c *shortLinkClient) CreateShortLink(ctx context.Context, in *CreateShortLinkReq, opts ...grpc.CallOption) (*CreateShortLinkResp, error) {
+func (c *slinkClient) Createslink(ctx context.Context, in *CreateslinkReq, opts ...grpc.CallOption) (*CreateslinkResp, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(CreateShortLinkResp)
-	err := c.cc.Invoke(ctx, ShortLink_CreateShortLink_FullMethodName, in, out, cOpts...)
+	out := new(CreateslinkResp)
+	err := c.cc.Invoke(ctx, slink_Createslink_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-func (c *shortLinkClient) GetByCode(ctx context.Context, in *GetByCodeReq, opts ...grpc.CallOption) (*GetByCodeResp, error) {
+func (c *slinkClient) GetByCode(ctx context.Context, in *GetByCodeReq, opts ...grpc.CallOption) (*GetByCodeResp, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(GetByCodeResp)
-	err := c.cc.Invoke(ctx, ShortLink_GetByCode_FullMethodName, in, out, cOpts...)
+	err := c.cc.Invoke(ctx, slink_GetByCode_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-func (c *shortLinkClient) BatchCreate(ctx context.Context, in *BatchCreateReq, opts ...grpc.CallOption) (*BatchCreateResp, error) {
+func (c *slinkClient) BatchCreate(ctx context.Context, in *BatchCreateReq, opts ...grpc.CallOption) (*BatchCreateResp, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(BatchCreateResp)
-	err := c.cc.Invoke(ctx, ShortLink_BatchCreate_FullMethodName, in, out, cOpts...)
+	err := c.cc.Invoke(ctx, slink_BatchCreate_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-func (c *shortLinkClient) DeleteShortLink(ctx context.Context, in *DeleteShortLinkReq, opts ...grpc.CallOption) (*DeleteShortLinkResp, error) {
+func (c *slinkClient) Deleteslink(ctx context.Context, in *DeleteslinkReq, opts ...grpc.CallOption) (*DeleteslinkResp, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(DeleteShortLinkResp)
-	err := c.cc.Invoke(ctx, ShortLink_DeleteShortLink_FullMethodName, in, out, cOpts...)
+	out := new(DeleteslinkResp)
+	err := c.cc.Invoke(ctx, slink_Deleteslink_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-func (c *shortLinkClient) Resolve(ctx context.Context, in *ResolveReq, opts ...grpc.CallOption) (*ResolveResp, error) {
+func (c *slinkClient) Resolve(ctx context.Context, in *ResolveReq, opts ...grpc.CallOption) (*ResolveResp, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(ResolveResp)
-	err := c.cc.Invoke(ctx, ShortLink_Resolve_FullMethodName, in, out, cOpts...)
+	err := c.cc.Invoke(ctx, slink_Resolve_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-// ShortLinkServer is the server API for ShortLink service.
-// All implementations must embed UnimplementedShortLinkServer
+// slinkServer is the server API for slink service.
+// All implementations must embed UnimplementedslinkServer
 // for forward compatibility.
 //
-// ShortLink 短链核心服务（对内 gRPC，对外不暴露）
-type ShortLinkServer interface {
-	CreateShortLink(context.Context, *CreateShortLinkReq) (*CreateShortLinkResp, error)
+// slink 短链核心服务（对内 gRPC，对外不暴露）
+type slinkServer interface {
+	Createslink(context.Context, *CreateslinkReq) (*CreateslinkResp, error)
 	GetByCode(context.Context, *GetByCodeReq) (*GetByCodeResp, error)
 	BatchCreate(context.Context, *BatchCreateReq) (*BatchCreateResp, error)
-	DeleteShortLink(context.Context, *DeleteShortLinkReq) (*DeleteShortLinkResp, error)
+	Deleteslink(context.Context, *DeleteslinkReq) (*DeleteslinkResp, error)
 	Resolve(context.Context, *ResolveReq) (*ResolveResp, error)
-	mustEmbedUnimplementedShortLinkServer()
+	mustEmbedUnimplementedslinkServer()
 }
 
-// UnimplementedShortLinkServer must be embedded to have
+// UnimplementedslinkServer must be embedded to have
 // forward compatible implementations.
 //
 // NOTE: this should be embedded by value instead of pointer to avoid a nil
 // pointer dereference when methods are called.
-type UnimplementedShortLinkServer struct{}
+type UnimplementedslinkServer struct{}
 
-func (UnimplementedShortLinkServer) CreateShortLink(context.Context, *CreateShortLinkReq) (*CreateShortLinkResp, error) {
-	return nil, status.Error(codes.Unimplemented, "method CreateShortLink not implemented")
+func (UnimplementedslinkServer) Createslink(context.Context, *CreateslinkReq) (*CreateslinkResp, error) {
+	return nil, status.Error(codes.Unimplemented, "method Createslink not implemented")
 }
-func (UnimplementedShortLinkServer) GetByCode(context.Context, *GetByCodeReq) (*GetByCodeResp, error) {
+func (UnimplementedslinkServer) GetByCode(context.Context, *GetByCodeReq) (*GetByCodeResp, error) {
 	return nil, status.Error(codes.Unimplemented, "method GetByCode not implemented")
 }
-func (UnimplementedShortLinkServer) BatchCreate(context.Context, *BatchCreateReq) (*BatchCreateResp, error) {
+func (UnimplementedslinkServer) BatchCreate(context.Context, *BatchCreateReq) (*BatchCreateResp, error) {
 	return nil, status.Error(codes.Unimplemented, "method BatchCreate not implemented")
 }
-func (UnimplementedShortLinkServer) DeleteShortLink(context.Context, *DeleteShortLinkReq) (*DeleteShortLinkResp, error) {
-	return nil, status.Error(codes.Unimplemented, "method DeleteShortLink not implemented")
+func (UnimplementedslinkServer) Deleteslink(context.Context, *DeleteslinkReq) (*DeleteslinkResp, error) {
+	return nil, status.Error(codes.Unimplemented, "method Deleteslink not implemented")
 }
-func (UnimplementedShortLinkServer) Resolve(context.Context, *ResolveReq) (*ResolveResp, error) {
+func (UnimplementedslinkServer) Resolve(context.Context, *ResolveReq) (*ResolveResp, error) {
 	return nil, status.Error(codes.Unimplemented, "method Resolve not implemented")
 }
-func (UnimplementedShortLinkServer) mustEmbedUnimplementedShortLinkServer() {}
-func (UnimplementedShortLinkServer) testEmbeddedByValue()                   {}
+func (UnimplementedslinkServer) mustEmbedUnimplementedslinkServer() {}
+func (UnimplementedslinkServer) testEmbeddedByValue()                   {}
 
-// UnsafeShortLinkServer may be embedded to opt out of forward compatibility for this service.
-// Use of this interface is not recommended, as added methods to ShortLinkServer will
+// UnsafeslinkServer may be embedded to opt out of forward compatibility for this service.
+// Use of this interface is not recommended, as added methods to slinkServer will
 // result in compilation errors.
-type UnsafeShortLinkServer interface {
-	mustEmbedUnimplementedShortLinkServer()
+type UnsafeslinkServer interface {
+	mustEmbedUnimplementedslinkServer()
 }
 
-func RegisterShortLinkServer(s grpc.ServiceRegistrar, srv ShortLinkServer) {
-	// If the following call panics, it indicates UnimplementedShortLinkServer was
+func RegisterslinkServer(s grpc.ServiceRegistrar, srv slinkServer) {
+	// If the following call panics, it indicates UnimplementedslinkServer was
 	// embedded by pointer and is nil.  This will cause panics if an
 	// unimplemented method is ever invoked, so we test this at initialization
 	// time to prevent it from happening at runtime later due to I/O.
 	if t, ok := srv.(interface{ testEmbeddedByValue() }); ok {
 		t.testEmbeddedByValue()
 	}
-	s.RegisterService(&ShortLink_ServiceDesc, srv)
+	s.RegisterService(&slink_ServiceDesc, srv)
 }
 
-func _ShortLink_CreateShortLink_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(CreateShortLinkReq)
+func _slink_Createslink_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(CreateslinkReq)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(ShortLinkServer).CreateShortLink(ctx, in)
+		return srv.(slinkServer).Createslink(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: ShortLink_CreateShortLink_FullMethodName,
+		FullMethod: slink_Createslink_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(ShortLinkServer).CreateShortLink(ctx, req.(*CreateShortLinkReq))
+		return srv.(slinkServer).Createslink(ctx, req.(*CreateslinkReq))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-func _ShortLink_GetByCode_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+func _slink_GetByCode_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(GetByCodeReq)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(ShortLinkServer).GetByCode(ctx, in)
+		return srv.(slinkServer).GetByCode(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: ShortLink_GetByCode_FullMethodName,
+		FullMethod: slink_GetByCode_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(ShortLinkServer).GetByCode(ctx, req.(*GetByCodeReq))
+		return srv.(slinkServer).GetByCode(ctx, req.(*GetByCodeReq))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-func _ShortLink_BatchCreate_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+func _slink_BatchCreate_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(BatchCreateReq)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(ShortLinkServer).BatchCreate(ctx, in)
+		return srv.(slinkServer).BatchCreate(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: ShortLink_BatchCreate_FullMethodName,
+		FullMethod: slink_BatchCreate_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(ShortLinkServer).BatchCreate(ctx, req.(*BatchCreateReq))
+		return srv.(slinkServer).BatchCreate(ctx, req.(*BatchCreateReq))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-func _ShortLink_DeleteShortLink_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(DeleteShortLinkReq)
+func _slink_Deleteslink_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(DeleteslinkReq)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(ShortLinkServer).DeleteShortLink(ctx, in)
+		return srv.(slinkServer).Deleteslink(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: ShortLink_DeleteShortLink_FullMethodName,
+		FullMethod: slink_Deleteslink_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(ShortLinkServer).DeleteShortLink(ctx, req.(*DeleteShortLinkReq))
+		return srv.(slinkServer).Deleteslink(ctx, req.(*DeleteslinkReq))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-func _ShortLink_Resolve_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+func _slink_Resolve_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(ResolveReq)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(ShortLinkServer).Resolve(ctx, in)
+		return srv.(slinkServer).Resolve(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: ShortLink_Resolve_FullMethodName,
+		FullMethod: slink_Resolve_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(ShortLinkServer).Resolve(ctx, req.(*ResolveReq))
+		return srv.(slinkServer).Resolve(ctx, req.(*ResolveReq))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-// ShortLink_ServiceDesc is the grpc.ServiceDesc for ShortLink service.
+// slink_ServiceDesc is the grpc.ServiceDesc for slink service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
-var ShortLink_ServiceDesc = grpc.ServiceDesc{
-	ServiceName: "pb.ShortLink",
-	HandlerType: (*ShortLinkServer)(nil),
+var slink_ServiceDesc = grpc.ServiceDesc{
+	ServiceName: "pb.slink",
+	HandlerType: (*slinkServer)(nil),
 	Methods: []grpc.MethodDesc{
 		{
-			MethodName: "CreateShortLink",
-			Handler:    _ShortLink_CreateShortLink_Handler,
+			MethodName: "Createslink",
+			Handler:    _slink_Createslink_Handler,
 		},
 		{
 			MethodName: "GetByCode",
-			Handler:    _ShortLink_GetByCode_Handler,
+			Handler:    _slink_GetByCode_Handler,
 		},
 		{
 			MethodName: "BatchCreate",
-			Handler:    _ShortLink_BatchCreate_Handler,
+			Handler:    _slink_BatchCreate_Handler,
 		},
 		{
-			MethodName: "DeleteShortLink",
-			Handler:    _ShortLink_DeleteShortLink_Handler,
+			MethodName: "Deleteslink",
+			Handler:    _slink_Deleteslink_Handler,
 		},
 		{
 			MethodName: "Resolve",
-			Handler:    _ShortLink_Resolve_Handler,
+			Handler:    _slink_Resolve_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
-	Metadata: "apps/api/rpc/pb/shortlink.proto",
+	Metadata: "apps/api/rpc/pb/slink.proto",
 }

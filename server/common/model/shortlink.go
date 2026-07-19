@@ -7,7 +7,7 @@ import (
 	"github.com/zeromicro/go-zero/core/stores/sqlx"
 )
 
-type ShortLink struct {
+type Slink struct {
 	Id        int64  `db:"id"`
 	Code      string `db:"code"`
 	LongURL   string `db:"long_url"`
@@ -19,42 +19,42 @@ type ShortLink struct {
 	UpdatedAt string `db:"updated_at"`
 }
 
-type ShortLinkModel struct {
+type SlinkModel struct {
 	conn  sqlx.SqlConn
 	table string
 }
 
-func NewShortLinkModel(conn sqlx.SqlConn) *ShortLinkModel {
-	return &ShortLinkModel{conn: conn, table: "`short_links`"}
+func NewSlinkModel(conn sqlx.SqlConn) *SlinkModel {
+	return &SlinkModel{conn: conn, table: "`short_links`"}
 }
 
-const shortLinkRows = "id, code, long_url, user_id, clicks, status, source, created_at, updated_at"
+const SlinkRows = "id, code, long_url, user_id, clicks, status, source, created_at, updated_at"
 
-// shortLinkJoinRows 联表查询时给列加表别名，避免与 users.id 冲突
-const shortLinkJoinRows = "sl.id, sl.code, sl.long_url, sl.user_id, sl.clicks, sl.status, sl.source, sl.created_at, sl.updated_at"
+// SlinkJoinRows 联表查询时给列加表别名，避免与 users.id 冲突
+const SlinkJoinRows = "sl.id, sl.code, sl.long_url, sl.user_id, sl.clicks, sl.status, sl.source, sl.created_at, sl.updated_at"
 
-func (m *ShortLinkModel) Insert(ctx context.Context, data *ShortLink) (sql.Result, error) {
+func (m *SlinkModel) Insert(ctx context.Context, data *Slink) (sql.Result, error) {
 	query := "insert into " + m.table + " (code, long_url, user_id, clicks, status, source) values (?, ?, ?, ?, ?, ?)"
 	return m.conn.Exec(query, data.Code, data.LongURL, data.UserId, data.Clicks, data.Status, data.Source)
 }
 
-func (m *ShortLinkModel) FindOneByCode(ctx context.Context, code string) (*ShortLink, error) {
-	query := "select " + shortLinkRows + " from " + m.table + " where code = ? limit 1"
-	var resp ShortLink
+func (m *SlinkModel) FindOneByCode(ctx context.Context, code string) (*Slink, error) {
+	query := "select " + SlinkRows + " from " + m.table + " where code = ? limit 1"
+	var resp Slink
 	err := m.conn.QueryRow(&resp, query, code)
 	return &resp, err
 }
 
 // FindOneByUserAndURL 查询同一用户是否已对相同长链接生成过短链（去重复用）
-func (m *ShortLinkModel) FindOneByUserAndURL(ctx context.Context, userId int64, longURL string) (*ShortLink, error) {
-	query := "select " + shortLinkRows + " from " + m.table + " where user_id = ? and long_url = ? limit 1"
-	var resp ShortLink
+func (m *SlinkModel) FindOneByUserAndURL(ctx context.Context, userId int64, longURL string) (*Slink, error) {
+	query := "select " + SlinkRows + " from " + m.table + " where user_id = ? and long_url = ? limit 1"
+	var resp Slink
 	err := m.conn.QueryRow(&resp, query, userId, longURL)
 	return &resp, err
 }
 
 // FindPage 管理后台分页列表
-func (m *ShortLinkModel) FindPage(ctx context.Context, page, pageSize int64) ([]ShortLink, int64, error) {
+func (m *SlinkModel) FindPage(ctx context.Context, page, pageSize int64) ([]Slink, int64, error) {
 	if page <= 0 {
 		page = 1
 	}
@@ -66,15 +66,15 @@ func (m *ShortLinkModel) FindPage(ctx context.Context, page, pageSize int64) ([]
 		return nil, 0, err
 	}
 	offset := (page - 1) * pageSize
-	query := "select " + shortLinkRows + " from " + m.table + " order by id desc limit ? offset ?"
-	var items []ShortLink
+	query := "select " + SlinkRows + " from " + m.table + " order by id desc limit ? offset ?"
+	var items []Slink
 	if err := m.conn.QueryRows(&items, query, pageSize, offset); err != nil {
 		return nil, 0, err
 	}
 	return items, total, nil
 }
 
-func (m *ShortLinkModel) IncrClicks(ctx context.Context, code string) error {
+func (m *SlinkModel) IncrClicks(ctx context.Context, code string) error {
 	query := "update " + m.table + " set clicks = clicks + 1 where code = ?"
 	_, err := m.conn.Exec(query, code)
 	return err
@@ -82,13 +82,13 @@ func (m *ShortLinkModel) IncrClicks(ctx context.Context, code string) error {
 
 // UpdateSource 复用同一用户+同长链接的短链时，将 source 更新为「最后生成」的来源
 // （web / api 谁后生成算谁的），并刷新 updated_at 以反映最近一次更新。
-func (m *ShortLinkModel) UpdateSource(ctx context.Context, code, source string) error {
+func (m *SlinkModel) UpdateSource(ctx context.Context, code, source string) error {
 	query := "update " + m.table + " set source = ?, updated_at = now() where code = ?"
 	_, err := m.conn.Exec(query, source, code)
 	return err
 }
 
-func (m *ShortLinkModel) Delete(ctx context.Context, code string) error {
+func (m *SlinkModel) Delete(ctx context.Context, code string) error {
 	query := "delete from " + m.table + " where code = ?"
 	_, err := m.conn.Exec(query, code)
 	return err
@@ -96,7 +96,7 @@ func (m *ShortLinkModel) Delete(ctx context.Context, code string) error {
 
 // FindPageByUser 用户维度分页列表（仅本人创建的短链）。
 // search 可选，按 code / long_url 模糊匹配；sort 可选（"asc"/"desc"）按创建时间排序，缺省按 id 倒序（最新在前）。
-func (m *ShortLinkModel) FindPageByUser(ctx context.Context, userId, page, pageSize int64, search, sort string) ([]ShortLink, int64, error) {
+func (m *SlinkModel) FindPageByUser(ctx context.Context, userId, page, pageSize int64, search, sort string) ([]Slink, int64, error) {
 	if page <= 0 {
 		page = 1
 	}
@@ -120,9 +120,9 @@ func (m *ShortLinkModel) FindPageByUser(ctx context.Context, userId, page, pageS
 	} else if sort == "desc" {
 		order = "created_at desc"
 	}
-	query := "select " + shortLinkRows + " from " + m.table + where + " order by " + order + " limit ? offset ?"
+	query := "select " + SlinkRows + " from " + m.table + where + " order by " + order + " limit ? offset ?"
 	listArgs := append(append([]interface{}{}, args...), pageSize, offset)
-	var items []ShortLink
+	var items []Slink
 	if err := m.conn.QueryRows(&items, query, listArgs...); err != nil {
 		return nil, 0, err
 	}
@@ -130,28 +130,28 @@ func (m *ShortLinkModel) FindPageByUser(ctx context.Context, userId, page, pageS
 }
 
 // CountWhere 按状态统计短链数量
-func (m *ShortLinkModel) CountWhere(ctx context.Context, status int64) (int64, error) {
+func (m *SlinkModel) CountWhere(ctx context.Context, status int64) (int64, error) {
 	var total int64
 	err := m.conn.QueryRow(&total, "select count(*) from "+m.table+" where status = ?", status)
 	return total, err
 }
 
 // SumClicks 全站累计访问次数
-func (m *ShortLinkModel) SumClicks(ctx context.Context) (int64, error) {
+func (m *SlinkModel) SumClicks(ctx context.Context) (int64, error) {
 	var total int64
 	err := m.conn.QueryRow(&total, "select coalesce(sum(clicks), 0) from "+m.table)
 	return total, err
 }
 
-// ShortLinkWithUser 联表后的短链记录（含创建者昵称/邮箱）
-type ShortLinkWithUser struct {
-	ShortLink
+// SlinkWithUser 联表后的短链记录（含创建者昵称/邮箱）
+type SlinkWithUser struct {
+	Slink
 	UserName  string `db:"user_name"`
 	UserEmail string `db:"user_email"`
 }
 
 // FindPageWithUser 管理后台分页列表（联表取用户信息）
-func (m *ShortLinkModel) FindPageWithUser(ctx context.Context, page, pageSize int64) ([]ShortLinkWithUser, int64, error) {
+func (m *SlinkModel) FindPageWithUser(ctx context.Context, page, pageSize int64) ([]SlinkWithUser, int64, error) {
 	if page <= 0 {
 		page = 1
 	}
@@ -163,9 +163,9 @@ func (m *ShortLinkModel) FindPageWithUser(ctx context.Context, page, pageSize in
 		return nil, 0, err
 	}
 	offset := (page - 1) * pageSize
-	query := "select " + shortLinkJoinRows + ", COALESCE(u.nickname,'') as user_name, COALESCE(u.email,'') as user_email from " +
+	query := "select " + SlinkJoinRows + ", COALESCE(u.nickname,'') as user_name, COALESCE(u.email,'') as user_email from " +
 		m.table + " sl left join `users` u on sl.user_id = u.id order by sl.id desc limit ? offset ?"
-	var items []ShortLinkWithUser
+	var items []SlinkWithUser
 	if err := m.conn.QueryRows(&items, query, pageSize, offset); err != nil {
 		return nil, 0, err
 	}

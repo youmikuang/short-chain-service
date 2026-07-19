@@ -2,9 +2,9 @@
 import { ref, computed, onMounted, watch } from 'vue'
 import TheNavBar from '@/components/navbar.vue'
 import TheFooter from '@/components/footer.vue'
-import { fetchLinks, createShortLink, type ShortLink } from '@/api'
+import { fetchLinks, createslink, type slink } from '@/api'
 
-const links = ref<ShortLink[]>([])
+const links = ref<slink[]>([])
 const loading = ref(false)
 const search = ref('')
 const page = ref(1)
@@ -98,7 +98,7 @@ function exportCsv() {
   downloadCsv('urls.csv', [header, ...body])
 }
 
-async function copyLink(link: ShortLink) {
+async function copyLink(link: slink) {
   try {
     await navigator.clipboard.writeText(link.sUrl)
     copiedCode.value = link.code
@@ -148,7 +148,7 @@ async function submitCreate() {
   creating.value = true
   createError.value = ''
   try {
-    const res = await createShortLink(normalized)
+    const res = await createslink(normalized)
     links.value.unshift(res)
     closeCreate()
   } catch {

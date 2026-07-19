@@ -21,7 +21,7 @@ server/
 ## 调用方式（双通道）
 
 - **HTTP API（外部第三方）**：`POST /api/short-links`，Header `X-API-Key`，经 `apps/api/api` 网关鉴权后调用 `apps/api/rpc` 核心服务。
-- **RPC / gRPC（内部 Go 服务）**：直连 `apps/api/rpc` 的 `ShortLink` gRPC 服务（端口仅内网暴露，走 `common/interceptors` 内部鉴权）。
+- **RPC / gRPC（内部 Go 服务）**：直连 `apps/api/rpc` 的 `slink` gRPC 服务（端口仅内网暴露，走 `common/interceptors` 内部鉴权）。
 
 ## 本地开发
 

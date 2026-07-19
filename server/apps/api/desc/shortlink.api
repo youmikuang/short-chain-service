@@ -6,11 +6,11 @@ info (
     version: "v3"
 )
 
-type CreateShortLinkReq {
+type CreateslinkReq {
     LongURL string `json:"long_url"`
 }
 
-type CreateShortLinkResp {
+type CreateslinkResp {
     Code    string `json:"code"`
     LongURL string `json:"long_url"`
 }
@@ -50,9 +50,9 @@ type ListMyLinksResp {
 @server(
     prefix: /api
 )
-service shortlink-api {
-    @handler CreateShortLink
-    post /short-links (CreateShortLinkReq) returns (CreateShortLinkResp)
+service slink-api {
+    @handler Createslink
+    post /short-links (CreateslinkReq) returns (CreateslinkResp)
 
     @handler GetByCode
     get /short-links/:code (GetByCodeReq) returns (GetByCodeResp)
@@ -63,10 +63,10 @@ service shortlink-api {
     jwt:    Auth
     prefix: /api
 )
-service shortlink-user-api {
+service slink-user-api {
     @handler ListMyLinks
     get /short-links (ListMyLinksReq) returns (ListMyLinksResp)
 }
 
 // 注：/r/:code 短链跳转已拆分到独立的 jump 服务（server/apps/jump），
-// 不再由本 api 服务处理，故此处不再定义 shortlink-redirect 服务。
+// 不再由本 api 服务处理，故此处不再定义 slink-redirect 服务。

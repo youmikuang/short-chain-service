@@ -2,12 +2,12 @@ package logic
 
 import (
 	"context"
-	"time"
 	"server/apps/rpc/internal/svc"
 	"server/apps/rpc/pb"
 	"server/common/errorx"
 	"server/common/model"
 	"server/common/tool"
+	"time"
 
 	"github.com/redis/go-redis/v9"
 	"github.com/zeromicro/go-zero/core/logx"
@@ -44,7 +44,7 @@ func (l *ResolveLogic) Resolve(in *pb.ResolveReq) (*pb.ResolveResp, error) {
 	var source string
 	if err == redis.Nil {
 		// 回源 MySQL
-		row, derr := l.svcCtx.Models.ShortLink.FindOneByCode(l.ctx, code)
+		row, derr := l.svcCtx.Models.Slink.FindOneByCode(l.ctx, code)
 		if isNotFound(derr) {
 			return nil, errorx.NotFound("code not found")
 		} else if derr != nil {
@@ -62,14 +62,14 @@ func (l *ResolveLogic) Resolve(in *pb.ResolveReq) (*pb.ResolveResp, error) {
 		// 缓存命中：尝试从 uid 缓存取所属用户，缺失则回源补齐
 		if v, e := l.svcCtx.Redis.Get(l.ctx, "short_link:"+code+":uid").Int64(); e == nil {
 			ownerId = v
-		} else if row, derr := l.svcCtx.Models.ShortLink.FindOneByCode(l.ctx, code); derr == nil {
+		} else if row, derr := l.svcCtx.Models.Slink.FindOneByCode(l.ctx, code); derr == nil {
 			ownerId = row.UserId
 			l.svcCtx.Redis.Set(l.ctx, "short_link:"+code+":uid", ownerId, redisCacheTTL())
 		}
 		// source 优先从缓存读取，缺失再回源
 		if s, e := l.svcCtx.Redis.Get(l.ctx, "short_link:"+code+":source").Result(); e == nil {
 			source = s
-		} else if row, derr := l.svcCtx.Models.ShortLink.FindOneByCode(l.ctx, code); derr == nil {
+		} else if row, derr := l.svcCtx.Models.Slink.FindOneByCode(l.ctx, code); derr == nil {
 			source = row.Source
 			l.svcCtx.Redis.Set(l.ctx, "short_link:"+code+":source", source, redisCacheTTL())
 		}
@@ -86,12 +86,12 @@ func (l *ResolveLogic) Resolve(in *pb.ResolveReq) (*pb.ResolveResp, error) {
 
 	// 实时点击计数：Redis incr + MySQL 落库（保证 admin 列表准确）
 	l.svcCtx.Redis.Incr(l.ctx, "short_link:"+code+":clicks")
-	_ = l.svcCtx.Models.ShortLink.IncrClicks(l.ctx, code)
+	_ = l.svcCtx.Models.Slink.IncrClicks(l.ctx, code)
 
 	// 写入短链访问明细到 ClickHouse（异步，不阻塞跳转；访问日志允许少量丢失）
 	latencyMs := time.Since(start).Milliseconds()
 	go func() {
-		if err := l.svcCtx.ClickHouseVisit.Insert(context.Background(), &model.ShortLinkVisit{
+		if err := l.svcCtx.ClickHouseVisit.Insert(context.Background(), &model.SlinkVisit{
 			Code:      code,
 			LongURL:   longURL,
 			UserId:    ownerId,
@@ -112,7 +112,7 @@ func (l *ResolveLogic) Resolve(in *pb.ResolveReq) (*pb.ResolveResp, error) {
 // 用于验证 ClickHouse 写入链路（配置/端口/驱动）是否正常。不在正常请求路径中调用，
 // 仅供测试 / 运维排查使用（如 go test ./apps/rpc/internal/logic/ -run TestClickHouseProbe）。
 func (l *ResolveLogic) ProbeClickHouse(ctx context.Context) error {
-	probe := &model.ShortLinkVisit{
+	probe := &model.SlinkVisit{
 		Code:    "probe-" + time.Now().Format("20060102150405"),
 		LongURL: "https://example.com/probe",
 		UserId:  0,
@@ -142,5 +142,5 @@ func (l *ResolveLogic) isBlacklisted(domain string) (bool, error) {
 		return false, err
 	}
 	// 回退 Redis Set（admin 写入时同步 SADD）
-	return l.svcCtx.Redis.SIsMember(l.ctx, l.svcCtx.Config.BlacklistRedisKey, domain).Result()
+	return l.svcCtx.Redis.SIsMember(l.ctx, l.svcCtx.Config.RedisKey, domain).Result()
 }

@@ -12,16 +12,16 @@ import (
 	"server/common/tool"
 )
 
-type CreateShortLinkLogic struct {
+type CreateslinkLogic struct {
 	ctx    context.Context
 	svcCtx *svc.ServiceContext
 }
 
-func NewCreateShortLinkLogic(ctx context.Context, svcCtx *svc.ServiceContext) *CreateShortLinkLogic {
-	return &CreateShortLinkLogic{ctx: ctx, svcCtx: svcCtx}
+func NewCreateslinkLogic(ctx context.Context, svcCtx *svc.ServiceContext) *CreateslinkLogic {
+	return &CreateslinkLogic{ctx: ctx, svcCtx: svcCtx}
 }
 
-func (l *CreateShortLinkLogic) CreateShortLink(in *pb.CreateShortLinkReq) (*pb.CreateShortLinkResp, error) {
+func (l *CreateslinkLogic) Createslink(in *pb.CreateslinkReq) (*pb.CreateslinkResp, error) {
 	if in.GetLongUrl() == "" {
 		return nil, errorx.BadParam("long_url required")
 	}
@@ -57,9 +57,9 @@ func (l *CreateShortLinkLogic) CreateShortLink(in *pb.CreateShortLinkReq) (*pb.C
 
 	// 去重复用：同一用户 + 同一长链接只存一条；若已存在，则把 source 更新为
 	// 「最后生成」的来源（web / rpc 谁后生成算谁的），并刷新缓存。
-	if exist, err := l.svcCtx.Models.ShortLink.FindOneByUserAndURL(l.ctx, ownerId, longURL); err == nil {
+	if exist, err := l.svcCtx.Models.Slink.FindOneByUserAndURL(l.ctx, ownerId, longURL); err == nil {
 		if exist.Source != source {
-			if uerr := l.svcCtx.Models.ShortLink.UpdateSource(l.ctx, exist.Code, source); uerr != nil {
+			if uerr := l.svcCtx.Models.Slink.UpdateSource(l.ctx, exist.Code, source); uerr != nil {
 				return nil, errorx.Internal(uerr.Error())
 			}
 		}
@@ -67,7 +67,7 @@ func (l *CreateShortLinkLogic) CreateShortLink(in *pb.CreateShortLinkReq) (*pb.C
 		l.svcCtx.Redis.Set(l.ctx, "short_link:"+exist.Code, exist.LongURL, redisCacheTTL())
 		l.svcCtx.Redis.Set(l.ctx, "short_link:"+exist.Code+":uid", ownerId, redisCacheTTL())
 		l.svcCtx.Redis.Set(l.ctx, "short_link:"+exist.Code+":source", source, redisCacheTTL())
-		return &pb.CreateShortLinkResp{Code: exist.Code, LongUrl: exist.LongURL}, nil
+		return &pb.CreateslinkResp{Code: exist.Code, LongUrl: exist.LongURL}, nil
 	} else if !isNotFound(err) {
 		return nil, errorx.Internal(err.Error())
 	}
@@ -79,7 +79,7 @@ func (l *CreateShortLinkLogic) CreateShortLink(in *pb.CreateShortLinkReq) (*pb.C
 	}
 
 	// 落库 MySQL(short_links)
-	if _, err := l.svcCtx.Models.ShortLink.Insert(l.ctx, &model.ShortLink{
+	if _, err := l.svcCtx.Models.Slink.Insert(l.ctx, &model.Slink{
 		Code:    code,
 		LongURL: longURL,
 		UserId:  ownerId,
@@ -92,15 +92,15 @@ func (l *CreateShortLinkLogic) CreateShortLink(in *pb.CreateShortLinkReq) (*pb.C
 	// 写 Redis 缓存(short_link:{code} -> long_url)，随机 TTL 防集中失效
 	l.svcCtx.Redis.Set(l.ctx, "short_link:"+code, longURL, redisCacheTTL())
 
-	return &pb.CreateShortLinkResp{Code: code, LongUrl: in.GetLongUrl()}, nil
+	return &pb.CreateslinkResp{Code: code, LongUrl: in.GetLongUrl()}, nil
 }
 
 // genCode 生成短码：随机 Base62 串，默认 6 位；若已存在则加长 1 位重试，最多到 8 位。
-func (l *CreateShortLinkLogic) genCode() (string, error) {
+func (l *CreateslinkLogic) genCode() (string, error) {
 	for length := 6; length <= 8; length++ {
 		for i := 0; i < 5; i++ {
 			code := tool.RandString(length)
-			if _, err := l.svcCtx.Models.ShortLink.FindOneByCode(l.ctx, code); err != nil {
+			if _, err := l.svcCtx.Models.Slink.FindOneByCode(l.ctx, code); err != nil {
 				if isNotFound(err) {
 					return code, nil
 				}
@@ -113,14 +113,14 @@ func (l *CreateShortLinkLogic) genCode() (string, error) {
 }
 
 // isBlacklisted 校验域名是否命中黑名单（优先 MySQL，回退 Redis）
-func (l *CreateShortLinkLogic) isBlacklisted(domain string) (bool, error) {
+func (l *CreateslinkLogic) isBlacklisted(domain string) (bool, error) {
 	if _, err := l.svcCtx.Models.DomainBlacklist.FindOneByDomain(l.ctx, domain); err == nil {
 		return true, nil
 	} else if !isNotFound(err) {
 		return false, err
 	}
 	// 回退 Redis Set（admin 写入时同步 SADD）
-	return l.svcCtx.Redis.SIsMember(l.ctx, l.svcCtx.Config.BlacklistRedisKey, domain).Result()
+	return l.svcCtx.Redis.SIsMember(l.ctx, l.svcCtx.Config.RedisKey, domain).Result()
 }
 
 func redisCacheTTL() time.Duration {

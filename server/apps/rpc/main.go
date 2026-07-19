@@ -18,7 +18,7 @@ import (
 	"google.golang.org/grpc"
 )
 
-var configFile = flag.String("f", "etc/shortlink.yaml", "the config file")
+var configFile = flag.String("f", "etc/slink.yaml", "the config file")
 
 // resolveConfigFile 在给定路径找不到配置时，回退到相对于源码所在目录的路径，
 // 这样无论以何种工作目录（go run / GoLand 临时构建 / 直接执行二进制）运行都能定位到 etc/ 下的配置。
@@ -46,7 +46,7 @@ func main() {
 
 	ctx := svc.NewServiceContext(c)
 	s := zrpc.MustNewServer(c.RpcServerConf, func(grpcServer *grpc.Server) {
-		pb.RegisterShortLinkServer(grpcServer, server.NewShortLinkServer(ctx))
+		pb.RegisterslinkServer(grpcServer, server.NewslinkServer(ctx))
 	})
 	// 内部服务间调用鉴权
 	s.AddUnaryInterceptors(interceptors.UnaryServerLogInterceptor(ctx.ClickHouseRpcLog))

@@ -3,7 +3,7 @@ import { ref, watch } from 'vue'
 import { RouterLink } from 'vue-router'
 import TheNavBar from '@/components/navbar.vue'
 import TheFooter from '@/components/footer.vue'
-import { createShortLink, SHORT_DOMAIN } from '@/api'
+import { createslink, SHORT_DOMAIN } from '@/api'
 
 // Persist the hero input so it survives a page refresh.
 const HERO_URL_KEY = 'slink_hero_url'
@@ -75,7 +75,7 @@ async function shorten() {
   loading.value = true
   error.value = ''
   try {
-    const res = await createShortLink(normalized)
+    const res = await createslink(normalized)
     shortUrl.value = `${SHORT_DOMAIN}/${res.code}`
     copied.value = false
   } catch {

@@ -250,7 +250,7 @@ onMounted(async () => {
                 <thead>
                   <tr class="token__thead-row">
                     <th class="token__th">Timestamp</th>
-                    <th class="token__th">Endpoint</th>
+                    <th class="token__th">Shortened URL</th>
                     <th class="token__th">Status</th>
                     <th class="token__th">Latency</th>
                   </tr>

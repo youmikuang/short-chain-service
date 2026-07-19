@@ -6,9 +6,9 @@ import (
 	"time"
 )
 
-// ShortLinkVisit 一条短链被访问的明细记录（每次打开 /r/:code 写入一条）。
+// SlinkVisit 一条短链被访问的明细记录（每次打开 /r/:code 写入一条）。
 // 数据落在 ClickHouse 的 click_events 表（不再使用 MySQL）。
-type ShortLinkVisit struct {
+type SlinkVisit struct {
 	Code      string
 	LongURL   string
 	UserId    int64
@@ -20,19 +20,19 @@ type ShortLinkVisit struct {
 	CreatedAt time.Time
 }
 
-type ShortLinkVisitModel struct {
+type SlinkVisitModel struct {
 	conn *sql.DB
 }
 
-func NewShortLinkVisitModel(conn *sql.DB) *ShortLinkVisitModel {
-	return &ShortLinkVisitModel{conn: conn}
+func NewSlinkVisitModel(conn *sql.DB) *SlinkVisitModel {
+	return &SlinkVisitModel{conn: conn}
 }
 
 const clickEventTable = "click_events"
 
 // Insert 写入一条访问明细。created_at 由 ClickHouse 的 now() 默认值填充，
 // 因此这里不显式传该列。调用方（rpc.Resolve）应以异步方式调用，避免阻塞跳转。
-func (m *ShortLinkVisitModel) Insert(ctx context.Context, data *ShortLinkVisit) error {
+func (m *SlinkVisitModel) Insert(ctx context.Context, data *SlinkVisit) error {
 	_, err := m.conn.ExecContext(ctx,
 		"INSERT INTO "+clickEventTable+" (code, long_url, user_id, ip, referer, status, source, latency_ms) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
 		data.Code, data.LongURL, data.UserId, data.IP, data.Referer, data.Status, data.Source, data.LatencyMs)
@@ -45,7 +45,7 @@ func (m *ShortLinkVisitModel) Insert(ctx context.Context, data *ShortLinkVisit) 
 // 性能优化：用 count() OVER () 窗口函数在同一条查询里同时拿到「满足条件的总行数」
 // 与「当前分页数据」，把原本的 count 查询 + 数据查询两次往返合并为一次，
 // 对跨公网的远程 ClickHouse 能显著减少延迟。
-func (m *ShortLinkVisitModel) FindPageByUser(ctx context.Context, userId, page, pageSize int64, search, source string) ([]ShortLinkVisit, int64, error) {
+func (m *SlinkVisitModel) FindPageByUser(ctx context.Context, userId, page, pageSize int64, search, source string) ([]SlinkVisit, int64, error) {
 	if page <= 0 {
 		page = 1
 	}
@@ -74,10 +74,10 @@ func (m *ShortLinkVisitModel) FindPageByUser(ctx context.Context, userId, page, 
 		return nil, 0, err
 	}
 	defer rows.Close()
-	items := make([]ShortLinkVisit, 0, pageSize)
+	items := make([]SlinkVisit, 0, pageSize)
 	var total int64
 	for rows.Next() {
-		var v ShortLinkVisit
+		var v SlinkVisit
 		if err := rows.Scan(&v.Code, &v.LongURL, &v.UserId, &v.IP, &v.Referer, &v.Status, &v.Source, &v.LatencyMs, &v.CreatedAt, &total); err != nil {
 			return nil, 0, err
 		}
@@ -87,7 +87,7 @@ func (m *ShortLinkVisitModel) FindPageByUser(ctx context.Context, userId, page, 
 }
 
 // CountByDay 统计最近 days 天每天的短链访问量（按创建日期分组，全局口径）
-func (m *ShortLinkVisitModel) CountByDay(ctx context.Context, days int) (map[string]int64, error) {
+func (m *SlinkVisitModel) CountByDay(ctx context.Context, days int) (map[string]int64, error) {
 	query := "SELECT toDate(created_at) AS day, count() AS value FROM " + clickEventTable +
 		" WHERE created_at >= now() - INTERVAL ? DAY GROUP BY day"
 	rows, err := m.conn.QueryContext(ctx, query, days)

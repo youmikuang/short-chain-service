@@ -25,7 +25,7 @@ func (l *ListLinksLogic) ListLinks(req *types.ListLinksReq) (resp *types.ListLin
 	if size <= 0 {
 		size = 20
 	}
-	rows, total, derr := l.svcCtx.Models.ShortLink.FindPageWithUser(l.ctx, page, size)
+	rows, total, derr := l.svcCtx.Models.Slink.FindPageWithUser(l.ctx, page, size)
 	if derr != nil {
 		return nil, errorx.Internal(derr.Error())
 	}

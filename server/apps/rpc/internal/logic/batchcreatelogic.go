@@ -18,7 +18,7 @@ func NewBatchCreateLogic(ctx context.Context, svcCtx *svc.ServiceContext) *Batch
 func (l *BatchCreateLogic) BatchCreate(in *pb.BatchCreateReq) (*pb.BatchCreateResp, error) {
 	resp := &pb.BatchCreateResp{}
 	for _, u := range in.GetLongUrls() {
-		r, err := NewCreateShortLinkLogic(l.ctx, l.svcCtx).CreateShortLink(&pb.CreateShortLinkReq{
+		r, err := NewCreateslinkLogic(l.ctx, l.svcCtx).Createslink(&pb.CreateslinkReq{
 			LongUrl: u,
 			UserId:  in.GetUserId(),
 		})

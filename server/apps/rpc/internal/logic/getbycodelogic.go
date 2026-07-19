@@ -27,7 +27,7 @@ func (l *GetByCodeLogic) GetByCode(in *pb.GetByCodeReq) (*pb.GetByCodeResp, erro
 	longURL, err := l.svcCtx.Redis.Get(l.ctx, "short_link:"+code).Result()
 	if err == redis.Nil {
 		// 回源 MySQL
-		row, derr := l.svcCtx.Models.ShortLink.FindOneByCode(l.ctx, code)
+		row, derr := l.svcCtx.Models.Slink.FindOneByCode(l.ctx, code)
 		if isNotFound(derr) {
 			return nil, errorx.NotFound("code not found")
 		} else if derr != nil {

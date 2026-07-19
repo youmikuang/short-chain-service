@@ -5,7 +5,7 @@ import vue from '@vitejs/plugin-vue'
 import vueDevTools from 'vite-plugin-vue-devtools'
 
 // Go backend targets (override with env vars if they differ).
-//   - shortlink-api  (open API + user system) listens on :8888  → /api, /r
+//   - slink-api  (open API + user system) listens on :8888  → /api, /r
 //   - admin-api      (management backend)        listens on :8889 → /admin
 const API_TARGET = process.env.VITE_API_TARGET || 'http://localhost:8888'
 const ADMIN_TARGET = process.env.VITE_ADMIN_TARGET || 'http://localhost:8889'

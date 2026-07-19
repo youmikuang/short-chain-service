@@ -25,7 +25,7 @@
    ├─ apps/admin  (管理后台 API :8889)
    │     · 登录 / 仪表盘 / 链接管理 / 域名黑名单 / Token 管理
    └─ apps/rpc    (短链核心 gRPC :8081，仅内网，不对外暴露)
-         · ShortLink 服务：生成/查询/批量/删除/解析跳转
+         · slink 服务：生成/查询/批量/删除/解析跳转
          · Snowflake + Base62 短码；Redis 缓存；域名黑名单校验
         │
         ▼
@@ -56,11 +56,11 @@
 登录、仪表盘、链接管理（`listlinks`）、域名黑名单（`listblacklist`）、后台 Token 管理（`listtokens`/`provisiontoken`/`revoketoken`）。供 `admin-web` 前端调用。
 
 ### apps/rpc（短链核心 gRPC，:8081）
-`ShortLink` 服务，方法见 proto：
-- `CreateShortLink`：黑名单校验 → Snowflake+Base62 生成 → 落 MySQL + 写 Redis 缓存
+`slink` 服务，方法见 proto：
+- `Createslink`：黑名单校验 → Snowflake+Base62 生成 → 落 MySQL + 写 Redis 缓存
 - `GetByCode`：按 code 查询
 - `BatchCreate`：批量生成
-- `DeleteShortLink`：删除
+- `Deleteslink`：删除
 - `Resolve`：跳转解析（Redis→MySQL 回源、域名黑名单校验、实时计数、写访问明细）
 
 ---
@@ -90,16 +90,16 @@ short-chain-service/
 │   │   ├── admin/           # 管理后台 API (:8889)
 │   │   │   ├── api/  internal/  etc/
 │   │   └── rpc/             # 短链核心 gRPC (:8081)
-│   │       ├── pb/          # shortlink.proto + 生成
+│   │       ├── pb/          # slink.proto + 生成
 │   │       ├── internal/    # logic(rpc 核心) / server / svc
-│   │       └── etc/shortlink.yaml
+│   │       └── etc/slink.yaml
 │   ├── common/              # 跨模块公共代码（避免循环依赖）
 │   │   ├── ctxdata/         # JWT / Context 上下文解析
 │   │   ├── errorx/          # 统一错误码
 │   │   ├── interceptors/    # gRPC 拦截器 / API 中间件
 │   │   ├── model/           # 数据模型：MySQL(sqlx) user/apikey/usersettings/
-│   │   │                   #   shortlink/domainblacklist/actionlog；
-│   │   │                   #   ClickHouse shortlink_visit(click_events)/rpclog(rpc_logs)
+│   │   │                   #   slink/domainblacklist/actionlog；
+│   │   │                   #   ClickHouse slink_visit(click_events)/rpclog(rpc_logs)
 │   │   ├── tool/            # 工具类（加密/Base62/Snowflake/域名提取）
 │   │   └── xfilters/        # 通用过滤器
 │   └── deploy/              # 部署配置
@@ -136,8 +136,8 @@ short-chain-service/
 ### 1. 短链创建
 ```
 POST /api/short-links (X-API-Key 或 JWT)
-  → api.CreateShortLinkLogic
-  → rpc.CreateShortLink
+  → api.CreateslinkLogic
+  → rpc.Createslink
        · 提取域名 → 命中 domain_blacklist（MySQL 优先，回退 Redis Set）则拒绝
        · 短码 = Base62(Snowflake.NextID())
        · 落 MySQL(short_links) + 写 Redis(short_link:{code} → long_url，随机 TTL 防雪崩)
@@ -158,7 +158,7 @@ GET /r/:code
 ### 3. 访问统计（当前实现）
 - **实时计数**：Redis `short_link:{code}:clicks`（列表/详情即时展示）。
 - **访问明细（已接入 ClickHouse）**：每次跳转由 `rpc.Resolve` **异步**写入 ClickHouse 表 `click_events`（code / long_url / user_id / ip / referer / status / created_at，按 `user_id` 隔离）；`/api/logs` 分页查询、`/api/usage-trends` 按天聚合均直接查 ClickHouse。表结构见 `deploy/sql/clickhouse.sql`。
-- **[规划中] 异步管道**：`shortlink.yaml` 仍保留 `KafkaBrokers` + `ClickEventsTopic` 配置，未来可改为「resolve → Kafka → 消费者批量写 ClickHouse」进一步解耦；当前为 rpc 直接异步写 ClickHouse。
+- **[规划中] 异步管道**：`slink.yaml` 仍保留 `KafkaBrokers` + `ClickEventsTopic` 配置，未来可改为「resolve → Kafka → 消费者批量写 ClickHouse」进一步解耦；当前为 rpc 直接异步写 ClickHouse。
 
 ### 4. 用户体系（纯 HTTP，无 RPC）
 - 邮箱注册（SMTP 验证码）→ 登录发 JWT；GitHub OAuth 回调建号/绑定。
@@ -211,7 +211,7 @@ GET /r/:code
 
 ## 八、短码生成
 
-- 算法：**Snowflake（IdGen.NextID）+ Base62 编码**（见 `common/tool` + `rpc/internal/logic/createshortlinklogic.go`）。
+- 算法：**Snowflake（IdGen.NextID）+ Base62 编码**（见 `common/tool` + `rpc/internal/logic/createslinklogic.go`）。
 - 缓存：`short_link:{code}` 存 long_url，TTL = 30min + 随机 0~10min，防集中失效/雪崩；另缓存 `short_link:{code}:uid` 供访问明细按用户隔离。
 - 去重：`short_links.code` 唯一索引。
 

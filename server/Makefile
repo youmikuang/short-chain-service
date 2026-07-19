@@ -12,14 +12,14 @@
 gen-rpc:
 	protoc --go_out=paths=source_relative:. \
 	       --go-grpc_out=paths=source_relative:. \
-	       apps/api/rpc/pb/shortlink.proto
+	       apps/api/rpc/pb/slink.proto
 	# 若使用 goctl：
-	# goctl rpc protoc apps/api/rpc/pb/shortlink.proto \
+	# goctl rpc protoc apps/api/rpc/pb/slink.proto \
 	#   --go_out=apps/api/rpc/pb --go-grpc_out=apps/api/rpc/pb
 
 # api / admin 的 types/handler/logic/register 已手写完整，无需生成。
 # 如需重新生成桩代码，请先备份 internal/ 再执行：
-# goctl api go -api apps/api/api/desc/shortlink.api -dir apps/api/api --style gozero
+# goctl api go -api apps/api/api/desc/slink.api -dir apps/api/api --style gozero
 # goctl api go -api apps/admin/api/desc/admin.api -dir apps/admin/api --style gozero
 
 gen: gen-rpc
@@ -34,7 +34,7 @@ run-api:
 	go run apps/api -f apps/api/etc/api-api.yaml
 
 run-rpc:
-	go run apps/rpc -f apps/rpc/etc/shortlink.yaml
+	go run apps/rpc -f apps/rpc/etc/slink.yaml
 
 run-admin:
 	go run apps/admin -f apps/admin/etc/admin-api.yaml
@@ -43,4 +43,4 @@ run-jump:
 	go run apps/jump -f apps/jump/etc/jump-api.yaml
 
 docker:
-	docker build -f deploy/docker/Dockerfile -t shortlink-server .
+	docker build -f deploy/docker/Dockerfile -t slink-server .

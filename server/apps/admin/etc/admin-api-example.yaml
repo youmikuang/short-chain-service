@@ -20,10 +20,5 @@ BlacklistRedisKey: short_chain:blacklist
 Rpc:
   Target: 127.0.0.1:8081
 
-# 管理后台登录凭据（仅开发/演示用，生产请接入真实账号体系）
-Admin:
-  Username: admin
-  Password: admin123
-
 # 短链对外域名（后台列表拼接完整短链地址用）
 ShortDomain: s.gaoheng.top

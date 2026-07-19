@@ -7,15 +7,15 @@ type Config struct {
 	Mysql struct {
 		DataSource string
 	}
-	BlacklistRedis struct {
+	RedisConfig struct {
 		Host string
 		Pass string
 		DB   int
 	}
-	BlacklistRedisKey string
-	ClickEventsTopic  string
-	KafkaBrokers      []string
-	ClickHouse        struct {
+	RedisKey         string
+	ClickEventsTopic string
+	KafkaBrokers     []string
+	ClickHouse       struct {
 		Host     string
 		Port     int
 		Database string

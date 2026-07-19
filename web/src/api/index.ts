@@ -48,7 +48,7 @@ export interface ApiKey {
   createdAt: string
 }
 
-export interface ShortLink {
+export interface slink {
   code: string
   shortUrl: string
   sUrl: string
@@ -230,7 +230,7 @@ export function revokeApiKey(id: number): Promise<{ ok: boolean }> {
 
 // --- Short links --------------------------------------------------------
 
-export function createShortLink(longUrl: string): Promise<ShortLink> {
+export function createslink(longUrl: string): Promise<slink> {
   // Short-link creation requires an API key (X-API-Key); an anonymous call
   // returns 401, which must NOT trigger the global login redirect.
   return rawRequest(
@@ -262,7 +262,7 @@ export interface FetchLinksParams {
   size?: number
 }
 
-export function fetchLinks(params: FetchLinksParams = {}): Promise<ShortLink[]> {
+export function fetchLinks(params: FetchLinksParams = {}): Promise<slink[]> {
   // Lists the CURRENT user's own short links (JWT auth), served by the API
   // gateway — not the admin service. search / sort 由后端处理。
   const qs = new URLSearchParams()

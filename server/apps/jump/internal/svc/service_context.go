@@ -9,14 +9,14 @@ import (
 
 // ServiceContext jump 服务上下文：仅持有 rpc 核心客户端，用于解析短链并跳转。
 type ServiceContext struct {
-	Config       config.Config
-	ShortLinkRpc pb.ShortLinkClient
+	Config   config.Config
+	SlinkRpc pb.SlinkClient
 }
 
 func NewServiceContext(c config.Config) *ServiceContext {
 	cli := zrpc.MustNewClient(c.Rpc)
 	return &ServiceContext{
-		Config:       c,
-		ShortLinkRpc: pb.NewShortLinkClient(cli.Conn()),
+		Config:   c,
+		SlinkRpc: pb.NewslinkClient(cli.Conn()),
 	}
 }

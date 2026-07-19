@@ -22,11 +22,11 @@ func NewDashboardLogic(ctx context.Context, svcCtx *svc.ServiceContext) *Dashboa
 func (l *DashboardLogic) Dashboard() (resp *types.DashboardResp, err error) {
 	m := l.svcCtx.Models
 
-	activeLinks, err := m.ShortLink.CountWhere(l.ctx, 1)
+	activeLinks, err := m.Slink.CountWhere(l.ctx, 1)
 	if err != nil {
 		return nil, errorx.Internal(err.Error())
 	}
-	totalVisits, err := m.ShortLink.SumClicks(l.ctx)
+	totalVisits, err := m.Slink.SumClicks(l.ctx)
 	if err != nil {
 		return nil, errorx.Internal(err.Error())
 	}
@@ -62,7 +62,7 @@ func (l *DashboardLogic) Dashboard() (resp *types.DashboardResp, err error) {
 	}
 
 	// 近期操作：合并最近短链与黑名单
-	links, _, err := m.ShortLink.FindPageWithUser(l.ctx, 1, 3)
+	links, _, err := m.Slink.FindPageWithUser(l.ctx, 1, 3)
 	if err != nil {
 		return nil, errorx.Internal(err.Error())
 	}

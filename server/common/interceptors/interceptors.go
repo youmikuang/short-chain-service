@@ -3,6 +3,7 @@ package interceptors
 import (
 	"context"
 	"errors"
+	"strings"
 	"server/common/errorx"
 	"server/common/model"
 	"time"
@@ -14,9 +15,15 @@ import (
 // InternalServiceToken 内部服务间调用约定的 token（生产建议 mTLS + 服务标识）
 const InternalServiceToken = "internal-rpc-secret"
 
-// UnaryServerInterceptor 校验内部调用身份（gRPC 服务端）
+// UnaryServerInterceptor 校验内部调用身份（gRPC 服务端）。
+// 公开方法（短链访问 Resolve，仅写访问日志、任何人可触发）放行，无需 token；
+// 其余受保护方法（如生成短链 CreateShortLink）必须携带正确的内部 token。
 func UnaryServerInterceptor() grpc.UnaryServerInterceptor {
 	return func(ctx context.Context, req interface{}, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (interface{}, error) {
+		// 短链跳转 / 访问日志：公开端点，不要求内部 token
+		if strings.HasSuffix(info.FullMethod, "/Resolve") {
+			return handler(ctx, req)
+		}
 		md, ok := metadata.FromIncomingContext(ctx)
 		if !ok {
 			return nil, errorx.Unauthorized("missing metadata")

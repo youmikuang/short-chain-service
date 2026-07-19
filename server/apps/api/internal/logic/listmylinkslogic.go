@@ -23,7 +23,7 @@ func (l *ListMyLinksLogic) ListMyLinks(req *types.ListMyLinksReq) (*types.ListMy
 	if err != nil {
 		return nil, err
 	}
-	rows, total, err := l.svcCtx.Models.ShortLink.FindPageByUser(l.ctx, uid, req.Page, req.Size, req.Search, req.Sort)
+	rows, total, err := l.svcCtx.Models.Slink.FindPageByUser(l.ctx, uid, req.Page, req.Size, req.Search, req.Sort)
 	if err != nil {
 		return nil, errorx.Internal(err.Error())
 	}

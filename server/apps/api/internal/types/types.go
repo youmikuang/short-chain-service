@@ -1,10 +1,10 @@
 package types
 
-type CreateShortLinkReq struct {
+type CreateslinkReq struct {
 	LongURL string `json:"long_url"`
 }
 
-type CreateShortLinkResp struct {
+type CreateslinkResp struct {
 	Code    string `json:"code"`
 	LongURL string `json:"long_url"`
 }

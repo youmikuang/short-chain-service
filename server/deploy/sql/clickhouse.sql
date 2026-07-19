@@ -54,7 +54,7 @@ ALTER TABLE IF EXISTS click_events
 -- rpc_logs: 短链核心 gRPC 服务的调用日志（由 rpc 拦截器异步写入，仅供运维排查）
 -- ---------------------------------------------------------------------------
 CREATE TABLE IF NOT EXISTS rpc_logs (
-    method      String      COMMENT 'RPC 方法全名，如 /shortlink.ShortLink/Resolve',
+    method      String      COMMENT 'RPC 方法全名，如 /slink.slink/Resolve',
     user_id     UInt64      DEFAULT 0 COMMENT '用户ID（内部服务调用暂记 0）',
     code        String      DEFAULT '' COMMENT '相关短码（如 Resolve 时携带，可选）',
     status      UInt32      DEFAULT 0 COMMENT '状态码（0=成功，非 0=errorx 错误码）',

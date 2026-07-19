@@ -18,15 +18,15 @@ type ServiceContext struct {
 	Models           *model.Models
 	Redis            *redis.Client
 	ClickHouse       *sql.DB
-	ClickHouseVisit  *model.ShortLinkVisitModel
+	ClickHouseVisit  *model.SlinkVisitModel
 	ClickHouseRpcLog *model.RpcLogModel
 }
 
 func NewServiceContext(c config.Config) *ServiceContext {
 	rdb := redis.NewClient(&redis.Options{
-		Addr:     c.BlacklistRedis.Host,
-		Password: c.BlacklistRedis.Pass,
-		DB:       c.BlacklistRedis.DB,
+		Addr:     c.RedisConfig.Host,
+		Password: c.RedisConfig.Pass,
+		DB:       c.RedisConfig.DB,
 	})
 	conn := sqlx.NewMysql(c.Mysql.DataSource)
 	// workerId 由部署时固定分配（环境变量/配置），此处取实例号
@@ -46,7 +46,7 @@ func NewServiceContext(c config.Config) *ServiceContext {
 		Models:           model.NewModels(conn),
 		Redis:            rdb,
 		ClickHouse:       chDB,
-		ClickHouseVisit:  model.NewShortLinkVisitModel(chDB),
+		ClickHouseVisit:  model.NewSlinkVisitModel(chDB),
 		ClickHouseRpcLog: model.NewRpcLogModel(chDB),
 	}
 }

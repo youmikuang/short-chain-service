@@ -33,7 +33,7 @@ func (l *ResolveLogic) Resolve(req *types.ResolveReq) (resp *types.ResolveResp, 
 	if len(pairs) > 0 {
 		ctx = metadata.AppendToOutgoingContext(ctx, pairs...)
 	}
-	out, err := l.svcCtx.ShortLinkRpc.Resolve(ctx, &pb.ResolveReq{Code: req.Code})
+	out, err := l.svcCtx.SlinkRpc.Resolve(ctx, &pb.ResolveReq{Code: req.Code})
 	if err != nil {
 		return nil, err
 	}

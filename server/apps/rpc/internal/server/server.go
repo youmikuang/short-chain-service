@@ -8,32 +8,32 @@ import (
 	"server/apps/rpc/pb"
 )
 
-// ShortLinkServer 短链核心 gRPC 服务实现（手写，连接 logic 与 pb）
-type ShortLinkServer struct {
+// slinkServer 短链核心 gRPC 服务实现（手写，连接 logic 与 pb）
+type slinkServer struct {
 	svcCtx *svc.ServiceContext
-	pb.UnimplementedShortLinkServer
+	pb.UnimplementedslinkServer
 }
 
-func NewShortLinkServer(svcCtx *svc.ServiceContext) *ShortLinkServer {
-	return &ShortLinkServer{svcCtx: svcCtx}
+func NewslinkServer(svcCtx *svc.ServiceContext) *slinkServer {
+	return &slinkServer{svcCtx: svcCtx}
 }
 
-func (s *ShortLinkServer) CreateShortLink(ctx context.Context, in *pb.CreateShortLinkReq) (*pb.CreateShortLinkResp, error) {
-	return logic.NewCreateShortLinkLogic(ctx, s.svcCtx).CreateShortLink(in)
+func (s *slinkServer) Createslink(ctx context.Context, in *pb.CreateslinkReq) (*pb.CreateslinkResp, error) {
+	return logic.NewCreateslinkLogic(ctx, s.svcCtx).Createslink(in)
 }
 
-func (s *ShortLinkServer) GetByCode(ctx context.Context, in *pb.GetByCodeReq) (*pb.GetByCodeResp, error) {
+func (s *slinkServer) GetByCode(ctx context.Context, in *pb.GetByCodeReq) (*pb.GetByCodeResp, error) {
 	return logic.NewGetByCodeLogic(ctx, s.svcCtx).GetByCode(in)
 }
 
-func (s *ShortLinkServer) BatchCreate(ctx context.Context, in *pb.BatchCreateReq) (*pb.BatchCreateResp, error) {
+func (s *slinkServer) BatchCreate(ctx context.Context, in *pb.BatchCreateReq) (*pb.BatchCreateResp, error) {
 	return logic.NewBatchCreateLogic(ctx, s.svcCtx).BatchCreate(in)
 }
 
-func (s *ShortLinkServer) DeleteShortLink(ctx context.Context, in *pb.DeleteShortLinkReq) (*pb.DeleteShortLinkResp, error) {
-	return logic.NewDeleteShortLinkLogic(ctx, s.svcCtx).DeleteShortLink(in)
+func (s *slinkServer) Deleteslink(ctx context.Context, in *pb.DeleteslinkReq) (*pb.DeleteslinkResp, error) {
+	return logic.NewDeleteslinkLogic(ctx, s.svcCtx).Deleteslink(in)
 }
 
-func (s *ShortLinkServer) Resolve(ctx context.Context, in *pb.ResolveReq) (*pb.ResolveResp, error) {
+func (s *slinkServer) Resolve(ctx context.Context, in *pb.ResolveReq) (*pb.ResolveResp, error) {
 	return logic.NewResolveLogic(ctx, s.svcCtx).Resolve(in)
 }
