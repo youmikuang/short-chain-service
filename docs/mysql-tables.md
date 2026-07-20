@@ -76,7 +76,8 @@ CREATE TABLE `short_links` (
   `updated_at` DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`),
   UNIQUE KEY `uk_code` (`code`),
-  KEY `idx_user_id` (`user_id`)
+  KEY `idx_user_id` (`user_id`),
+  KEY `idx_long_url` (`long_url`(255)) COMMENT '管理后台按长链模糊搜索'
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='短链表';
 ```
 

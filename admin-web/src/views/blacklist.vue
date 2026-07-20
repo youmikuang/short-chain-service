@@ -9,11 +9,39 @@ import Pagination from '@/components/Pagination.vue'
 import StatusBadge from '@/components/StatusBadge.vue'
 import ErrorBanner from '@/components/ErrorBanner.vue'
 import { usePagination } from '@/composables/usePagination'
-import { listBlacklist, addBlacklist, type BlacklistItem } from '@/api/admin'
+import { listBlacklist, addBlacklist, deleteBlacklist, type BlacklistItem } from '@/api/admin'
 
 const items = ref<BlacklistItem[]>([])
 const error = ref('')
 const adding = ref(false)
+
+// 删除相关状态
+const deleting = ref(false)
+const showDeleteDialog = ref(false)
+const pendingDelete = ref<BlacklistItem | null>(null)
+
+function openDelete(row: BlacklistItem) {
+  pendingDelete.value = row
+  showDeleteDialog.value = true
+}
+function closeDelete() {
+  showDeleteDialog.value = false
+  pendingDelete.value = null
+}
+async function onDeleteConfirm() {
+  if (!pendingDelete.value) return
+  deleting.value = true
+  error.value = ''
+  try {
+    await deleteBlacklist(pendingDelete.value.domain)
+    closeDelete()
+    await load(page.value, 10)
+  } catch (e) {
+    error.value = (e as Error).message
+  } finally {
+    deleting.value = false
+  }
+}
 
 const reasonClasses: Record<string, string> = {
   Phishing: 'bg-error-container text-on-error-container',
@@ -81,12 +109,7 @@ onMounted(load)
 
 <template>
   <AdminLayout>
-    <TopNavBar
-      title="Domain Blacklist"
-      name="Admin Role"
-      subtitle="ID: SL-9921"
-      avatar="https://lh3.googleusercontent.com/aida-public/AB6AXuAcLtIAF8N60yyilIfSZKjF8tJ8fHDIZQDpOqPxqHtjgtzVOUVFbIaZagHEewbws1hWmRsv-bITYBrD9DarHPg-UMKqKvm9euT1Yh-d9j-Xji8RqPDlifAZeSnIm7Oy7uKWNZySSMwpdFWgI0rRpA2rJQearb8UzioU3avUYPeT_rvSdVm7nb8DaDlONpXHBLwXMpCKJGDu0SZ0zF7HkSoOuImascfQK0Zms6Y74VZCRsJZiGgyZK8ZqiXPoPPgE6Ew2l10pah-UZg"
-    />
+    <TopNavBar title="Domain Blacklist" />
 
     <!-- Content Canvas -->
     <div class="p-gutter flex flex-col flex-1">
@@ -120,6 +143,7 @@ onMounted(load)
                 <th class="px-6 py-3 text-label-caps font-label-caps text-secondary border-b border-outline-variant uppercase">Reason</th>
                 <th class="px-6 py-3 text-label-caps font-label-caps text-secondary border-b border-outline-variant uppercase">Date Added</th>
                 <th class="px-6 py-3 text-label-caps font-label-caps text-secondary border-b border-outline-variant uppercase text-right">Attempts</th>
+                <th class="px-6 py-3 text-label-caps font-label-caps text-secondary border-b border-outline-variant uppercase text-right">Actions</th>
               </tr>
             </thead>
             <tbody class="divide-y divide-outline-variant">
@@ -137,12 +161,22 @@ onMounted(load)
                 </td>
                 <td class="px-6 py-4 text-body-sm text-secondary">{{ row.created_at }}</td>
                 <td class="px-6 py-4 text-right font-technical-mono text-on-surface">{{ row.attempts }}</td>
+                <td class="px-6 py-4 text-right">
+                  <button
+                    class="p-2 rounded-lg text-error hover:bg-error/10 transition-colors disabled:opacity-40"
+                    :disabled="deleting"
+                    title="Delete"
+                    @click="openDelete(row)"
+                  >
+                    <span class="material-symbols-outlined text-[20px]">delete</span>
+                  </button>
+                </td>
               </tr>
               <tr v-if="!loading && !items.length">
-                <td class="px-6 py-10 text-center text-secondary text-body-sm" colspan="4">No blocked domains</td>
+                <td class="px-6 py-10 text-center text-secondary text-body-sm" colspan="5">No blocked domains</td>
               </tr>
               <tr v-if="loading">
-                <td class="px-6 py-10 text-center text-secondary text-body-sm" colspan="4">Loading…</td>
+                <td class="px-6 py-10 text-center text-secondary text-body-sm" colspan="5">Loading…</td>
               </tr>
             </tbody>
           </table>
@@ -218,6 +252,49 @@ onMounted(load)
             <span v-if="adding" class="material-symbols-outlined text-[20px] animate-spin">progress_activity</span>
             <span v-else class="material-symbols-outlined text-[20px]">add_circle</span>
             {{ adding ? 'Adding…' : 'Add Domain' }}
+          </button>
+        </div>
+      </div>
+    </div>
+    <!-- Delete Confirmation Dialog -->
+    <div
+      v-if="showDeleteDialog"
+      class="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4"
+      @click.self="closeDelete"
+    >
+      <div class="w-full max-w-md rounded-2xl bg-surface shadow-xl border border-outline-variant">
+        <div class="flex items-center justify-between px-6 py-4 border-b border-outline-variant">
+          <h3 class="text-label-bold font-label-bold text-on-surface">Delete Blocked Domain</h3>
+          <button class="p-1.5 hover:bg-surface-container-high rounded transition-colors" @click="closeDelete">
+            <span class="material-symbols-outlined text-[20px] text-secondary">close</span>
+          </button>
+        </div>
+
+        <div class="px-6 py-5">
+          <p class="text-body-sm text-secondary">
+            Are you sure you want to remove
+            <span class="font-technical-mono text-on-surface">{{ pendingDelete?.domain }}</span>
+            from the blacklist? This action cannot be undone.
+          </p>
+          <ErrorBanner :message="error" />
+        </div>
+
+        <div class="flex justify-end gap-3 px-6 py-4 border-t border-outline-variant">
+          <button
+            class="px-5 py-2.5 rounded-lg text-secondary hover:bg-surface-container-high transition-colors font-label-bold text-label-bold"
+            :disabled="deleting"
+            @click="closeDelete"
+          >
+            Cancel
+          </button>
+          <button
+            class="bg-error hover:bg-error/90 text-white px-5 py-2.5 rounded-lg flex items-center gap-2 font-label-bold text-label-bold transition-all active:scale-95 shadow-sm disabled:opacity-50"
+            :disabled="deleting"
+            @click="onDeleteConfirm"
+          >
+            <span v-if="deleting" class="material-symbols-outlined text-[20px] animate-spin">progress_activity</span>
+            <span v-else class="material-symbols-outlined text-[20px]">delete</span>
+            {{ deleting ? 'Deleting…' : 'Delete' }}
           </button>
         </div>
       </div>

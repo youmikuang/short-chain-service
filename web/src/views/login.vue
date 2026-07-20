@@ -1,15 +1,29 @@
 <script setup lang="ts">
-import { ref } from 'vue'
-import { useRouter } from 'vue-router'
+import { ref, onMounted } from 'vue'
+import { useRouter, useRoute } from 'vue-router'
 import ThemeToggle from '@/components/theme.vue'
 import { useAuthStore } from '@/stores/auth'
 
 const router = useRouter()
+const route = useRoute()
 const auth = useAuthStore()
 const email = ref('')
 const password = ref('')
 const showPassword = ref(false)
 const loading = ref(false)
+
+// GitHub OAuth 回调：后端 302 跳回 /login?token=...&user_id=...&nickname=...
+// 此处读取并落库，然后进入首页。
+onMounted(async () => {
+  const token = route.query.token as string | undefined
+  if (token) {
+    await auth.finishGithubLogin(
+      token,
+      (route.query.nickname as string) || '',
+    )
+    router.replace('/')
+  }
+})
 
 async function doLogin(provider: 'github' | 'email') {
   if (loading.value) return

@@ -10,11 +10,12 @@ import StatusBadge from '@/components/StatusBadge.vue'
 import UserAvatar from '@/components/UserAvatar.vue'
 import ErrorBanner from '@/components/ErrorBanner.vue'
 import { usePagination } from '@/composables/usePagination'
-import { listTokens, provisionToken, revokeToken, type TokenItem } from '@/api/admin'
+import { listTokens, provisionToken, revokeToken, resetToken, startToken, type TokenItem } from '@/api/admin'
 
 const items = ref<TokenItem[]>([])
 const error = ref('')
 const busyId = ref<number | null>(null)
+const refreshingId = ref<number | null>(null)
 
 const statusMeta: Record<number, { text: string; cls: string }> = {
   1: { text: 'Active', cls: 'bg-tertiary-container/10 text-tertiary-container border-tertiary-container/20' },
@@ -73,6 +74,54 @@ async function onRevoke(t: TokenItem) {
   try {
     await revokeToken(t.id)
     await load(page.value, 10)
+  } catch (e) {
+    window.alert('Failed: ' + (e as Error).message)
+  } finally {
+    busyId.value = null
+  }
+}
+
+// 刷新单个 token 的使用值（remaining / usage_limit / status），就地更新该行，不重置整页
+async function onRefresh(t: TokenItem) {
+  refreshingId.value = t.id
+  try {
+    const d = await listTokens(page.value, 10)
+    const updated = d.items.find((x) => x.id === t.id)
+    if (updated) {
+      const idx = items.value.findIndex((x) => x.id === t.id)
+      if (idx >= 0) items.value[idx] = { ...items.value[idx], ...updated }
+    } else {
+      // 该 token 已不在当前页，回退为整页刷新
+      await load(page.value, 10)
+    }
+  } catch (e) {
+    window.alert('Failed: ' + (e as Error).message)
+  } finally {
+    refreshingId.value = null
+  }
+}
+
+// 重置单个 token 的用量（remaining 回到 usage_limit），重置后就地刷新该行使用值
+async function onReset(t: TokenItem) {
+  if (!window.confirm(`Reset usage for token ${t.token_id}?`)) return
+  busyId.value = t.id
+  try {
+    await resetToken(t.id)
+    await onRefresh(t)
+  } catch (e) {
+    window.alert('Failed: ' + (e as Error).message)
+  } finally {
+    busyId.value = null
+  }
+}
+
+// 重新启用被吊销的 token（status -> 1），启用后就地刷新该行（按钮切回 Revoke/Reset）
+async function onStart(t: TokenItem) {
+  if (!window.confirm(`Start token ${t.token_id}?`)) return
+  busyId.value = t.id
+  try {
+    await startToken(t.id)
+    await onRefresh(t)
   } catch (e) {
     window.alert('Failed: ' + (e as Error).message)
   } finally {
@@ -161,6 +210,15 @@ onMounted(load)
                   <div class="flex items-center justify-end gap-2">
                     <button
                       v-if="row.status === 1"
+                      class="p-1.5 hover:bg-surface-container-high rounded-lg text-secondary transition-colors disabled:opacity-50"
+                      :disabled="busyId === row.id"
+                      title="Reset usage"
+                      @click="onReset(row)"
+                    >
+                      <span class="material-symbols-outlined text-[20px]">restart_alt</span>
+                    </button>
+                    <button
+                      v-if="row.status === 1"
                       class="p-1.5 hover:bg-error-container/20 rounded-lg text-error transition-colors disabled:opacity-50"
                       :disabled="busyId === row.id"
                       title="Revoke"
@@ -168,7 +226,15 @@ onMounted(load)
                     >
                       <span class="material-symbols-outlined text-[20px]">block</span>
                     </button>
-                    <span v-else class="text-primary font-label-bold text-[12px]">—</span>
+                    <button
+                      v-else
+                      class="p-1.5 hover:bg-primary-container/20 rounded-lg text-primary transition-colors disabled:opacity-50"
+                      :disabled="busyId === row.id"
+                      title="Start"
+                      @click="onStart(row)"
+                    >
+                      <span class="material-symbols-outlined text-[20px]">play_arrow</span>
+                    </button>
                   </div>
                 </td>
               </tr>

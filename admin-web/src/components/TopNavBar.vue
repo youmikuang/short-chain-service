@@ -1,21 +1,28 @@
 <script setup lang="ts">
+import { computed } from 'vue'
+import { useRouter } from 'vue-router'
 import UserMenu from '@/components/UserMenu.vue'
+import ThemeToggle from '@/components/ThemeToggle.vue'
+import { useAuthStore } from '@/stores/auth'
 
-withDefaults(
-  defineProps<{
-    title?: string
-    name?: string
-    subtitle?: string
-    avatar?: string
-  }>(),
-  {
-    title: 'Dashboard',
-    name: 'Admin Role',
-    subtitle: 'Super Administrator',
-    avatar:
-      'https://lh3.googleusercontent.com/aida-public/AB6AXuAVAvI7qKzqpTaE6g10DcEWbt_cFYcs20iFVH9uJyVw3EY6-dS8NzIs_ovNv6l0QzLwaEN8ksyzyKRH2ZdXSdXR1SbKqJGFO5n0xwY_23ox8ur8LnA4zvwvNjvyo2vVnttEUFwGRfcv9284HfEp3DOSeX8cEjt9SL0SNj-AntiuYuMHWVJYA0bTZep7bmseDE2kApVFzsyXsUzrqez7SFTgVFa529tXmyijHUV3AWB4RRWAF-wezKlohJ9Dy_YjdmbQuvVQVsSNuZ4',
-  },
-)
+// 顶部栏为统一管理组件：用户信息统一来自登录态，页面只需传入当前页标题。
+const props = withDefaults(defineProps<{ title?: string }>(), {
+  title: 'Dashboard',
+})
+
+const DEFAULT_AVATAR =
+  'https://lh3.googleusercontent.com/aida-public/AB6AXuAVAvI7qKzqpTaE6g10DcEWbt_cFYcs20iFVH9uJyVw3EY6-dS8NzIs_ovNv6l0QzLwaEN8ksyzyKRH2ZdXSdXR1SbKqJGFO5n0xwY_23ox8ur8LnA4zvwvNjvyo2vVnttEUFwGRfcv9284HfEp3DOSeX8cEjt9SL0SNj-AntiuYuMHWVJYA0bTZep7bmseDE2kApVFzsyXsUzrqez7SFTgVFa529tXmyijHUV3AWB4RRWAF-wezKlohJ9Dy_YjdmbQuvVQVsSNuZ4'
+
+const router = useRouter()
+const auth = useAuthStore()
+
+// 用户名统一取自登录态，未登录时回落到统一默认值
+const displayName = computed(() => auth.username || 'Admin')
+
+function onLogout() {
+  auth.logout()
+  router.replace({ name: 'login' })
+}
 </script>
 
 <template>
@@ -29,9 +36,10 @@ withDefaults(
         <span class="text-primary font-bold">{{ title }}</span>
       </nav>
     </div>
-    <div class="flex items-center gap-6">
+    <div class="flex items-center gap-2 pl-2">
+      <ThemeToggle />
       <div class="border-outline-variant">
-        <UserMenu :name="name" :subtitle="subtitle" :avatar="avatar" />
+        <UserMenu :name="displayName" :avatar="DEFAULT_AVATAR" @logout="onLogout" />
       </div>
     </div>
   </header>

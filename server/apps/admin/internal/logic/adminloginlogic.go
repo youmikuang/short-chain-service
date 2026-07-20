@@ -9,6 +9,7 @@ import (
 	"server/common/errorx"
 
 	"github.com/golang-jwt/jwt/v4"
+	"github.com/zeromicro/go-zero/core/logx"
 )
 
 type AdminLoginLogic struct {
@@ -33,7 +34,8 @@ func (l *AdminLoginLogic) AdminLogin(req *types.AdminLoginReq) (resp *types.Admi
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
 	signed, err := token.SignedString([]byte(l.svcCtx.Config.Auth.AccessSecret))
 	if err != nil {
-		return nil, errorx.Internal(err.Error())
+		logx.Errorf("AdminLogin sign token failed: %v", err)
+		return nil, errorx.Internal("sign token failed")
 	}
 	return &types.AdminLoginResp{Token: signed}, nil
 }

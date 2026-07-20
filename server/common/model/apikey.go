@@ -60,9 +60,23 @@ func (m *ApiKeyModel) FindByUser(ctx context.Context, userId int64) ([]ApiKey, e
 	return items, err
 }
 
-func (m *ApiKeyModel) UpdateStatus(ctx context.Context, id, userId, status int64) error {
-	query := "update " + m.table + " set status = ? where id = ? and user_id = ?"
-	_, err := m.conn.Exec(query, status, id, userId)
+func (m *ApiKeyModel) UpdateStatus(ctx context.Context, id, status int64) error {
+	query := "update " + m.table + " set status = ? where id = ?"
+	_, err := m.conn.Exec(query, status, id)
+	return err
+}
+
+// ResetUsage 将指定 key 的已用量清零（重置配额使用）
+func (m *ApiKeyModel) ResetUsage(ctx context.Context, id int64) error {
+	query := "update " + m.table + " set used = 0 where id = ?"
+	_, err := m.conn.Exec(query, id)
+	return err
+}
+
+// SetStatus 按 id 直接设置 key 状态（管理后台吊销/启用，不受 user_id 约束）
+func (m *ApiKeyModel) SetStatus(ctx context.Context, id, status int64) error {
+	query := "update " + m.table + " set status = ? where id = ?"
+	_, err := m.conn.Exec(query, status, id)
 	return err
 }
 

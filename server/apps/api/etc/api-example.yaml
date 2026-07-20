@@ -20,7 +20,10 @@ RateLimit:
 Github:
   ClientID: <github-client-id>
   ClientSecret: <github-client-secret>
-  RedirectURL: http://localhost:5173/auth/callback
+  RedirectURL: http://localhost:5173/api/auth/github/callback
+
+# 前端 SPA 基地址：GitHub 回调完成 OAuth 交换后，302 重定向到此地址（/login?token=...）
+WebBaseURL: http://localhost:5173
 
 # 直连短链核心 gRPC 服务（开发环境免去 Etcd 依赖；生产可切回 Etcd 服务发现）
 Rpc:

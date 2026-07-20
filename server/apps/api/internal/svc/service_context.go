@@ -20,7 +20,7 @@ type ServiceContext struct {
 	Config          config.Config
 	Mysql           sqlx.SqlConn
 	Models          *model.Models
-	slinkRpc        pb.SlinkClient
+	SlinkRpc        pb.SlinkClient
 	ClickHouse      *sql.DB
 	ClickHouseVisit *model.SlinkVisitModel
 }
@@ -42,7 +42,7 @@ func NewServiceContext(c config.Config) *ServiceContext {
 		Config:          c,
 		Mysql:           conn,
 		Models:          model.NewModels(conn),
-		slinkRpc:        pb.NewslinkClient(cli.Conn()),
+		SlinkRpc:        pb.NewslinkClient(cli.Conn()),
 		ClickHouse:      chDB,
 		ClickHouseVisit: model.NewSlinkVisitModel(chDB),
 	}

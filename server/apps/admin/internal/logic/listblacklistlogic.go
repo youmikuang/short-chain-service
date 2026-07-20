@@ -2,9 +2,12 @@ package logic
 
 import (
 	"context"
+
 	"server/apps/admin/internal/svc"
 	"server/apps/admin/internal/types"
 	"server/common/errorx"
+
+	"github.com/zeromicro/go-zero/core/logx"
 )
 
 type ListBlacklistLogic struct {
@@ -27,7 +30,8 @@ func (l *ListBlacklistLogic) ListBlacklist(req *types.ListBlacklistReq) (resp *t
 	}
 	rows, total, derr := l.svcCtx.Models.DomainBlacklist.FindPage(l.ctx, page, size)
 	if derr != nil {
-		return nil, errorx.Internal(derr.Error())
+		logx.Errorf("ListBlacklist FindPage failed: %v", derr)
+		return nil, errorx.Internal("query blacklist failed")
 	}
 	resp = &types.ListBlacklistResp{
 		Total: total,

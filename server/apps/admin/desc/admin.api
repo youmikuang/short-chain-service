@@ -40,8 +40,9 @@ type AdminActionItem {
 }
 
 type ListLinksReq {
-    Page int64 `form:"page"`
-    Size int64 `form:"size"`
+    Page   int64  `form:"page"`
+    Size   int64  `form:"size"`
+    Search string `form:"search,optional"`
 }
 
 type LinkItem {
@@ -84,6 +85,14 @@ type AddBlacklistReq {
 }
 
 type AddBlacklistResp {
+    Ok bool `json:"ok"`
+}
+
+type DeleteBlacklistReq {
+    Domain string `json:"domain"`
+}
+
+type DeleteBlacklistResp {
     Ok bool `json:"ok"`
 }
 
@@ -147,6 +156,9 @@ service admin-api {
 
     @handler AddBlacklist
     post /blacklist (AddBlacklistReq) returns (AddBlacklistResp)
+
+    @handler DeleteBlacklist
+    post /blacklist/delete (DeleteBlacklistReq) returns (DeleteBlacklistResp)
 
     @handler ListTokens
     get /tokens (ListTokensReq) returns (ListTokensResp)

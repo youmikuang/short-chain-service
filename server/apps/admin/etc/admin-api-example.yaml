@@ -20,5 +20,13 @@ BlacklistRedisKey: short_chain:blacklist
 Rpc:
   Target: 127.0.0.1:8081
 
+# ClickHouse（rpc_logs 每日生成量统计用，原生协议端口 9000）
+ClickHouse:
+  Host: 127.0.0.1
+  Port: 9000
+  Database: short_chain
+  Username: default
+  Password: ""
+
 # 短链对外域名（后台列表拼接完整短链地址用）
 ShortDomain: s.gaoheng.top

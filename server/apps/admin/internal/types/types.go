@@ -23,8 +23,9 @@ type KpiItem struct {
 }
 
 type TrafficPoint struct {
-	Date  string `json:"date"`
-	Value int64  `json:"value"`
+	Date    string `json:"date"`
+	Actions int64  `json:"actions"`
+	Rpc     int64  `json:"rpc"`
 }
 
 type AdminActionItem struct {
@@ -43,8 +44,9 @@ type DashboardResp struct {
 // Links
 // ---------------------------------------------------------------------------
 type ListLinksReq struct {
-	Page int64 `form:"page"`
-	Size int64 `form:"size"`
+	Page   int64  `form:"page"`
+	Size   int64  `form:"size"`
+	Search string `form:"search,optional"`
 }
 
 type LinkItem struct {
@@ -93,6 +95,14 @@ type AddBlacklistResp struct {
 	Ok bool `json:"ok"`
 }
 
+type DeleteBlacklistReq struct {
+	Domain string `json:"domain"`
+}
+
+type DeleteBlacklistResp struct {
+	Ok bool `json:"ok"`
+}
+
 // ---------------------------------------------------------------------------
 // Tokens
 // ---------------------------------------------------------------------------
@@ -134,5 +144,21 @@ type RevokeTokenReq struct {
 }
 
 type RevokeTokenResp struct {
+	Ok bool `json:"ok"`
+}
+
+type ResetTokenReq struct {
+	Id int64 `json:"id"`
+}
+
+type ResetTokenResp struct {
+	Ok bool `json:"ok"`
+}
+
+type StartTokenReq struct {
+	Id int64 `json:"id"`
+}
+
+type StartTokenResp struct {
 	Ok bool `json:"ok"`
 }

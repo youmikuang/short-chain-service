@@ -1,35 +1,34 @@
 import { defineStore } from 'pinia'
 import { adminLogin } from '@/api/admin'
 
-// 开发/演示用默认凭据，生产应接入真实账号体系
-const DEFAULT_USER = 'admin'
-const DEFAULT_PASS = 'admin123'
-
 interface AuthState {
   token: string
+  username: string
 }
 
 export const useAuthStore = defineStore('auth', {
   state: (): AuthState => ({
     token: localStorage.getItem('admin_token') || '',
+    username: localStorage.getItem('admin_username') || '',
   }),
   getters: {
     isAuthenticated: (s) => !!s.token,
   },
   actions: {
-    async login(username = DEFAULT_USER, password = DEFAULT_PASS) {
+    // 校验后台凭据并保存登录态（token + 用户名）
+    async login(username: string, password: string) {
       const { token } = await adminLogin(username, password)
       this.token = token
+      this.username = username
       localStorage.setItem('admin_token', token)
+      localStorage.setItem('admin_username', username)
     },
+    // 清除登录态
     logout() {
       this.token = ''
+      this.username = ''
       localStorage.removeItem('admin_token')
-    },
-    async ensureLogin() {
-      if (!this.token) {
-        await this.login()
-      }
+      localStorage.removeItem('admin_username')
     },
   },
 })

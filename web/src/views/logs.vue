@@ -49,13 +49,6 @@ function onSearch() {
 function statusClass(status: number) {
   return status < 400 ? 'badge badge-ok' : 'badge badge-rate'
 }
-
-function statusText(status: number) {
-  if (status === 200) return '200 OK'
-  if (status === 429) return '429 Rate Limit'
-  return `${status} Error`
-}
-
 function downloadCsv(filename: string, data: string[][]) {
   const escape = (v: string) => `"${String(v).replace(/"/g, '""')}"`
   const csv = data.map((r) => r.map(escape).join(',')).join('\r\n')
@@ -75,7 +68,7 @@ function exportCsv() {
   // 导出当前页数据（已是服务端返回的结果，避免再次拉取全量）。
   const body = rows.value.map((r) => [
     r.timestamp,
-    '/r/' + r.code,
+    r.shortUrl ?? '',
     r.longUrl,
     r.ip,
     String(r.status),
@@ -150,12 +143,12 @@ watch(totalPages, (tp) => {
                   <tr v-for="(row, i) in rows" :key="i" class="logs__row">
                     <td class="logs__td logs__td--muted">{{ row.timestamp }}</td>
                     <td class="logs__td">
-                      <span class="logs__endpoint">/r/{{ row.code }}</span>
+                      <span class="logs__endpoint">{{ row.shortUrl }}</span>
                     </td>
                     <td class="logs__td logs__td--muted logs__td--break">{{ row.longUrl }}</td>
                     <td class="logs__td logs__td--muted">{{ row.ip }}</td>
                     <td class="logs__td">
-                      <span :class="statusClass(row.status)">{{ statusText(row.status) }}</span>
+                      <span :class="statusClass(row.status)">{{ row.status }}</span>
                     </td>
                     <td class="logs__td logs__td--muted">{{ row.latency_ms }} ms</td>
                   </tr>

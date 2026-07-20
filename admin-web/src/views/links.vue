@@ -14,6 +14,7 @@ import { listLinks, type LinkItem } from '@/api/admin'
 
 const items = ref<LinkItem[]>([])
 const error = ref('')
+const search = ref('')
 
 const statusMeta: Record<number, { text: string; cls: string }> = {
   1: { text: 'Active', cls: 'bg-tertiary-container/10 text-tertiary border-tertiary/20' },
@@ -30,7 +31,7 @@ async function load(p: number, size: number) {
   loading.value = true
   error.value = ''
   try {
-    const d = await listLinks(p, size)
+    const d = await listLinks(p, size, search.value.trim())
     items.value = d.items
     total.value = d.total
   } catch (e) {
@@ -40,17 +41,17 @@ async function load(p: number, size: number) {
   }
 }
 
+function onSearch() {
+  page.value = 1
+  load(1, 10)
+}
+
 onMounted(load)
 </script>
 
 <template>
   <AdminLayout>
-    <TopNavBar
-      title="Link Management"
-      name="Alex Rivera"
-      subtitle="Admin Role"
-      avatar="https://lh3.googleusercontent.com/aida-public/AB6AXuDH5PVXbxxWOAoplirZBZOzJpheVICmBgEJG_RB8kZPOBsgTD-aBREuYi5liIMBwrBVcmWlNXqNwxGk8ri3-EtLQQIn472QnFT-JwGCBrG2yUrAxUiNlhWcb0kl_oeoCXXzS7n_D6G0CSM1ujGaKdkOuYh-Lqlwi5JRIAOFLsPRp7Sp2tNtGEyAungJwFB9RwgZYuJShSmJ_E5mRcNKj_lmVH3SUavdP-IpowCMd94NZ-1AP-Y1BOvyx_UEedFLeqa9xyT054lnkAE"
-    />
+    <TopNavBar title="Link Management" />
 
     <!-- Content Canvas -->
     <div class="p-gutter flex flex-col flex-1">
@@ -60,7 +61,18 @@ onMounted(load)
 
       <Card>
         <template #header>
-          <h3 class="text-label-bold font-label-bold text-on-surface">All Links</h3>
+          <div class="flex items-center justify-between gap-4">
+            <div class="relative w-full max-w-xs">
+              <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-[18px] text-secondary">search</span>
+              <input
+                v-model="search"
+                type="text"
+                placeholder="Search by URL…"
+                class="w-full rounded-lg border border-outline-variant bg-white py-2 pl-9 pr-3 text-body-sm text-on-surface placeholder:text-secondary focus:border-primary focus:outline-none"
+                @keyup.enter="onSearch"
+              />
+            </div>
+          </div>
         </template>
         <div class="overflow-x-auto">
           <table class="w-full text-left border-collapse">

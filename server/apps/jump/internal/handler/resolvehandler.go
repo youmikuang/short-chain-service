@@ -14,22 +14,81 @@ import (
 	"github.com/zeromicro/go-zero/rest/httpx"
 )
 
-// clientIP 从 HTTP 请求提取真实客户端 IP（兼容反向代理 X-Forwarded-For / X-Real-IP）
-func clientIP(r *http.Request) string {
-	if xff := r.Header.Get("X-Forwarded-For"); xff != "" {
-		if idx := strings.IndexByte(xff, ','); idx >= 0 {
-			return strings.TrimSpace(xff[:idx])
+// cleanIP 清洗单个 IP 字符串：去掉 IPv6 的方括号 []、端口号，仅保留纯 IP。
+// 支持 [ipv6]:port、[ipv6]、host:port 以及裸 IP 形式。
+func cleanIP(s string) string {
+	s = strings.TrimSpace(s)
+	if s == "" {
+		return s
+	}
+	// IPv6 形式 [ipv6]:port 或 [ipv6]
+	if strings.HasPrefix(s, "[") {
+		if idx := strings.LastIndexByte(s, ']'); idx >= 0 {
+			return s[1:idx]
 		}
-		return strings.TrimSpace(xff)
 	}
-	if xri := r.Header.Get("X-Real-IP"); xri != "" {
-		return strings.TrimSpace(xri)
+	// 其余情况用 SplitHostPort 去掉端口（host:port）
+	if host, _, err := net.SplitHostPort(s); err == nil {
+		return host
 	}
+	return s
+}
+
+// clientIP 提取真实客户端源 IP。
+// 优先从反向代理 / CDN 透传的头部取（兼容 Nginx、Cloudflare、常规代理等多种部署），
+// 都没有时回退到 TCP 连接的 RemoteAddr。
+func clientIP(r *http.Request) string {
+	// 候选头部按优先级排列：越靠前越接近真实客户端。
+	// 不同部署链（Nginx / Cloudflare / 其他 CDN）透传的真实 IP 所在头部不同，全部兜底扫描。
+	candidates := []string{
+		r.Header.Get("X-Forwarded-For"),  // 多代理时为 "client, proxy1, proxy2"
+		r.Header.Get("X-Real-IP"),        // Nginx 透传
+		r.Header.Get("X-Client-IP"),      // 常规代理
+		r.Header.Get("CF-Connecting-IP"), // Cloudflare
+		r.Header.Get("True-Client-IP"),   // Cloudflare / Akamai
+	}
+	for _, c := range candidates {
+		if c == "" {
+			continue
+		}
+		// X-Forwarded-For 可能含多个，取第一个（最原始客户端）
+		if idx := strings.IndexByte(c, ','); idx >= 0 {
+			c = c[:idx]
+		}
+		if ip := cleanIP(c); ip != "" {
+			return ip
+		}
+	}
+	// 标准 Forwarded 头：for=<client>;proto=https
+	if fwd := r.Header.Get("Forwarded"); fwd != "" {
+		if ip := parseForwardedFor(fwd); ip != "" {
+			return ip
+		}
+	}
+	// 最后回退到 TCP 连接地址（直连、无代理时就是真实客户端 IP）
 	host, _, err := net.SplitHostPort(r.RemoteAddr)
 	if err != nil {
-		return r.RemoteAddr
+		// RemoteAddr 可能是裸 IP（无端口），去掉 IPv6 方括号
+		return cleanIP(r.RemoteAddr)
 	}
 	return host
+}
+
+// parseForwardedFor 从标准 Forwarded 头解析第一个 for= 的客户端 IP
+func parseForwardedFor(fwd string) string {
+	for part := range strings.SplitSeq(fwd, ";") {
+		part = strings.TrimSpace(part)
+		if !strings.HasPrefix(strings.ToLower(part), "for=") {
+			continue
+		}
+		v := strings.TrimSpace(part[len("for="):])
+		v = strings.Trim(v, `"`)
+		if idx := strings.IndexByte(v, ','); idx >= 0 {
+			v = v[:idx]
+		}
+		return cleanIP(v)
+	}
+	return ""
 }
 
 // buildShortURL 根据当前请求还原本次访问的短链完整地址，

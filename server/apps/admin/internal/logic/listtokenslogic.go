@@ -2,9 +2,12 @@ package logic
 
 import (
 	"context"
+
 	"server/apps/admin/internal/svc"
 	"server/apps/admin/internal/types"
 	"server/common/errorx"
+
+	"github.com/zeromicro/go-zero/core/logx"
 )
 
 type ListTokensLogic struct {
@@ -27,7 +30,8 @@ func (l *ListTokensLogic) ListTokens(req *types.ListTokensReq) (resp *types.List
 	}
 	rows, total, derr := l.svcCtx.Models.ApiKey.FindPageWithUser(page, size)
 	if derr != nil {
-		return nil, errorx.Internal(derr.Error())
+		logx.Errorf("ListTokens FindPageWithUser failed: %v", derr)
+		return nil, errorx.Internal("query tokens failed")
 	}
 	resp = &types.ListTokensResp{
 		Total: total,

@@ -31,7 +31,7 @@ func (l *CreateslinkLogic) Createslink(req *types.CreateslinkReq) (resp *types.C
 		apiKey = v
 	}
 
-	out, err := l.svcCtx.slinkRpc.Createslink(l.ctx, &pb.CreateslinkReq{
+	out, err := l.svcCtx.SlinkRpc.Createslink(l.ctx, &pb.CreateslinkReq{
 		LongUrl: req.LongURL,
 		UserId:  uid,
 		ApiKey:  apiKey,
@@ -39,5 +39,13 @@ func (l *CreateslinkLogic) Createslink(req *types.CreateslinkReq) (resp *types.C
 	if err != nil {
 		return nil, err
 	}
-	return &types.CreateslinkResp{Code: out.Code, LongURL: out.LongUrl}, nil
+	domain := l.svcCtx.Config.ShortDomain
+	if domain == "" {
+		domain = "https://s.gaoheng.top"
+	}
+	return &types.CreateslinkResp{
+		Code:     out.Code,
+		ShortURL: domain + "/r/" + out.Code,
+		LongURL:  out.LongUrl,
+	}, nil
 }

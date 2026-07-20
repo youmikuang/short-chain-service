@@ -5,10 +5,13 @@ import (
 	"crypto/rand"
 	"crypto/sha256"
 	"encoding/hex"
+
 	"server/apps/admin/internal/svc"
 	"server/apps/admin/internal/types"
 	"server/common/errorx"
 	"server/common/model"
+
+	"github.com/zeromicro/go-zero/core/logx"
 )
 
 type ProvisionTokenLogic struct {
@@ -35,7 +38,8 @@ func (l *ProvisionTokenLogic) ProvisionToken(req *types.ProvisionTokenReq) (resp
 
 	buf := make([]byte, 24)
 	if _, err := rand.Read(buf); err != nil {
-		return nil, errorx.Internal(err.Error())
+		logx.Errorf("ProvisionToken rand.Read failed: %v", err)
+		return nil, errorx.Internal("generate token failed")
 	}
 	token := hex.EncodeToString(buf)
 	prefix := token[:5]
@@ -51,7 +55,8 @@ func (l *ProvisionTokenLogic) ProvisionToken(req *types.ProvisionTokenReq) (resp
 		Used:     0,
 		Status:   1,
 	}); err != nil {
-		return nil, errorx.Internal(err.Error())
+		logx.Errorf("ProvisionToken Insert failed: %v", err)
+		return nil, errorx.Internal("insert token failed")
 	}
 
 	return &types.ProvisionTokenResp{

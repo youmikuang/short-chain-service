@@ -146,12 +146,6 @@ function statusClass(status: number) {
   return status < 400 ? 'badge badge-ok' : 'badge badge-rate'
 }
 
-function statusText(status: number) {
-  if (status === 200) return '200 OK'
-  if (status === 429) return '429 Rate Limit'
-  return `${status} Error`
-}
-
 onMounted(async () => {
   await loadKeys()
   try {
@@ -259,10 +253,10 @@ onMounted(async () => {
                   <tr v-for="(row, i) in logs" :key="i" class="token__row">
                     <td class="token__td token__td--muted">{{ row.timestamp }}</td>
                     <td class="token__td">
-                      <span class="token__endpoint">/r/{{ row.code }}</span>
+                      <span class="token__endpoint">{{ row.shortUrl }}</span>
                     </td>
                     <td class="token__td">
-                      <span :class="statusClass(row.status)">{{ statusText(row.status) }}</span>
+                      <span :class="statusClass(row.status)">{{ row.status }}</span>
                     </td>
                     <td class="token__td">{{ row.latency_ms }}ms</td>
                   </tr>

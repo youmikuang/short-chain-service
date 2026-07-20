@@ -256,7 +256,7 @@ async function onSavePreferences() {
           <section class="settings__section" id="security">
             <div class="settings__section-head">
               <h2 class="settings__section-title">Security</h2>
-              <p class="settings__section-sub">Manage your password and security preferences.</p>
+              <p class="settings__section-sub">Manage your password and security preferences (<b>Default: password123</b>).</p>
             </div>
             <div class="settings__fields" style="max-width: 512px; margin-bottom: 32px">
               <div class="settings__field">

@@ -5,8 +5,9 @@ type CreateslinkReq struct {
 }
 
 type CreateslinkResp struct {
-	Code    string `json:"code"`
-	LongURL string `json:"long_url"`
+	Code     string `json:"code"`
+	ShortURL string `json:"short_url"`
+	LongURL  string `json:"long_url"`
 }
 
 type GetByCodeReq struct {

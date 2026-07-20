@@ -12,6 +12,7 @@ type CreateslinkReq {
 
 type CreateslinkResp {
     Code    string `json:"code"`
+    ShortURL string `json:"short_url"`
     LongURL string `json:"long_url"`
 }
 

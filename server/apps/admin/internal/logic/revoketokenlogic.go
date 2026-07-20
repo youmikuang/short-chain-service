@@ -2,9 +2,12 @@ package logic
 
 import (
 	"context"
+
 	"server/apps/admin/internal/svc"
 	"server/apps/admin/internal/types"
 	"server/common/errorx"
+
+	"github.com/zeromicro/go-zero/core/logx"
 )
 
 type RevokeTokenLogic struct {
@@ -21,8 +24,10 @@ func (l *RevokeTokenLogic) RevokeToken(req *types.RevokeTokenReq) (resp *types.R
 	if req.Id <= 0 {
 		return nil, errorx.BadParam("id required")
 	}
-	if err := l.svcCtx.Models.ApiKey.UpdateStatus(l.ctx, req.Id, 0, 0); err != nil {
-		return nil, errorx.Internal(err.Error())
+	// 按 id 直接置状态；原 UpdateStatus 带 user_id 约束，对真实 token 永不命中。
+	if err := l.svcCtx.Models.ApiKey.SetStatus(l.ctx, req.Id, 0); err != nil {
+		logx.Errorf("RevokeToken SetStatus failed: %v", err)
+		return nil, errorx.Internal("revoke token failed")
 	}
 	return &types.RevokeTokenResp{Ok: true}, nil
 }

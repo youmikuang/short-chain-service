@@ -72,3 +72,10 @@ func (m *DomainBlacklistModel) IncrAttempts(ctx context.Context, domain string) 
 	_, err := m.conn.Exec(query, domain)
 	return err
 }
+
+// Delete 按域名删除黑名单记录
+func (m *DomainBlacklistModel) Delete(ctx context.Context, domain string) error {
+	query := "delete from " + m.table + " where domain = ?"
+	_, err := m.conn.Exec(query, domain)
+	return err
+}

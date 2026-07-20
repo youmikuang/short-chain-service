@@ -73,7 +73,8 @@ CREATE TABLE IF NOT EXISTS short_links (
     updated_at DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     PRIMARY KEY (id),
     UNIQUE KEY uk_code (code),
-    KEY idx_user_id (user_id)
+    KEY idx_user_id (user_id),
+    KEY idx_long_url (long_url(255))
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 -- ---------------------------------------------------------------------------

@@ -66,6 +66,7 @@ export interface UsagePoint {
 export interface LogRow {
   timestamp: string
   code: string
+  shortUrl?: string
   longUrl: string
   status: number
   latency_ms: number
@@ -242,8 +243,8 @@ export function createslink(longUrl: string): Promise<slink> {
     apiKeyHeader(),
   ).then((res) => {
     if (!res.ok) throw new Error(`shorten failed: ${res.status}`)
-    return res.json().then((r: { code: string; long_url: string }) => {
-      const sUrl = `${SHORT_DOMAIN}/r/${r.code}`
+    return res.json().then((r: { code: string; short_url: string; long_url: string }) => {
+      const sUrl = r.short_url || `${SHORT_DOMAIN}/r/${r.code}`
       return {
         code: r.code,
         shortUrl: sUrl,
@@ -350,6 +351,7 @@ export function fetchLogs(params: FetchLogsParams = {}): Promise<FetchLogsResult
       timestamp: string
       code: string
       long_url: string
+      short_url: string
       status: number
       ip: string
       source?: string
@@ -360,6 +362,7 @@ export function fetchLogs(params: FetchLogsParams = {}): Promise<FetchLogsResult
     items: (r.items ?? []).map((it) => ({
       timestamp: it.timestamp,
       code: it.code,
+      shortUrl: it.short_url,
       longUrl: it.long_url,
       status: it.status,
       ip: it.ip,

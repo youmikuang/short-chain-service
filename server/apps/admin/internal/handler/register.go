@@ -20,8 +20,11 @@ func RegisterHandlers(server *rest.Server, svcCtx *svc.ServiceContext) {
 		{Method: http.MethodGet, Path: "/admin/api/links", Handler: ListLinksHandler(svcCtx)},
 		{Method: http.MethodGet, Path: "/admin/api/blacklist", Handler: ListBlacklistHandler(svcCtx)},
 		{Method: http.MethodPost, Path: "/admin/api/blacklist", Handler: AddBlacklistHandler(svcCtx)},
+		{Method: http.MethodPost, Path: "/admin/api/blacklist/delete", Handler: DeleteBlacklistHandler(svcCtx)},
 		{Method: http.MethodGet, Path: "/admin/api/tokens", Handler: ListTokensHandler(svcCtx)},
 		{Method: http.MethodPost, Path: "/admin/api/tokens", Handler: ProvisionTokenHandler(svcCtx)},
 		{Method: http.MethodPost, Path: "/admin/api/tokens/revoke", Handler: RevokeTokenHandler(svcCtx)},
+		{Method: http.MethodPost, Path: "/admin/api/tokens/reset", Handler: ResetTokenHandler(svcCtx)},
+		{Method: http.MethodPost, Path: "/admin/api/tokens/start", Handler: StartTokenHandler(svcCtx)},
 	}, rest.WithJwt(svcCtx.Config.Auth.AccessSecret))
 }

@@ -150,23 +150,32 @@ type SlinkWithUser struct {
 	UserEmail string `db:"user_email"`
 }
 
-// FindPageWithUser 管理后台分页列表（联表取用户信息）
-func (m *SlinkModel) FindPageWithUser(ctx context.Context, page, pageSize int64) ([]SlinkWithUser, int64, error) {
+// FindPageWithUser 管理后台分页列表（联表取用户信息）。
+// search 非空时按 long_url 模糊匹配（LIKE '%search%'）。
+func (m *SlinkModel) FindPageWithUser(ctx context.Context, page, pageSize int64, search string) ([]SlinkWithUser, int64, error) {
 	if page <= 0 {
 		page = 1
 	}
 	if pageSize <= 0 {
 		pageSize = 20
 	}
+	where := ""
+	var args []interface{}
+	if search != "" {
+		where = " where sl.long_url like ?"
+		args = append(args, "%"+search+"%")
+	}
 	var total int64
-	if err := m.conn.QueryRow(&total, "select count(*) from "+m.table); err != nil {
+	countQuery := "select count(*) from " + m.table + " sl" + where
+	if err := m.conn.QueryRow(&total, countQuery, args...); err != nil {
 		return nil, 0, err
 	}
 	offset := (page - 1) * pageSize
 	query := "select " + SlinkJoinRows + ", COALESCE(u.nickname,'') as user_name, COALESCE(u.email,'') as user_email from " +
-		m.table + " sl left join `users` u on sl.user_id = u.id order by sl.id desc limit ? offset ?"
+		m.table + " sl left join `users` u on sl.user_id = u.id" + where + " order by sl.id desc limit ? offset ?"
+	listArgs := append(append([]interface{}{}, args...), pageSize, offset)
 	var items []SlinkWithUser
-	if err := m.conn.QueryRows(&items, query, pageSize, offset); err != nil {
+	if err := m.conn.QueryRows(&items, query, listArgs...); err != nil {
 		return nil, 0, err
 	}
 	return items, total, nil

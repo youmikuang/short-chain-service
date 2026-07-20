@@ -36,3 +36,24 @@ func (m *RpcLogModel) Insert(ctx context.Context, data *RpcLog) error {
 		data.Method, data.UserId, data.Code, data.Status, data.LatencyMs, data.Error)
 	return err
 }
+
+// CountByDay 统计最近 days 天每天生成的 RPC 调用日志数量（按创建日期分组）
+func (m *RpcLogModel) CountByDay(ctx context.Context, days int) (map[string]int64, error) {
+	query := "SELECT toDate(created_at) AS day, count() AS value FROM " + rpcLogTable +
+		" WHERE created_at >= now() - INTERVAL ? DAY GROUP BY day"
+	rows, err := m.conn.QueryContext(ctx, query, days)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	out := make(map[string]int64)
+	for rows.Next() {
+		var day time.Time
+		var value int64
+		if err := rows.Scan(&day, &value); err != nil {
+			return nil, err
+		}
+		out[day.Format("2006-01-02")] = value
+	}
+	return out, nil
+}

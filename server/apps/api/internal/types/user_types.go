@@ -22,6 +22,7 @@ type LoginResp struct {
 
 type GitHubAuthURLReq struct {
 	Redirect string `form:"redirect"`
+	State    string `form:"state,optional"`
 }
 type GitHubAuthURLResp struct {
 	Url string `json:"url"`
@@ -29,7 +30,7 @@ type GitHubAuthURLResp struct {
 
 type GitHubCallbackReq struct {
 	Code  string `form:"code"`
-	State string `form:"state"`
+	State string `form:"state,optional"`
 }
 
 type CreateAPIKeyReq struct {
@@ -124,6 +125,7 @@ type LogsReq struct {
 type LogItem struct {
 	Timestamp string `json:"timestamp"`
 	Code      string `json:"code"`
+	ShortURL  string `json:"short_url"` // 带域名的完整短链地址，如 https://s.gaoheng.top/r/xxxx
 	LongURL   string `json:"long_url"`
 	Status    int64  `json:"status"`
 	IP        string `json:"ip"`

@@ -21,6 +21,13 @@ type Config struct {
 	}
 	BlacklistRedisKey string
 	Rpc               zrpc.RpcClientConf
+	ClickHouse        struct {
+		Host     string
+		Port     int
+		Database string
+		Username string
+		Password string
+	}
 	Admin             struct {
 		Username string
 		Password string

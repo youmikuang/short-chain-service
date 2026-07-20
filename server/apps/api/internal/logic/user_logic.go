@@ -170,6 +170,9 @@ func (l *GitHubAuthURLLogic) GitHubAuthURL(req *types.GitHubAuthURLReq) (*types.
 	}
 	u := "https://github.com/login/oauth/authorize?client_id=" + cfg.ClientID +
 		"&redirect_uri=" + url.QueryEscape(redirect) + "&scope=read:user"
+	if req.State != "" {
+		u += "&state=" + url.QueryEscape(req.State)
+	}
 	return &types.GitHubAuthURLResp{Url: u}, nil
 }
 
@@ -239,14 +242,21 @@ func (l *GitHubCallbackLogic) GitHubCallback(req *types.GitHubCallbackReq) (*typ
 		// 首次登录：创建账号（email 可能为空，用 noreply 兜底）
 		email := gh.Email
 		if email == "" {
-			email = gh.Login + "@users.noreply.github.com"
+			email = gh.Login + "@github.com"
+		}
+		// GitHub 登录账号无密码，设置一个默认密码（bcrypt 哈希），
+		// 以便用户后续可用「邮箱 + 密码」方式登录，或走改密流程。
+		hashedPwd, hashErr := hashPassword("password123")
+		if hashErr != nil {
+			return nil, errorx.Internal(hashErr.Error())
 		}
 		res, insErr := l.svcCtx.Models.User.Insert(l.ctx, &model.User{
-			Email:    email,
-			Nickname: gh.Login,
-			GithubId: ghID,
-			Avatar:   gh.AvatarURL,
-			Status:   1,
+			Email:        email,
+			PasswordHash: hashedPwd,
+			Nickname:     gh.Login,
+			GithubId:     ghID,
+			Avatar:       gh.AvatarURL,
+			Status:       1,
 		})
 		if insErr != nil {
 			return nil, errorx.Internal(insErr.Error())
@@ -339,11 +349,7 @@ func NewRevokeAPIKeyLogic(ctx context.Context, svcCtx *svc.ServiceContext) *Revo
 	return &RevokeAPIKeyLogic{ctx: ctx, svcCtx: svcCtx}
 }
 func (l *RevokeAPIKeyLogic) RevokeAPIKey(req *types.RevokeAPIKeyReq) (*types.RevokeAPIKeyResp, error) {
-	uid, err := uidFromCtx(l.ctx)
-	if err != nil {
-		return nil, err
-	}
-	if err := l.svcCtx.Models.ApiKey.UpdateStatus(l.ctx, req.Id, uid, 0); err != nil {
+	if err := l.svcCtx.Models.ApiKey.UpdateStatus(l.ctx, req.Id, 0); err != nil {
 		return nil, errorx.Internal(err.Error())
 	}
 	return &types.RevokeAPIKeyResp{Ok: true}, nil
@@ -518,6 +524,10 @@ func NewUsageTrendsLogic(ctx context.Context, svcCtx *svc.ServiceContext) *Usage
 	return &UsageTrendsLogic{ctx: ctx, svcCtx: svcCtx}
 }
 func (l *UsageTrendsLogic) UsageTrends(req *types.UsageTrendsReq) (*types.UsageTrendsResp, error) {
+	uid, err := uidFromCtx(l.ctx)
+	if err != nil {
+		return nil, err
+	}
 	days := req.Days
 	if days <= 0 {
 		days = 30
@@ -527,9 +537,9 @@ func (l *UsageTrendsLogic) UsageTrends(req *types.UsageTrendsReq) (*types.UsageT
 	counts := make(map[string]int64)
 	chCtx, cancel := context.WithTimeout(l.ctx, 3*time.Second)
 	defer cancel()
-	got, err := l.svcCtx.ClickHouseVisit.CountByDay(chCtx, int(days))
+	got, err := l.svcCtx.ClickHouseVisit.CountByDayByUser(chCtx, uid, int(days))
 	if err != nil {
-		logx.Errorf("ClickHouse CountByDay failed, degrade /api/usage-trends: %v", err)
+		logx.Errorf("ClickHouse CountByDayByUser failed, degrade /api/usage-trends: %v", err)
 	} else {
 		counts = got
 	}
@@ -571,10 +581,16 @@ func (l *LogsLogic) Logs(req *types.LogsReq) (*types.LogsResp, error) {
 		return &types.LogsResp{Total: 0, Items: []types.LogItem{}}, nil
 	}
 	items := make([]types.LogItem, 0, len(rows))
+	// 短链对外域名（缺省回退，与创建短链保持一致）
+	shortDomain := l.svcCtx.Config.ShortDomain
+	if shortDomain == "" {
+		shortDomain = "https://s.gaoheng.top"
+	}
 	for _, r := range rows {
 		items = append(items, types.LogItem{
 			Timestamp: r.CreatedAt.Format(time.DateTime),
 			Code:      r.Code,
+			ShortURL:  shortDomain + "/r/" + r.Code,
 			LongURL:   r.LongURL,
 			Status:    r.Status,
 			IP:        r.IP,

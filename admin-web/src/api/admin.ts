@@ -21,7 +21,8 @@ export interface KpiItem {
 }
 export interface TrafficPoint {
   date: string
-  value: number
+  actions: number
+  rpc: number
 }
 export interface AdminActionItem {
   title: string
@@ -55,8 +56,9 @@ export interface ListLinksResp {
   total: number
   items: LinkItem[]
 }
-export function listLinks(page = 1, size = 10) {
-  return http.get<ListLinksResp>(`/links?page=${page}&size=${size}`)
+export function listLinks(page = 1, size = 10, search = '') {
+  const q = search ? `&search=${encodeURIComponent(search)}` : ''
+  return http.get<ListLinksResp>(`/links?page=${page}&size=${size}${q}`)
 }
 
 // ---------------------------------------------------------------------------
@@ -77,6 +79,9 @@ export function listBlacklist(page = 1, size = 10) {
 }
 export function addBlacklist(domain: string, reason: string) {
   return http.post<{ ok: boolean }>('/blacklist', { domain, reason })
+}
+export function deleteBlacklist(domain: string) {
+  return http.post<{ ok: boolean }>('/blacklist/delete', { domain })
 }
 
 // ---------------------------------------------------------------------------
@@ -108,4 +113,10 @@ export function provisionToken(userId: number, name: string, quota: number) {
 }
 export function revokeToken(id: number) {
   return http.post<{ ok: boolean }>('/tokens/revoke', { id })
+}
+export function resetToken(id: number) {
+  return http.post<{ ok: boolean }>('/tokens/reset', { id })
+}
+export function startToken(id: number) {
+  return http.post<{ ok: boolean }>('/tokens/start', { id })
 }

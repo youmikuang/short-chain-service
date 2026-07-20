@@ -39,7 +39,12 @@ export const useAuthStore = defineStore('auth', () => {
     credentials?: { email?: string; password?: string },
   ) {
     if (provider === 'github') {
-      const { url } = await githubAuthUrl(window.location.origin + '/login')
+      // 让 GitHub 的 redirect_uri 指向后端回调地址（与 GitHub App 中登记的
+      // Authorization callback URL 一致）。后端完成 OAuth 交换后会 302 跳转回
+      // /login?token=...，由 finishGithubLogin 读取并落库。
+      const { url } = await githubAuthUrl(
+        window.location.origin + '/api/auth/github/callback',
+      )
       window.location.href = url
       return
     }
@@ -71,5 +76,16 @@ export const useAuthStore = defineStore('auth', () => {
     localStorage.removeItem(TOKEN_KEY)
   }
 
-  return { user, token, init, login, logout }
+  // 后端 GitHub 回调 302 跳回 /login?token=...&user_id=...&nickname=... 后，
+  // 由 /login 页面读取并落库，再回源拉取完整 profile。
+  async function finishGithubLogin(tokenStr: string, nickname: string) {
+    applySession(tokenStr, deriveProfile({ nickname }))
+    try {
+      user.value = await fetchProfile()
+    } catch {
+      /* 保留由 nickname 推导出的基础 profile */
+    }
+  }
+
+  return { user, token, init, login, logout, finishGithubLogin }
 })

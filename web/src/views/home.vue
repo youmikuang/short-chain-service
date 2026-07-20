@@ -1,13 +1,12 @@
 <script setup lang="ts">
-import { ref, watch } from 'vue'
+import { ref } from 'vue'
 import { RouterLink } from 'vue-router'
 import TheNavBar from '@/components/navbar.vue'
 import TheFooter from '@/components/footer.vue'
-import { createslink, SHORT_DOMAIN } from '@/api'
+import { createslink } from '@/api'
 
-// Persist the hero input so it survives a page refresh.
-const HERO_URL_KEY = 'slink_hero_url'
-const url = ref(localStorage.getItem(HERO_URL_KEY) ?? '')
+// Plain hero input — no persistence across refresh (nothing stored).
+const url = ref('')
 const shortUrl = ref('')
 const copied = ref(false)
 const loading = ref(false)
@@ -51,8 +50,7 @@ function saveClicks(arr: number[]) {
 
 const clickTimes = ref<number[]>(loadClicks())
 
-// Keep the typed URL in sync with localStorage.
-watch(url, (v) => localStorage.setItem(HERO_URL_KEY, v))
+
 
 async function shorten() {
   if (loading.value) return
@@ -76,7 +74,7 @@ async function shorten() {
   error.value = ''
   try {
     const res = await createslink(normalized)
-    shortUrl.value = `${SHORT_DOMAIN}/${res.code}`
+    shortUrl.value = res.shortUrl
     copied.value = false
   } catch {
     error.value = '短链生成失败，请稍后重试。'
@@ -88,7 +86,7 @@ async function shorten() {
 async function copy() {
   if (!shortUrl.value) return
   try {
-    await navigator.clipboard.writeText(`https://${shortUrl.value}`)
+    await navigator.clipboard.writeText(shortUrl.value)
     copied.value = true
     setTimeout(() => (copied.value = false), 2000)
   } catch {
@@ -135,7 +133,7 @@ async function copy() {
 
             <div v-if="shortUrl" class="hero__result">
               <span class="material-symbols-outlined hero__result-icon">check_circle</span>
-              <a :href="`https://${shortUrl}`" class="hero__result-link">{{ shortUrl }}</a>
+              <a :href="shortUrl" class="hero__result-link">{{ shortUrl }}</a>
               <button
                 class="hero__copy"
                 :title="copied ? 'Copied!' : 'Copy'"

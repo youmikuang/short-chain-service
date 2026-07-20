@@ -59,6 +59,6 @@ const navItems = [
   top: 15%;
   height: 70%;
   width: 2px;
-  background-color: #004ac6;
+  background-color: rgb(var(--color-primary));
 }
 </style>
