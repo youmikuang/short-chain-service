@@ -3,7 +3,7 @@ import { ref } from 'vue'
 import { RouterLink } from 'vue-router'
 import TheNavBar from '@/components/navbar.vue'
 import TheFooter from '@/components/footer.vue'
-import { createslink } from '@/api'
+import { CreateSlink } from '@/api'
 
 // Plain hero input — no persistence across refresh (nothing stored).
 const url = ref('')
@@ -73,7 +73,7 @@ async function shorten() {
   loading.value = true
   error.value = ''
   try {
-    const res = await createslink(normalized)
+    const res = await CreateSlink(normalized)
     shortUrl.value = res.shortUrl
     copied.value = false
   } catch {

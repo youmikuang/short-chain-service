@@ -19,7 +19,7 @@ import (
 const _ = grpc.SupportPackageIsVersion9
 
 const (
-	slink_Createslink_FullMethodName = "/pb.slink/Createslink"
+	slink_CreateSlink_FullMethodName = "/pb.slink/CreateSlink"
 	slink_GetByCode_FullMethodName       = "/pb.slink/GetByCode"
 	slink_BatchCreate_FullMethodName     = "/pb.slink/BatchCreate"
 	slink_Deleteslink_FullMethodName = "/pb.slink/Deleteslink"
@@ -32,7 +32,7 @@ const (
 //
 // slink 短链核心服务（对内 gRPC，对外不暴露）
 type SlinkClient interface {
-	Createslink(ctx context.Context, in *CreateslinkReq, opts ...grpc.CallOption) (*CreateslinkResp, error)
+	CreateSlink(ctx context.Context, in *CreateSlinkReq, opts ...grpc.CallOption) (*CreateSlinkResp, error)
 	GetByCode(ctx context.Context, in *GetByCodeReq, opts ...grpc.CallOption) (*GetByCodeResp, error)
 	BatchCreate(ctx context.Context, in *BatchCreateReq, opts ...grpc.CallOption) (*BatchCreateResp, error)
 	Deleteslink(ctx context.Context, in *DeleteslinkReq, opts ...grpc.CallOption) (*DeleteslinkResp, error)
@@ -47,10 +47,10 @@ func NewslinkClient(cc grpc.ClientConnInterface) SlinkClient {
 	return &slinkClient{cc}
 }
 
-func (c *slinkClient) Createslink(ctx context.Context, in *CreateslinkReq, opts ...grpc.CallOption) (*CreateslinkResp, error) {
+func (c *slinkClient) CreateSlink(ctx context.Context, in *CreateSlinkReq, opts ...grpc.CallOption) (*CreateSlinkResp, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(CreateslinkResp)
-	err := c.cc.Invoke(ctx, slink_Createslink_FullMethodName, in, out, cOpts...)
+	out := new(CreateSlinkResp)
+	err := c.cc.Invoke(ctx, slink_CreateSlink_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
@@ -103,7 +103,7 @@ func (c *slinkClient) Resolve(ctx context.Context, in *ResolveReq, opts ...grpc.
 //
 // slink 短链核心服务（对内 gRPC，对外不暴露）
 type slinkServer interface {
-	Createslink(context.Context, *CreateslinkReq) (*CreateslinkResp, error)
+	CreateSlink(context.Context, *CreateSlinkReq) (*CreateSlinkResp, error)
 	GetByCode(context.Context, *GetByCodeReq) (*GetByCodeResp, error)
 	BatchCreate(context.Context, *BatchCreateReq) (*BatchCreateResp, error)
 	Deleteslink(context.Context, *DeleteslinkReq) (*DeleteslinkResp, error)
@@ -118,8 +118,8 @@ type slinkServer interface {
 // pointer dereference when methods are called.
 type UnimplementedslinkServer struct{}
 
-func (UnimplementedslinkServer) Createslink(context.Context, *CreateslinkReq) (*CreateslinkResp, error) {
-	return nil, status.Error(codes.Unimplemented, "method Createslink not implemented")
+func (UnimplementedslinkServer) CreateSlink(context.Context, *CreateSlinkReq) (*CreateSlinkResp, error) {
+	return nil, status.Error(codes.Unimplemented, "method CreateSlink not implemented")
 }
 func (UnimplementedslinkServer) GetByCode(context.Context, *GetByCodeReq) (*GetByCodeResp, error) {
 	return nil, status.Error(codes.Unimplemented, "method GetByCode not implemented")
@@ -154,20 +154,20 @@ func RegisterslinkServer(s grpc.ServiceRegistrar, srv slinkServer) {
 	s.RegisterService(&slink_ServiceDesc, srv)
 }
 
-func _slink_Createslink_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(CreateslinkReq)
+func _slink_CreateSlink_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(CreateSlinkReq)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(slinkServer).Createslink(ctx, in)
+		return srv.(slinkServer).CreateSlink(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: slink_Createslink_FullMethodName,
+		FullMethod: slink_CreateSlink_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(slinkServer).Createslink(ctx, req.(*CreateslinkReq))
+		return srv.(slinkServer).CreateSlink(ctx, req.(*CreateSlinkReq))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -252,8 +252,8 @@ var slink_ServiceDesc = grpc.ServiceDesc{
 	HandlerType: (*slinkServer)(nil),
 	Methods: []grpc.MethodDesc{
 		{
-			MethodName: "Createslink",
-			Handler:    _slink_Createslink_Handler,
+			MethodName: "CreateSlink",
+			Handler:    _slink_CreateSlink_Handler,
 		},
 		{
 			MethodName: "GetByCode",

@@ -18,8 +18,8 @@ func NewslinkServer(svcCtx *svc.ServiceContext) *slinkServer {
 	return &slinkServer{svcCtx: svcCtx}
 }
 
-func (s *slinkServer) Createslink(ctx context.Context, in *pb.CreateslinkReq) (*pb.CreateslinkResp, error) {
-	return logic.NewCreateslinkLogic(ctx, s.svcCtx).Createslink(in)
+func (s *slinkServer) CreateSlink(ctx context.Context, in *pb.CreateSlinkReq) (*pb.CreateSlinkResp, error) {
+	return logic.NewCreateSlinkLogic(ctx, s.svcCtx).CreateSlink(in)
 }
 
 func (s *slinkServer) GetByCode(ctx context.Context, in *pb.GetByCodeReq) (*pb.GetByCodeResp, error) {

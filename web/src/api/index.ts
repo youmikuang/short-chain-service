@@ -231,7 +231,7 @@ export function revokeApiKey(id: number): Promise<{ ok: boolean }> {
 
 // --- Short links --------------------------------------------------------
 
-export function createslink(longUrl: string): Promise<slink> {
+export function CreateSlink(longUrl: string): Promise<slink> {
   // Short-link creation requires an API key (X-API-Key); an anonymous call
   // returns 401, which must NOT trigger the global login redirect.
   return rawRequest(

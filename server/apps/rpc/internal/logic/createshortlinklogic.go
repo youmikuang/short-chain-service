@@ -12,16 +12,16 @@ import (
 	"server/common/tool"
 )
 
-type CreateslinkLogic struct {
+type CreateSlinkLogic struct {
 	ctx    context.Context
 	svcCtx *svc.ServiceContext
 }
 
-func NewCreateslinkLogic(ctx context.Context, svcCtx *svc.ServiceContext) *CreateslinkLogic {
-	return &CreateslinkLogic{ctx: ctx, svcCtx: svcCtx}
+func NewCreateSlinkLogic(ctx context.Context, svcCtx *svc.ServiceContext) *CreateSlinkLogic {
+	return &CreateSlinkLogic{ctx: ctx, svcCtx: svcCtx}
 }
 
-func (l *CreateslinkLogic) Createslink(in *pb.CreateslinkReq) (*pb.CreateslinkResp, error) {
+func (l *CreateSlinkLogic) CreateSlink(in *pb.CreateSlinkReq) (*pb.CreateSlinkResp, error) {
 	if in.GetLongUrl() == "" {
 		return nil, errorx.BadParam("long_url required")
 	}
@@ -67,7 +67,7 @@ func (l *CreateslinkLogic) Createslink(in *pb.CreateslinkReq) (*pb.CreateslinkRe
 		l.svcCtx.Redis.Set(l.ctx, "short_link:"+exist.Code, exist.LongURL, redisCacheTTL())
 		l.svcCtx.Redis.Set(l.ctx, "short_link:"+exist.Code+":uid", ownerId, redisCacheTTL())
 		l.svcCtx.Redis.Set(l.ctx, "short_link:"+exist.Code+":source", source, redisCacheTTL())
-		return &pb.CreateslinkResp{Code: exist.Code, LongUrl: exist.LongURL}, nil
+		return &pb.CreateSlinkResp{Code: exist.Code, LongUrl: exist.LongURL}, nil
 	} else if !isNotFound(err) {
 		return nil, errorx.Internal(err.Error())
 	}
@@ -92,11 +92,11 @@ func (l *CreateslinkLogic) Createslink(in *pb.CreateslinkReq) (*pb.CreateslinkRe
 	// 写 Redis 缓存(short_link:{code} -> long_url)，随机 TTL 防集中失效
 	l.svcCtx.Redis.Set(l.ctx, "short_link:"+code, longURL, redisCacheTTL())
 
-	return &pb.CreateslinkResp{Code: code, LongUrl: in.GetLongUrl()}, nil
+	return &pb.CreateSlinkResp{Code: code, LongUrl: in.GetLongUrl()}, nil
 }
 
 // genCode 生成短码：随机 Base62 串，默认 6 位；若已存在则加长 1 位重试，最多到 8 位。
-func (l *CreateslinkLogic) genCode() (string, error) {
+func (l *CreateSlinkLogic) genCode() (string, error) {
 	for length := 6; length <= 8; length++ {
 		for i := 0; i < 5; i++ {
 			code := tool.RandString(length)
@@ -113,7 +113,7 @@ func (l *CreateslinkLogic) genCode() (string, error) {
 }
 
 // isBlacklisted 校验域名是否命中黑名单（优先 MySQL，回退 Redis）
-func (l *CreateslinkLogic) isBlacklisted(domain string) (bool, error) {
+func (l *CreateSlinkLogic) isBlacklisted(domain string) (bool, error) {
 	if _, err := l.svcCtx.Models.DomainBlacklist.FindOneByDomain(l.ctx, domain); err == nil {
 		return true, nil
 	} else if !isNotFound(err) {

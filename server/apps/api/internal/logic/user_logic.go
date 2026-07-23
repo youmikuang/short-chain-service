@@ -20,6 +20,10 @@ import (
 	"github.com/zeromicro/go-zero/core/stores/sqlx"
 )
 
+// githubHTTPClient 用于 GitHub OAuth 的 HTTP 客户端，抽为包级变量以便单元测试注入 mock。
+// 生产行为不变（默认 10s 超时）。
+var githubHTTPClient = &http.Client{Timeout: 10 * time.Second}
+
 // uidFromCtx 从 JWT 上下文取出用户ID
 // go-zero 的 jwt 中间件会把每个 claim 写入 request context（key 为 claim 名），
 // 例如 token 载荷 {"uid": 1} 可通过 ctx.Value("uid") 取到。
@@ -203,7 +207,7 @@ func (l *GitHubCallbackLogic) GitHubCallback(req *types.GitHubCallbackReq) (*typ
 	httpReq, _ := http.NewRequest(http.MethodPost, tokenURL, strings.NewReader(form.Encode()))
 	httpReq.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 	httpReq.Header.Set("Accept", "application/json")
-	client := &http.Client{Timeout: 10 * time.Second}
+	client := githubHTTPClient
 	resp, err := client.Do(httpReq)
 	if err != nil {
 		return nil, errorx.Internal("github token exchange failed: " + err.Error())

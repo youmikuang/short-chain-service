@@ -6,19 +6,19 @@ option go_package = "server/apps/rpc/pb;pb";
 
 // slink 短链核心服务（对内 gRPC，对外不暴露）
 service slink {
-  rpc Createslink(CreateslinkReq) returns (CreateslinkResp);
+  rpc CreateSlink(CreateSlinkReq) returns (CreateSlinkResp);
   rpc GetByCode(GetByCodeReq) returns (GetByCodeResp);
   rpc BatchCreate(BatchCreateReq) returns (BatchCreateResp);
   rpc Deleteslink(DeleteslinkReq) returns (DeleteslinkResp);
   rpc Resolve(ResolveReq) returns (ResolveResp); // 跳转解析（含黑名单校验）
 }
 
-message CreateslinkReq {
+message CreateSlinkReq {
   string long_url = 1;
   int64  user_id  = 2;
   string api_key  = 3;
 }
-message CreateslinkResp {
+message CreateSlinkResp {
   string code     = 1;
   string long_url = 2;
 }
@@ -35,7 +35,7 @@ message BatchCreateReq {
   repeated string long_urls = 1;
   int64  user_id            = 2;
 }
-message BatchCreateResp { repeated CreateslinkResp items = 1; }
+message BatchCreateResp { repeated CreateSlinkResp items = 1; }
 
 message DeleteslinkReq { string code = 1; int64 user_id = 2; }
 message DeleteslinkResp { bool ok = 1; }

@@ -21,7 +21,7 @@ const (
 	_ = protoimpl.EnforceVersion(protoimpl.MaxVersion - 20)
 )
 
-type CreateslinkReq struct {
+type CreateSlinkReq struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	LongUrl       string                 `protobuf:"bytes,1,opt,name=long_url,json=longUrl,proto3" json:"long_url,omitempty"`
 	UserId        int64                  `protobuf:"varint,2,opt,name=user_id,json=userId,proto3" json:"user_id,omitempty"`
@@ -30,20 +30,20 @@ type CreateslinkReq struct {
 	sizeCache     protoimpl.SizeCache
 }
 
-func (x *CreateslinkReq) Reset() {
-	*x = CreateslinkReq{}
+func (x *CreateSlinkReq) Reset() {
+	*x = CreateSlinkReq{}
 	mi := &file_apps_api_rpc_pb_slink_proto_msgTypes[0]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
 
-func (x *CreateslinkReq) String() string {
+func (x *CreateSlinkReq) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*CreateslinkReq) ProtoMessage() {}
+func (*CreateSlinkReq) ProtoMessage() {}
 
-func (x *CreateslinkReq) ProtoReflect() protoreflect.Message {
+func (x *CreateSlinkReq) ProtoReflect() protoreflect.Message {
 	mi := &file_apps_api_rpc_pb_slink_proto_msgTypes[0]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -55,33 +55,33 @@ func (x *CreateslinkReq) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-// Deprecated: Use CreateslinkReq.ProtoReflect.Descriptor instead.
-func (*CreateslinkReq) Descriptor() ([]byte, []int) {
+// Deprecated: Use CreateSlinkReq.ProtoReflect.Descriptor instead.
+func (*CreateSlinkReq) Descriptor() ([]byte, []int) {
 	return file_apps_api_rpc_pb_slink_proto_rawDescGZIP(), []int{0}
 }
 
-func (x *CreateslinkReq) GetLongUrl() string {
+func (x *CreateSlinkReq) GetLongUrl() string {
 	if x != nil {
 		return x.LongUrl
 	}
 	return ""
 }
 
-func (x *CreateslinkReq) GetUserId() int64 {
+func (x *CreateSlinkReq) GetUserId() int64 {
 	if x != nil {
 		return x.UserId
 	}
 	return 0
 }
 
-func (x *CreateslinkReq) GetApiKey() string {
+func (x *CreateSlinkReq) GetApiKey() string {
 	if x != nil {
 		return x.ApiKey
 	}
 	return ""
 }
 
-type CreateslinkResp struct {
+type CreateSlinkResp struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Code          string                 `protobuf:"bytes,1,opt,name=code,proto3" json:"code,omitempty"`
 	LongUrl       string                 `protobuf:"bytes,2,opt,name=long_url,json=longUrl,proto3" json:"long_url,omitempty"`
@@ -89,20 +89,20 @@ type CreateslinkResp struct {
 	sizeCache     protoimpl.SizeCache
 }
 
-func (x *CreateslinkResp) Reset() {
-	*x = CreateslinkResp{}
+func (x *CreateSlinkResp) Reset() {
+	*x = CreateSlinkResp{}
 	mi := &file_apps_api_rpc_pb_slink_proto_msgTypes[1]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
 
-func (x *CreateslinkResp) String() string {
+func (x *CreateSlinkResp) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*CreateslinkResp) ProtoMessage() {}
+func (*CreateSlinkResp) ProtoMessage() {}
 
-func (x *CreateslinkResp) ProtoReflect() protoreflect.Message {
+func (x *CreateSlinkResp) ProtoReflect() protoreflect.Message {
 	mi := &file_apps_api_rpc_pb_slink_proto_msgTypes[1]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -114,19 +114,19 @@ func (x *CreateslinkResp) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-// Deprecated: Use CreateslinkResp.ProtoReflect.Descriptor instead.
-func (*CreateslinkResp) Descriptor() ([]byte, []int) {
+// Deprecated: Use CreateSlinkResp.ProtoReflect.Descriptor instead.
+func (*CreateSlinkResp) Descriptor() ([]byte, []int) {
 	return file_apps_api_rpc_pb_slink_proto_rawDescGZIP(), []int{1}
 }
 
-func (x *CreateslinkResp) GetCode() string {
+func (x *CreateSlinkResp) GetCode() string {
 	if x != nil {
 		return x.Code
 	}
 	return ""
 }
 
-func (x *CreateslinkResp) GetLongUrl() string {
+func (x *CreateSlinkResp) GetLongUrl() string {
 	if x != nil {
 		return x.LongUrl
 	}
@@ -299,7 +299,7 @@ func (x *BatchCreateReq) GetUserId() int64 {
 
 type BatchCreateResp struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
-	Items         []*CreateslinkResp `protobuf:"bytes,1,rep,name=items,proto3" json:"items,omitempty"`
+	Items         []*CreateSlinkResp `protobuf:"bytes,1,rep,name=items,proto3" json:"items,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -334,7 +334,7 @@ func (*BatchCreateResp) Descriptor() ([]byte, []int) {
 	return file_apps_api_rpc_pb_slink_proto_rawDescGZIP(), []int{5}
 }
 
-func (x *BatchCreateResp) GetItems() []*CreateslinkResp {
+func (x *BatchCreateResp) GetItems() []*CreateSlinkResp {
 	if x != nil {
 		return x.Items
 	}
@@ -535,7 +535,7 @@ func (x *ResolveResp) GetBlocked() bool {
 
 var File_apps_api_rpc_pb_slink_proto protoreflect.FileDescriptor
 
-const file_apps_api_rpc_pb_slink_proto_rawDesc = "\n\x1bapps/api/rpc/pb/slink.proto\x12\x02pb\"]\n\x0eCreateslinkReq\x12\x19\n\blong_url\x18\x01 \x01(\tR\alongUrl\x12\x17\n\auser_id\x18\x02 \x01(\x03R\x06userId\x12\x17\n\aapi_key\x18\x03 \x01(\tR\x06apiKey\"@\n\x0fCreateslinkResp\x12\x12\n\x04code\x18\x01 \x01(\tR\x04code\x12\x19\n\blong_url\x18\x02 \x01(\tR\alongUrl\"\"\n\fGetByCodeReq\x12\x12\n\x04code\x18\x01 \x01(\tR\x04code\"n\n\rGetByCodeResp\x12\x12\n\x04code\x18\x01 \x01(\tR\x04code\x12\x19\n\blong_url\x18\x02 \x01(\tR\alongUrl\x12\x16\n\x06clicks\x18\x03 \x01(\x03R\x06clicks\x12\x16\n\x06status\x18\x04 \x01(\x05R\x06status\"F\n\x0eBatchCreateReq\x12\x1b\n\tlong_urls\x18\x01 \x03(\tR\blongUrls\x12\x17\n\auser_id\x18\x02 \x01(\x03R\x06userId\"<\n\x0fBatchCreateResp\x12)\n\x05items\x18\x01 \x03(\v2\x13.pb.CreateslinkRespR\x05items\"=\n\x0eDeleteslinkReq\x12\x12\n\x04code\x18\x01 \x01(\tR\x04code\x12\x17\n\auser_id\x18\x02 \x01(\x03R\x06userId\"!\n\x0fDeleteslinkResp\x12\x0e\n\x02ok\x18\x01 \x01(\bR\x02ok\" \n\nResolveReq\x12\x12\n\x04code\x18\x01 \x01(\tR\x04code\"B\n\vResolveResp\x12\x19\n\blong_url\x18\x01 \x01(\tR\alongUrl\x12\x18\n\ablocked\x18\x02 \x01(\bR\ablocked2\x8d\x02\n\x05slink\x126\n\vCreateslink\x12\x12.pb.CreateslinkReq\x1a\x13.pb.CreateslinkResp\x120\n\tGetByCode\x12\x10.pb.GetByCodeReq\x1a\x11.pb.GetByCodeResp\x126\n\vBatchCreate\x12\x12.pb.BatchCreateReq\x1a\x13.pb.BatchCreateResp\x126\n\vDeleteslink\x12\x12.pb.DeleteslinkReq\x1a\x13.pb.DeleteslinkResp\x12*\n\aResolve\x12\x0e.pb.ResolveReq\x1a\x0f.pb.ResolveRespB\x17Z\x15server/apps/rpc/pb;pbb\x06proto3"
+const file_apps_api_rpc_pb_slink_proto_rawDesc = "\n\x1bapps/api/rpc/pb/slink.proto\x12\x02pb\"]\n\x0eCreateSlinkReq\x12\x19\n\blong_url\x18\x01 \x01(\tR\alongUrl\x12\x17\n\auser_id\x18\x02 \x01(\x03R\x06userId\x12\x17\n\aapi_key\x18\x03 \x01(\tR\x06apiKey\"@\n\x0fCreateSlinkResp\x12\x12\n\x04code\x18\x01 \x01(\tR\x04code\x12\x19\n\blong_url\x18\x02 \x01(\tR\alongUrl\"\"\n\fGetByCodeReq\x12\x12\n\x04code\x18\x01 \x01(\tR\x04code\"n\n\rGetByCodeResp\x12\x12\n\x04code\x18\x01 \x01(\tR\x04code\x12\x19\n\blong_url\x18\x02 \x01(\tR\alongUrl\x12\x16\n\x06clicks\x18\x03 \x01(\x03R\x06clicks\x12\x16\n\x06status\x18\x04 \x01(\x05R\x06status\"F\n\x0eBatchCreateReq\x12\x1b\n\tlong_urls\x18\x01 \x03(\tR\blongUrls\x12\x17\n\auser_id\x18\x02 \x01(\x03R\x06userId\"<\n\x0fBatchCreateResp\x12)\n\x05items\x18\x01 \x03(\v2\x13.pb.CreateSlinkRespR\x05items\"=\n\x0eDeleteslinkReq\x12\x12\n\x04code\x18\x01 \x01(\tR\x04code\x12\x17\n\auser_id\x18\x02 \x01(\x03R\x06userId\"!\n\x0fDeleteslinkResp\x12\x0e\n\x02ok\x18\x01 \x01(\bR\x02ok\" \n\nResolveReq\x12\x12\n\x04code\x18\x01 \x01(\tR\x04code\"B\n\vResolveResp\x12\x19\n\blong_url\x18\x01 \x01(\tR\alongUrl\x12\x18\n\ablocked\x18\x02 \x01(\bR\ablocked2\x8d\x02\n\x05slink\x126\n\vCreateSlink\x12\x12.pb.CreateSlinkReq\x1a\x13.pb.CreateSlinkResp\x120\n\tGetByCode\x12\x10.pb.GetByCodeReq\x1a\x11.pb.GetByCodeResp\x126\n\vBatchCreate\x12\x12.pb.BatchCreateReq\x1a\x13.pb.BatchCreateResp\x126\n\vDeleteslink\x12\x12.pb.DeleteslinkReq\x1a\x13.pb.DeleteslinkResp\x12*\n\aResolve\x12\x0e.pb.ResolveReq\x1a\x0f.pb.ResolveRespB\x17Z\x15server/apps/rpc/pb;pbb\x06proto3"
 
 var (
 	file_apps_api_rpc_pb_slink_proto_rawDescOnce sync.Once
@@ -551,8 +551,8 @@ func file_apps_api_rpc_pb_slink_proto_rawDescGZIP() []byte {
 
 var file_apps_api_rpc_pb_slink_proto_msgTypes = make([]protoimpl.MessageInfo, 10)
 var file_apps_api_rpc_pb_slink_proto_goTypes = []any{
-	(*CreateslinkReq)(nil),  // 0: pb.CreateslinkReq
-	(*CreateslinkResp)(nil), // 1: pb.CreateslinkResp
+	(*CreateSlinkReq)(nil),  // 0: pb.CreateSlinkReq
+	(*CreateSlinkResp)(nil), // 1: pb.CreateSlinkResp
 	(*GetByCodeReq)(nil),        // 2: pb.GetByCodeReq
 	(*GetByCodeResp)(nil),       // 3: pb.GetByCodeResp
 	(*BatchCreateReq)(nil),      // 4: pb.BatchCreateReq
@@ -563,13 +563,13 @@ var file_apps_api_rpc_pb_slink_proto_goTypes = []any{
 	(*ResolveResp)(nil),         // 9: pb.ResolveResp
 }
 var file_apps_api_rpc_pb_slink_proto_depIdxs = []int32{
-	1, // 0: pb.BatchCreateResp.items:type_name -> pb.CreateslinkResp
-	0, // 1: pb.slink.Createslink:input_type -> pb.CreateslinkReq
+	1, // 0: pb.BatchCreateResp.items:type_name -> pb.CreateSlinkResp
+	0, // 1: pb.slink.CreateSlink:input_type -> pb.CreateSlinkReq
 	2, // 2: pb.slink.GetByCode:input_type -> pb.GetByCodeReq
 	4, // 3: pb.slink.BatchCreate:input_type -> pb.BatchCreateReq
 	6, // 4: pb.slink.Deleteslink:input_type -> pb.DeleteslinkReq
 	8, // 5: pb.slink.Resolve:input_type -> pb.ResolveReq
-	1, // 6: pb.slink.Createslink:output_type -> pb.CreateslinkResp
+	1, // 6: pb.slink.CreateSlink:output_type -> pb.CreateSlinkResp
 	3, // 7: pb.slink.GetByCode:output_type -> pb.GetByCodeResp
 	5, // 8: pb.slink.BatchCreate:output_type -> pb.BatchCreateResp
 	7, // 9: pb.slink.Deleteslink:output_type -> pb.DeleteslinkResp

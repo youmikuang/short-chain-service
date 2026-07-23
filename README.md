@@ -35,15 +35,19 @@
 short-chain-service/
 ├── docs/              # 架构 & API 文档
 ├── web/               # Vue3 官网：注册/登录/GitHub 授权/申请 Key
-├── go.mod             # Go 模块定义
+├── admin-web/         # Vue3 管理后台
+├── server/            # Go 后端（go-zero 单体仓库）
+│   ├── apps/
+│   │   ├── rpc/       # 短链核心 gRPC 服务（生成/解析/删除/批量）
+│   │   ├── api/       # 业务 API 网关（用户体系 + 短链 CRUD 委托 rpc）
+│   │   ├── admin/     # 管理后台 API（黑名单 / Token / 链接 / Dashboard）
+│   │   └── jump/      # 跳转服务（解析短码并 302，委托 rpc）
+│   ├── common/        # 跨服务公共：model / errorx / tool / clickhouse / interceptors
+│   └── deploy/        # docker-compose + nginx + k8s + sql
 └── README.md
 ```
 
-> 以下模块按架构设计规划中，尚未落地（详见 `docs/architecture.md`）：
-> - `api/`：Go 后端（跳转 + 业务 API + Kafka 消费者）
-> - `admin/`：Vue3 管理后台
-> - `sdk/go/`：可发布的 Go SDK
-> - `deploy/`：docker-compose + nginx.conf
+> `sdk/go/` 仍规划中，尚未落地（详见 `docs/architecture.md`）。
 
 ---
 
@@ -95,13 +99,33 @@ pnpm format
 
 ---
 
-## 五、后端与部署（规划中）
+## 五、后端与部署
 
 后端采用 **Nginx 负载均衡 + Go 多实例（固定实例）** 的部署形态，依赖通过 Docker Compose 一键启动：
 
 ```sh
-# 规划中的启动方式（待 deploy/ 落地）
-docker compose -f deploy/docker-compose.yml up -d   # MySQL/Redis/Kafka/ClickHouse/Nginx
+# 启动依赖（MySQL/Redis/Kafka/ClickHouse/Nginx）
+docker compose -f server/deploy/docker/docker-compose.yml up -d
+```
+
+各服务构建（构建顺序：先 RPC，再其它）：
+
+```sh
+cd server
+go build ./apps/rpc && go build ./apps/api && go build ./apps/admin && go build ./apps/jump
+```
+
+### 后端单元测试
+
+所有 API 均有对应单元测试（详见 `.claude/CLUADE.md` 的「测试」一节）。纯单元测试无需基础设施；
+集成测试需本地 MySQL + Redis（`127.0.0.1:3306` / `127.0.0.1:6379`）与配置中的 ClickHouse：
+
+```sh
+cd server
+go test ./apps/... ./common/...
+# 仅纯单元测试（无需基础设施）
+go test ./common/tool/ ./common/errorx/ ./apps/jump/internal/logic/ \
+       ./common/interceptors/ ./apps/jump/internal/handler/ ./apps/api/internal/middleware/
 ```
 
 Nginx 路由规划：
@@ -117,7 +141,7 @@ Nginx 路由规划：
 
 ---
 
-## 六、短链调用示例（规划中 API）
+## 六、短链调用示例
 
 调用短链创建接口需携带 API Key：
 

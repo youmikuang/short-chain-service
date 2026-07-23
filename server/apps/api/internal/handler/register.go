@@ -14,7 +14,7 @@ import (
 //   - publicRoutes:    公开（注册/登录/GitHub/短链跳转）
 func RegisterHandlers(server *rest.Server, svcCtx *svc.ServiceContext) {
 	slinkRoutes := []rest.Route{
-		{Method: http.MethodPost, Path: "/api/short-links", Handler: CreateslinkHandler(svcCtx)},
+		{Method: http.MethodPost, Path: "/api/short-links", Handler: CreateSlinkHandler(svcCtx)},
 		{Method: http.MethodGet, Path: "/api/short-links/:code", Handler: GetByCodeHandler(svcCtx)},
 	}
 	jwtRoutes := []rest.Route{

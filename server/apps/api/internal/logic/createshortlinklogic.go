@@ -9,17 +9,17 @@ import (
 	pb "server/apps/rpc/pb"
 )
 
-type CreateslinkLogic struct {
+type CreateSlinkLogic struct {
 	ctx    context.Context
 	svcCtx *svc.ServiceContext
 }
 
-func NewCreateslinkLogic(ctx context.Context, svcCtx *svc.ServiceContext) *CreateslinkLogic {
-	return &CreateslinkLogic{ctx: ctx, svcCtx: svcCtx}
+func NewCreateSlinkLogic(ctx context.Context, svcCtx *svc.ServiceContext) *CreateSlinkLogic {
+	return &CreateSlinkLogic{ctx: ctx, svcCtx: svcCtx}
 }
 
-// Createslink 网关：已通过 API Key/JWT 鉴权，委托 rpc 核心服务
-func (l *CreateslinkLogic) Createslink(req *types.CreateslinkReq) (resp *types.CreateslinkResp, err error) {
+// CreateSlink 网关：已通过 API Key/JWT 鉴权，委托 rpc 核心服务
+func (l *CreateSlinkLogic) CreateSlink(req *types.CreateSlinkReq) (resp *types.CreateSlinkResp, err error) {
 	uid := int64(0)
 	if v, ok := l.ctx.Value(middleware.APIKeyUIDKey).(float64); ok {
 		uid = int64(v)
@@ -31,7 +31,7 @@ func (l *CreateslinkLogic) Createslink(req *types.CreateslinkReq) (resp *types.C
 		apiKey = v
 	}
 
-	out, err := l.svcCtx.SlinkRpc.Createslink(l.ctx, &pb.CreateslinkReq{
+	out, err := l.svcCtx.SlinkRpc.CreateSlink(l.ctx, &pb.CreateSlinkReq{
 		LongUrl: req.LongURL,
 		UserId:  uid,
 		ApiKey:  apiKey,
@@ -43,7 +43,7 @@ func (l *CreateslinkLogic) Createslink(req *types.CreateslinkReq) (resp *types.C
 	if domain == "" {
 		domain = "https://s.gaoheng.top"
 	}
-	return &types.CreateslinkResp{
+	return &types.CreateSlinkResp{
 		Code:     out.Code,
 		ShortURL: domain + "/r/" + out.Code,
 		LongURL:  out.LongUrl,

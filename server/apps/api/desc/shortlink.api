@@ -6,11 +6,11 @@ info (
     version: "v3"
 )
 
-type CreateslinkReq {
+type CreateSlinkReq {
     LongURL string `json:"long_url"`
 }
 
-type CreateslinkResp {
+type CreateSlinkResp {
     Code    string `json:"code"`
     ShortURL string `json:"short_url"`
     LongURL string `json:"long_url"`
@@ -52,8 +52,8 @@ type ListMyLinksResp {
     prefix: /api
 )
 service slink-api {
-    @handler Createslink
-    post /short-links (CreateslinkReq) returns (CreateslinkResp)
+    @handler CreateSlink
+    post /short-links (CreateSlinkReq) returns (CreateSlinkResp)
 
     @handler GetByCode
     get /short-links/:code (GetByCodeReq) returns (GetByCodeResp)

@@ -54,7 +54,7 @@
 - 仪表盘流量趋势：`action_logs`（MySQL 每日操作量）+ `rpc_logs`（ClickHouse 每日生成量）双序列，聚合成近 7 天 `TrafficPoint[]`。
 
 ### apps/rpc（:8081）
-`slink` 服务（`pb/shortlink.proto`）：`Createslink` / `GetByCode` / `BatchCreate` / `Deleteslink` / `Resolve`（含黑名单校验）。拦截器异步写 ClickHouse `rpc_logs`。
+`slink` 服务（`pb/shortlink.proto`）：`CreateSlink` / `GetByCode` / `BatchCreate` / `Deleteslink` / `Resolve`（含黑名单校验）。拦截器异步写 ClickHouse `rpc_logs`。
 
 ---
 
@@ -116,7 +116,7 @@ short-chain-service/
 ### 1. 短链创建
 ```
 POST /api/short-links (API Key 或 JWT)
-  → api.CreateslinkLogic（取 user_id/api_key）→ rpc.Createslink
+  → api.CreateSlinkLogic（取 user_id/api_key）→ rpc.CreateSlink
        · 域名黑名单校验（MySQL 优先，回退 Redis Set）
        · 短码 = Base62(Snowflake.NextID())
        · 落 MySQL(short_links) + 写 Redis(short_link:{code}，随机 TTL 防雪崩)
@@ -210,7 +210,7 @@ GET /r/:code → jump.ResolveLogic → rpc.Resolve
 ---
 
 ## 八、短码生成
-- 算法：**Snowflake（IdGen.NextID）+ Base62 编码**（见 `common/tool` + `rpc/internal/logic/createslinklogic.go`）。
+- 算法：**Snowflake（IdGen.NextID）+ Base62 编码**（见 `common/tool` + `rpc/internal/logic/CreateSlinklogic.go`）。
 - 缓存：`short_link:{code}` 存 long_url，TTL = 30min + 随机 0~10min 防雪崩；另缓存 `short_link:{code}:uid` 供访问明细按用户隔离。
 - 去重：`short_links.code` 唯一索引。
 
