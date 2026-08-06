@@ -3,7 +3,7 @@ package middleware
 import (
 	"net/http"
 	"server/apps/api/internal/svc"
-	"server/common/model"
+	"server/pkg/model"
 	"strings"
 	"time"
 

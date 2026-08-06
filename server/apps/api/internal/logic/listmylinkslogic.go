@@ -5,7 +5,7 @@ import (
 
 	"server/apps/api/internal/svc"
 	"server/apps/api/internal/types"
-	"server/common/errorx"
+	"server/pkg/errorx"
 )
 
 type ListMyLinksLogic struct {

@@ -9,7 +9,7 @@ service slink {
   rpc CreateSlink(CreateSlinkReq) returns (CreateSlinkResp);
   rpc GetByCode(GetByCodeReq) returns (GetByCodeResp);
   rpc BatchCreate(BatchCreateReq) returns (BatchCreateResp);
-  rpc Deleteslink(DeleteslinkReq) returns (DeleteslinkResp);
+  rpc DeleteSlink(DeleteSlinkReq) returns (DeleteSlinkResp);
   rpc Resolve(ResolveReq) returns (ResolveResp); // 跳转解析（含黑名单校验）
 }
 
@@ -37,8 +37,8 @@ message BatchCreateReq {
 }
 message BatchCreateResp { repeated CreateSlinkResp items = 1; }
 
-message DeleteslinkReq { string code = 1; int64 user_id = 2; }
-message DeleteslinkResp { bool ok = 1; }
+message DeleteSlinkReq { string code = 1; int64 user_id = 2; }
+message DeleteSlinkResp { bool ok = 1; }
 
 message ResolveReq { string code = 1; }
 message ResolveResp {

@@ -3,7 +3,7 @@ import { ref } from 'vue'
 import { RouterLink } from 'vue-router'
 import TheNavBar from '@/components/navbar.vue'
 import TheFooter from '@/components/footer.vue'
-import { CreateSlink } from '@/api'
+import { CreateSlink, describeApiError } from '@/api'
 
 // Plain hero input — no persistence across refresh (nothing stored).
 const url = ref('')
@@ -76,8 +76,8 @@ async function shorten() {
     const res = await CreateSlink(normalized)
     shortUrl.value = res.shortUrl
     copied.value = false
-  } catch {
-    error.value = '短链生成失败，请稍后重试。'
+  } catch (e) {
+    error.value = describeApiError(e)
   } finally {
     loading.value = false
   }

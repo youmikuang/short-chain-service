@@ -4,8 +4,8 @@ import (
 	"database/sql"
 
 	"server/apps/rpc/internal/config"
-	"server/common/clickhouse"
-	"server/common/model"
+	"server/pkg/clickhouse"
+	"server/pkg/model"
 
 	"github.com/redis/go-redis/v9"
 	"github.com/zeromicro/go-zero/core/stores/sqlx"

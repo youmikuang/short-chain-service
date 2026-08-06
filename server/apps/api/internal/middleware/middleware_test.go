@@ -9,7 +9,7 @@ import (
 
 	"server/apps/api/internal/config"
 	"server/apps/api/internal/svc"
-	"server/common/model"
+	"server/pkg/model"
 
 	"github.com/zeromicro/go-zero/core/conf"
 	"github.com/zeromicro/go-zero/core/stores/sqlx"

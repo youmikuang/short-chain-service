@@ -341,7 +341,7 @@ func (x *BatchCreateResp) GetItems() []*CreateSlinkResp {
 	return nil
 }
 
-type DeleteslinkReq struct {
+type DeleteSlinkReq struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Code          string                 `protobuf:"bytes,1,opt,name=code,proto3" json:"code,omitempty"`
 	UserId        int64                  `protobuf:"varint,2,opt,name=user_id,json=userId,proto3" json:"user_id,omitempty"`
@@ -349,20 +349,20 @@ type DeleteslinkReq struct {
 	sizeCache     protoimpl.SizeCache
 }
 
-func (x *DeleteslinkReq) Reset() {
-	*x = DeleteslinkReq{}
+func (x *DeleteSlinkReq) Reset() {
+	*x = DeleteSlinkReq{}
 	mi := &file_apps_api_rpc_pb_slink_proto_msgTypes[6]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
 
-func (x *DeleteslinkReq) String() string {
+func (x *DeleteSlinkReq) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*DeleteslinkReq) ProtoMessage() {}
+func (*DeleteSlinkReq) ProtoMessage() {}
 
-func (x *DeleteslinkReq) ProtoReflect() protoreflect.Message {
+func (x *DeleteSlinkReq) ProtoReflect() protoreflect.Message {
 	mi := &file_apps_api_rpc_pb_slink_proto_msgTypes[6]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -374,46 +374,46 @@ func (x *DeleteslinkReq) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-// Deprecated: Use DeleteslinkReq.ProtoReflect.Descriptor instead.
-func (*DeleteslinkReq) Descriptor() ([]byte, []int) {
+// Deprecated: Use DeleteSlinkReq.ProtoReflect.Descriptor instead.
+func (*DeleteSlinkReq) Descriptor() ([]byte, []int) {
 	return file_apps_api_rpc_pb_slink_proto_rawDescGZIP(), []int{6}
 }
 
-func (x *DeleteslinkReq) GetCode() string {
+func (x *DeleteSlinkReq) GetCode() string {
 	if x != nil {
 		return x.Code
 	}
 	return ""
 }
 
-func (x *DeleteslinkReq) GetUserId() int64 {
+func (x *DeleteSlinkReq) GetUserId() int64 {
 	if x != nil {
 		return x.UserId
 	}
 	return 0
 }
 
-type DeleteslinkResp struct {
+type DeleteSlinkResp struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Ok            bool                   `protobuf:"varint,1,opt,name=ok,proto3" json:"ok,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
 
-func (x *DeleteslinkResp) Reset() {
-	*x = DeleteslinkResp{}
+func (x *DeleteSlinkResp) Reset() {
+	*x = DeleteSlinkResp{}
 	mi := &file_apps_api_rpc_pb_slink_proto_msgTypes[7]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
 
-func (x *DeleteslinkResp) String() string {
+func (x *DeleteSlinkResp) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*DeleteslinkResp) ProtoMessage() {}
+func (*DeleteSlinkResp) ProtoMessage() {}
 
-func (x *DeleteslinkResp) ProtoReflect() protoreflect.Message {
+func (x *DeleteSlinkResp) ProtoReflect() protoreflect.Message {
 	mi := &file_apps_api_rpc_pb_slink_proto_msgTypes[7]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -425,12 +425,12 @@ func (x *DeleteslinkResp) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-// Deprecated: Use DeleteslinkResp.ProtoReflect.Descriptor instead.
-func (*DeleteslinkResp) Descriptor() ([]byte, []int) {
+// Deprecated: Use DeleteSlinkResp.ProtoReflect.Descriptor instead.
+func (*DeleteSlinkResp) Descriptor() ([]byte, []int) {
 	return file_apps_api_rpc_pb_slink_proto_rawDescGZIP(), []int{7}
 }
 
-func (x *DeleteslinkResp) GetOk() bool {
+func (x *DeleteSlinkResp) GetOk() bool {
 	if x != nil {
 		return x.Ok
 	}
@@ -535,7 +535,7 @@ func (x *ResolveResp) GetBlocked() bool {
 
 var File_apps_api_rpc_pb_slink_proto protoreflect.FileDescriptor
 
-const file_apps_api_rpc_pb_slink_proto_rawDesc = "\n\x1bapps/api/rpc/pb/slink.proto\x12\x02pb\"]\n\x0eCreateSlinkReq\x12\x19\n\blong_url\x18\x01 \x01(\tR\alongUrl\x12\x17\n\auser_id\x18\x02 \x01(\x03R\x06userId\x12\x17\n\aapi_key\x18\x03 \x01(\tR\x06apiKey\"@\n\x0fCreateSlinkResp\x12\x12\n\x04code\x18\x01 \x01(\tR\x04code\x12\x19\n\blong_url\x18\x02 \x01(\tR\alongUrl\"\"\n\fGetByCodeReq\x12\x12\n\x04code\x18\x01 \x01(\tR\x04code\"n\n\rGetByCodeResp\x12\x12\n\x04code\x18\x01 \x01(\tR\x04code\x12\x19\n\blong_url\x18\x02 \x01(\tR\alongUrl\x12\x16\n\x06clicks\x18\x03 \x01(\x03R\x06clicks\x12\x16\n\x06status\x18\x04 \x01(\x05R\x06status\"F\n\x0eBatchCreateReq\x12\x1b\n\tlong_urls\x18\x01 \x03(\tR\blongUrls\x12\x17\n\auser_id\x18\x02 \x01(\x03R\x06userId\"<\n\x0fBatchCreateResp\x12)\n\x05items\x18\x01 \x03(\v2\x13.pb.CreateSlinkRespR\x05items\"=\n\x0eDeleteslinkReq\x12\x12\n\x04code\x18\x01 \x01(\tR\x04code\x12\x17\n\auser_id\x18\x02 \x01(\x03R\x06userId\"!\n\x0fDeleteslinkResp\x12\x0e\n\x02ok\x18\x01 \x01(\bR\x02ok\" \n\nResolveReq\x12\x12\n\x04code\x18\x01 \x01(\tR\x04code\"B\n\vResolveResp\x12\x19\n\blong_url\x18\x01 \x01(\tR\alongUrl\x12\x18\n\ablocked\x18\x02 \x01(\bR\ablocked2\x8d\x02\n\x05slink\x126\n\vCreateSlink\x12\x12.pb.CreateSlinkReq\x1a\x13.pb.CreateSlinkResp\x120\n\tGetByCode\x12\x10.pb.GetByCodeReq\x1a\x11.pb.GetByCodeResp\x126\n\vBatchCreate\x12\x12.pb.BatchCreateReq\x1a\x13.pb.BatchCreateResp\x126\n\vDeleteslink\x12\x12.pb.DeleteslinkReq\x1a\x13.pb.DeleteslinkResp\x12*\n\aResolve\x12\x0e.pb.ResolveReq\x1a\x0f.pb.ResolveRespB\x17Z\x15server/apps/rpc/pb;pbb\x06proto3"
+const file_apps_api_rpc_pb_slink_proto_rawDesc = "\n\x1bapps/api/rpc/pb/slink.proto\x12\x02pb\"]\n\x0eCreateSlinkReq\x12\x19\n\blong_url\x18\x01 \x01(\tR\alongUrl\x12\x17\n\auser_id\x18\x02 \x01(\x03R\x06userId\x12\x17\n\aapi_key\x18\x03 \x01(\tR\x06apiKey\"@\n\x0fCreateSlinkResp\x12\x12\n\x04code\x18\x01 \x01(\tR\x04code\x12\x19\n\blong_url\x18\x02 \x01(\tR\alongUrl\"\"\n\fGetByCodeReq\x12\x12\n\x04code\x18\x01 \x01(\tR\x04code\"n\n\rGetByCodeResp\x12\x12\n\x04code\x18\x01 \x01(\tR\x04code\x12\x19\n\blong_url\x18\x02 \x01(\tR\alongUrl\x12\x16\n\x06clicks\x18\x03 \x01(\x03R\x06clicks\x12\x16\n\x06status\x18\x04 \x01(\x05R\x06status\"F\n\x0eBatchCreateReq\x12\x1b\n\tlong_urls\x18\x01 \x03(\tR\blongUrls\x12\x17\n\auser_id\x18\x02 \x01(\x03R\x06userId\"<\n\x0fBatchCreateResp\x12)\n\x05items\x18\x01 \x03(\v2\x13.pb.CreateSlinkRespR\x05items\"=\n\x0eDeleteSlinkReq\x12\x12\n\x04code\x18\x01 \x01(\tR\x04code\x12\x17\n\auser_id\x18\x02 \x01(\x03R\x06userId\"!\n\x0fDeleteSlinkResp\x12\x0e\n\x02ok\x18\x01 \x01(\bR\x02ok\" \n\nResolveReq\x12\x12\n\x04code\x18\x01 \x01(\tR\x04code\"B\n\vResolveResp\x12\x19\n\blong_url\x18\x01 \x01(\tR\alongUrl\x12\x18\n\ablocked\x18\x02 \x01(\bR\ablocked2\x8d\x02\n\x05slink\x126\n\vCreateSlink\x12\x12.pb.CreateSlinkReq\x1a\x13.pb.CreateSlinkResp\x120\n\tGetByCode\x12\x10.pb.GetByCodeReq\x1a\x11.pb.GetByCodeResp\x126\n\vBatchCreate\x12\x12.pb.BatchCreateReq\x1a\x13.pb.BatchCreateResp\x126\n\vDeleteSlink\x12\x12.pb.DeleteSlinkReq\x1a\x13.pb.DeleteSlinkResp\x12*\n\aResolve\x12\x0e.pb.ResolveReq\x1a\x0f.pb.ResolveRespB\x17Z\x15server/apps/rpc/pb;pbb\x06proto3"
 
 var (
 	file_apps_api_rpc_pb_slink_proto_rawDescOnce sync.Once
@@ -557,8 +557,8 @@ var file_apps_api_rpc_pb_slink_proto_goTypes = []any{
 	(*GetByCodeResp)(nil),       // 3: pb.GetByCodeResp
 	(*BatchCreateReq)(nil),      // 4: pb.BatchCreateReq
 	(*BatchCreateResp)(nil),     // 5: pb.BatchCreateResp
-	(*DeleteslinkReq)(nil),  // 6: pb.DeleteslinkReq
-	(*DeleteslinkResp)(nil), // 7: pb.DeleteslinkResp
+	(*DeleteSlinkReq)(nil),  // 6: pb.DeleteSlinkReq
+	(*DeleteSlinkResp)(nil), // 7: pb.DeleteSlinkResp
 	(*ResolveReq)(nil),          // 8: pb.ResolveReq
 	(*ResolveResp)(nil),         // 9: pb.ResolveResp
 }
@@ -567,12 +567,12 @@ var file_apps_api_rpc_pb_slink_proto_depIdxs = []int32{
 	0, // 1: pb.slink.CreateSlink:input_type -> pb.CreateSlinkReq
 	2, // 2: pb.slink.GetByCode:input_type -> pb.GetByCodeReq
 	4, // 3: pb.slink.BatchCreate:input_type -> pb.BatchCreateReq
-	6, // 4: pb.slink.Deleteslink:input_type -> pb.DeleteslinkReq
+	6, // 4: pb.slink.DeleteSlink:input_type -> pb.DeleteSlinkReq
 	8, // 5: pb.slink.Resolve:input_type -> pb.ResolveReq
 	1, // 6: pb.slink.CreateSlink:output_type -> pb.CreateSlinkResp
 	3, // 7: pb.slink.GetByCode:output_type -> pb.GetByCodeResp
 	5, // 8: pb.slink.BatchCreate:output_type -> pb.BatchCreateResp
-	7, // 9: pb.slink.Deleteslink:output_type -> pb.DeleteslinkResp
+	7, // 9: pb.slink.DeleteSlink:output_type -> pb.DeleteSlinkResp
 	9, // 10: pb.slink.Resolve:output_type -> pb.ResolveResp
 	6, // [6:11] is the sub-list for method output_type
 	1, // [1:6] is the sub-list for method input_type

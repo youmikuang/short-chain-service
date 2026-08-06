@@ -31,6 +31,31 @@ func TestNormalizeURL(t *testing.T) {
 	}
 }
 
+func TestDomainCandidates(t *testing.T) {
+	cases := []struct {
+		in   string
+		want []string
+	}{
+		{"www.zhipin.com", []string{"www.zhipin.com", "zhipin.com"}},
+		{"zhipin.com", []string{"zhipin.com"}},
+		{"a.b.example.com", []string{"a.b.example.com", "b.example.com", "example.com"}},
+		{"WWW.Zhipin.COM.", []string{"www.zhipin.com", "zhipin.com"}}, // 大小写与尾点归一化
+		{"localhost", []string{"localhost"}},
+		{"", nil},
+	}
+	for _, c := range cases {
+		got := DomainCandidates(c.in)
+		if len(got) != len(c.want) {
+			t.Fatalf("DomainCandidates(%q) = %v, want %v", c.in, got, c.want)
+		}
+		for i := range got {
+			if got[i] != c.want[i] {
+				t.Fatalf("DomainCandidates(%q) = %v, want %v", c.in, got, c.want)
+			}
+		}
+	}
+}
+
 func TestExtractDomain(t *testing.T) {
 	cases := []struct {
 		in      string

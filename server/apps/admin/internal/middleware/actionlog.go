@@ -2,7 +2,7 @@ package middleware
 
 import (
 	"net/http"
-	"server/common/model"
+	"server/pkg/model"
 	"strings"
 	"time"
 

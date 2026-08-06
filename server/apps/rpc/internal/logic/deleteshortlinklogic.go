@@ -4,19 +4,19 @@ import (
 	"context"
 	"server/apps/rpc/internal/svc"
 	"server/apps/rpc/pb"
-	"server/common/errorx"
+	"server/pkg/errorx"
 )
 
-type DeleteslinkLogic struct {
+type DeleteSlinkLogic struct {
 	ctx    context.Context
 	svcCtx *svc.ServiceContext
 }
 
-func NewDeleteslinkLogic(ctx context.Context, svcCtx *svc.ServiceContext) *DeleteslinkLogic {
-	return &DeleteslinkLogic{ctx: ctx, svcCtx: svcCtx}
+func NewDeleteSlinkLogic(ctx context.Context, svcCtx *svc.ServiceContext) *DeleteSlinkLogic {
+	return &DeleteSlinkLogic{ctx: ctx, svcCtx: svcCtx}
 }
 
-func (l *DeleteslinkLogic) Deleteslink(in *pb.DeleteslinkReq) (*pb.DeleteslinkResp, error) {
+func (l *DeleteSlinkLogic) DeleteSlink(in *pb.DeleteSlinkReq) (*pb.DeleteSlinkResp, error) {
 	code := in.GetCode()
 	if code == "" {
 		return nil, errorx.BadParam("code required")
@@ -27,5 +27,5 @@ func (l *DeleteslinkLogic) Deleteslink(in *pb.DeleteslinkReq) (*pb.DeleteslinkRe
 	// 删除 Redis 缓存
 	l.svcCtx.Redis.Del(l.ctx, "short_link:"+code)
 	l.svcCtx.Redis.Del(l.ctx, "short_link:"+code+":clicks")
-	return &pb.DeleteslinkResp{Ok: true}, nil
+	return &pb.DeleteSlinkResp{Ok: true}, nil
 }

@@ -5,9 +5,9 @@ import (
 
 	"server/apps/api/internal/config"
 	pb "server/apps/rpc/pb"
-	"server/common/clickhouse"
-	"server/common/interceptors"
-	"server/common/model"
+	"server/pkg/clickhouse"
+	"server/pkg/interceptors"
+	"server/pkg/model"
 
 	"github.com/zeromicro/go-zero/core/stores/sqlx"
 	"github.com/zeromicro/go-zero/zrpc"

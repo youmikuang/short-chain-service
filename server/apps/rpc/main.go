@@ -9,7 +9,7 @@ import (
 	"server/apps/rpc/internal/config"
 	"server/apps/rpc/internal/server"
 	"server/apps/rpc/internal/svc"
-	"server/common/interceptors"
+	"server/pkg/interceptors"
 
 	pb "server/apps/rpc/pb"
 

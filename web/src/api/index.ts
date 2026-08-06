@@ -234,6 +234,8 @@ export function revokeApiKey(id: number): Promise<{ ok: boolean }> {
 export function CreateSlink(longUrl: string): Promise<slink> {
   // Short-link creation requires an API key (X-API-Key); an anonymous call
   // returns 401, which must NOT trigger the global login redirect.
+  // On failure the backend returns { code, msg }; surface them as an ApiError
+  // so the UI can show a precise message instead of a generic "try later".
   return rawRequest(
     '/api/short-links',
     {
@@ -241,8 +243,19 @@ export function CreateSlink(longUrl: string): Promise<slink> {
       body: JSON.stringify({ long_url: longUrl }),
     },
     apiKeyHeader(),
-  ).then((res) => {
-    if (!res.ok) throw new Error(`shorten failed: ${res.status}`)
+  ).then(async (res) => {
+    if (!res.ok) {
+      let code = 0
+      let msg = `shorten failed: ${res.status}`
+      try {
+        const body = (await res.json()) as { code?: number; msg?: string }
+        if (typeof body.code === 'number') code = body.code
+        if (typeof body.msg === 'string' && body.msg) msg = body.msg
+      } catch {
+        /* body 非 JSON 时保留默认 msg */
+      }
+      throw new ApiError(res.status, code, msg)
+    }
     return res.json().then((r: { code: string; short_url: string; long_url: string }) => {
       const sUrl = r.short_url || `${SHORT_DOMAIN}/r/${r.code}`
       return {
@@ -370,4 +383,41 @@ export function fetchLogs(params: FetchLogsParams = {}): Promise<FetchLogsResult
       latency_ms: it.latency_ms,
     })),
   }))
+}
+
+// --- Typed API error ------------------------------------------------------
+// The backend returns a structured error body `{ code: <bizCode>, msg: <text> }`
+// on failure. We surface both the HTTP status and the business code so the UI
+// can show a precise, user-friendly message keyed by the business code.
+
+export class ApiError extends Error {
+  status: number
+  code: number
+  constructor(status: number, code: number, msg: string) {
+    super(msg)
+    this.name = 'ApiError'
+    this.status = status
+    this.code = code
+  }
+}
+
+// Friendly Chinese messages keyed by the backend business code.
+const CODE_MESSAGES: Record<number, string> = {
+  10001: '服务器开小差了，请稍后再试',
+  10002: '请求参数有误，请检查后重试',
+  10003: '登录已过期，请重新登录',
+  10004: '没有权限执行该操作',
+  10005: '请求的内容不存在',
+  10006: '操作过于频繁，请稍后再试',
+  10007: '该域名已被加入黑名单，无法生成短链',
+}
+
+// Map an unknown thrown value into a user-facing message, preferring the
+// backend's business code / message when available.
+export function describeApiError(err: unknown): string {
+  if (err instanceof ApiError) {
+    return (CODE_MESSAGES[err.code] ?? err.message) || '操作失败，请稍后再试'
+  }
+  if (err instanceof Error) return err.message || '操作失败，请稍后再试'
+  return '操作失败，请稍后再试'
 }

@@ -43,6 +43,26 @@ func Sha256Hex(s string) string {
 	return hex.EncodeToString(sum[:])
 }
 
+// DomainCandidates 返回 host 及其逐级父域的候选列表（用于黑名单匹配）：
+// 黑名单存 zhipin.com 时，www.zhipin.com / m.zhipin.com 等子域也应命中。
+// 例：www.zhipin.com -> [www.zhipin.com, zhipin.com]；
+// 单标签（localhost）或 IP 直接返回自身。仅生成至少两段的候选，避免命中 com 这类顶级后缀。
+func DomainCandidates(host string) []string {
+	host = strings.ToLower(strings.TrimSuffix(strings.TrimSpace(host), "."))
+	if host == "" {
+		return nil
+	}
+	parts := strings.Split(host, ".")
+	if len(parts) < 2 {
+		return []string{host}
+	}
+	out := make([]string, 0, len(parts)-1)
+	for i := 0; i <= len(parts)-2; i++ {
+		out = append(out, strings.Join(parts[i:], "."))
+	}
+	return out
+}
+
 // ExtractDomain 从长链接中提取域名（用于黑名单校验）
 func ExtractDomain(rawURL string) (string, error) {
 	u, err := url.Parse(rawURL)

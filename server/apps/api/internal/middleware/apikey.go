@@ -6,7 +6,7 @@ import (
 	"errors"
 	"net/http"
 	"server/apps/api/internal/svc"
-	"server/common/errorx"
+	"server/pkg/errorx"
 	"strings"
 
 	"github.com/golang-jwt/jwt/v4"

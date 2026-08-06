@@ -6,40 +6,17 @@ import (
 	"server/apps/admin/internal/logic"
 	"server/apps/admin/internal/svc"
 	"server/apps/admin/internal/types"
-
-	"github.com/zeromicro/go-zero/rest/httpx"
+	"server/pkg/xhttp"
 )
 
 func ListLinksHandler(svcCtx *svc.ServiceContext) http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
-		var req types.ListLinksReq
-		if err := httpx.Parse(r, &req); err != nil {
-			httpx.ErrorCtx(r.Context(), w, err)
-			return
-		}
-		l := logic.NewListLinksLogic(r.Context(), svcCtx)
-		resp, err := l.ListLinks(&req)
-		if err != nil {
-			httpx.ErrorCtx(r.Context(), w, err)
-		} else {
-			httpx.OkJsonCtx(r.Context(), w, resp)
-		}
-	}
+	return xhttp.Handle(func(r *http.Request, req *types.ListLinksReq) (*types.ListLinksResp, error) {
+		return logic.NewListLinksLogic(r.Context(), svcCtx).ListLinks(req)
+	})
 }
 
 func AddBlacklistHandler(svcCtx *svc.ServiceContext) http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
-		var req types.AddBlacklistReq
-		if err := httpx.Parse(r, &req); err != nil {
-			httpx.ErrorCtx(r.Context(), w, err)
-			return
-		}
-		l := logic.NewAddBlacklistLogic(r.Context(), svcCtx)
-		resp, err := l.AddBlacklist(&req)
-		if err != nil {
-			httpx.ErrorCtx(r.Context(), w, err)
-		} else {
-			httpx.OkJsonCtx(r.Context(), w, resp)
-		}
-	}
+	return xhttp.Handle(func(r *http.Request, req *types.AddBlacklistReq) (*types.AddBlacklistResp, error) {
+		return logic.NewAddBlacklistLogic(r.Context(), svcCtx).AddBlacklist(req)
+	})
 }

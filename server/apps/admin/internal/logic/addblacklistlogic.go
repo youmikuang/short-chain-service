@@ -6,8 +6,8 @@ import (
 
 	"server/apps/admin/internal/svc"
 	"server/apps/admin/internal/types"
-	"server/common/errorx"
-	"server/common/model"
+	"server/pkg/errorx"
+	"server/pkg/model"
 
 	"github.com/zeromicro/go-zero/core/logx"
 	"github.com/zeromicro/go-zero/core/stores/sqlx"

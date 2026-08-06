@@ -5,14 +5,23 @@ import (
 	"encoding/json"
 	"net/http"
 	"net/http/httptest"
+	"os"
 	"testing"
 
 	"server/apps/admin/internal/config"
 	"server/apps/admin/internal/svc"
 	"server/apps/admin/internal/types"
+	"server/pkg/xhttp"
 
 	"github.com/zeromicro/go-zero/core/conf"
+	"github.com/zeromicro/go-zero/rest/httpx"
 )
+
+// TestMain 注册统一错误处理器，使 handler 测试覆盖真实的错误映射（如未授权 → 401）。
+func TestMain(m *testing.M) {
+	httpx.SetErrorHandlerCtx(xhttp.ErrorHandler)
+	os.Exit(m.Run())
+}
 
 func loadAdminConfig(t *testing.T) config.Config {
 	t.Helper()
@@ -53,9 +62,9 @@ func TestAdminLoginHandler_BadCreds(t *testing.T) {
 	rec := httptest.NewRecorder()
 	AdminLoginHandler(svcCtx)(rec, req)
 
-	// errorx.Unauthorized 经 httpx.ErrorCtx 默认写 400
-	if rec.Code != http.StatusBadRequest {
-		t.Fatalf("status = %d, want 400", rec.Code)
+	// errorx.Unauthorized 经统一错误处理器映射为 401 Unauthorized
+	if rec.Code != http.StatusUnauthorized {
+		t.Fatalf("status = %d, want 401", rec.Code)
 	}
 }
 

@@ -6,7 +6,7 @@ import (
 
 	"server/apps/admin/internal/svc"
 	"server/apps/admin/internal/types"
-	"server/common/errorx"
+	"server/pkg/errorx"
 
 	"github.com/golang-jwt/jwt/v4"
 	"github.com/zeromicro/go-zero/core/logx"

@@ -22,7 +22,7 @@ const (
 	slink_CreateSlink_FullMethodName = "/pb.slink/CreateSlink"
 	slink_GetByCode_FullMethodName       = "/pb.slink/GetByCode"
 	slink_BatchCreate_FullMethodName     = "/pb.slink/BatchCreate"
-	slink_Deleteslink_FullMethodName = "/pb.slink/Deleteslink"
+	slink_DeleteSlink_FullMethodName = "/pb.slink/DeleteSlink"
 	slink_Resolve_FullMethodName         = "/pb.slink/Resolve"
 )
 
@@ -35,7 +35,7 @@ type SlinkClient interface {
 	CreateSlink(ctx context.Context, in *CreateSlinkReq, opts ...grpc.CallOption) (*CreateSlinkResp, error)
 	GetByCode(ctx context.Context, in *GetByCodeReq, opts ...grpc.CallOption) (*GetByCodeResp, error)
 	BatchCreate(ctx context.Context, in *BatchCreateReq, opts ...grpc.CallOption) (*BatchCreateResp, error)
-	Deleteslink(ctx context.Context, in *DeleteslinkReq, opts ...grpc.CallOption) (*DeleteslinkResp, error)
+	DeleteSlink(ctx context.Context, in *DeleteSlinkReq, opts ...grpc.CallOption) (*DeleteSlinkResp, error)
 	Resolve(ctx context.Context, in *ResolveReq, opts ...grpc.CallOption) (*ResolveResp, error)
 }
 
@@ -77,10 +77,10 @@ func (c *slinkClient) BatchCreate(ctx context.Context, in *BatchCreateReq, opts 
 	return out, nil
 }
 
-func (c *slinkClient) Deleteslink(ctx context.Context, in *DeleteslinkReq, opts ...grpc.CallOption) (*DeleteslinkResp, error) {
+func (c *slinkClient) DeleteSlink(ctx context.Context, in *DeleteSlinkReq, opts ...grpc.CallOption) (*DeleteSlinkResp, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(DeleteslinkResp)
-	err := c.cc.Invoke(ctx, slink_Deleteslink_FullMethodName, in, out, cOpts...)
+	out := new(DeleteSlinkResp)
+	err := c.cc.Invoke(ctx, slink_DeleteSlink_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
@@ -106,7 +106,7 @@ type slinkServer interface {
 	CreateSlink(context.Context, *CreateSlinkReq) (*CreateSlinkResp, error)
 	GetByCode(context.Context, *GetByCodeReq) (*GetByCodeResp, error)
 	BatchCreate(context.Context, *BatchCreateReq) (*BatchCreateResp, error)
-	Deleteslink(context.Context, *DeleteslinkReq) (*DeleteslinkResp, error)
+	DeleteSlink(context.Context, *DeleteSlinkReq) (*DeleteSlinkResp, error)
 	Resolve(context.Context, *ResolveReq) (*ResolveResp, error)
 	mustEmbedUnimplementedslinkServer()
 }
@@ -127,8 +127,8 @@ func (UnimplementedslinkServer) GetByCode(context.Context, *GetByCodeReq) (*GetB
 func (UnimplementedslinkServer) BatchCreate(context.Context, *BatchCreateReq) (*BatchCreateResp, error) {
 	return nil, status.Error(codes.Unimplemented, "method BatchCreate not implemented")
 }
-func (UnimplementedslinkServer) Deleteslink(context.Context, *DeleteslinkReq) (*DeleteslinkResp, error) {
-	return nil, status.Error(codes.Unimplemented, "method Deleteslink not implemented")
+func (UnimplementedslinkServer) DeleteSlink(context.Context, *DeleteSlinkReq) (*DeleteSlinkResp, error) {
+	return nil, status.Error(codes.Unimplemented, "method DeleteSlink not implemented")
 }
 func (UnimplementedslinkServer) Resolve(context.Context, *ResolveReq) (*ResolveResp, error) {
 	return nil, status.Error(codes.Unimplemented, "method Resolve not implemented")
@@ -208,20 +208,20 @@ func _slink_BatchCreate_Handler(srv interface{}, ctx context.Context, dec func(i
 	return interceptor(ctx, in, info, handler)
 }
 
-func _slink_Deleteslink_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(DeleteslinkReq)
+func _slink_DeleteSlink_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(DeleteSlinkReq)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(slinkServer).Deleteslink(ctx, in)
+		return srv.(slinkServer).DeleteSlink(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: slink_Deleteslink_FullMethodName,
+		FullMethod: slink_DeleteSlink_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(slinkServer).Deleteslink(ctx, req.(*DeleteslinkReq))
+		return srv.(slinkServer).DeleteSlink(ctx, req.(*DeleteSlinkReq))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -264,8 +264,8 @@ var slink_ServiceDesc = grpc.ServiceDesc{
 			Handler:    _slink_BatchCreate_Handler,
 		},
 		{
-			MethodName: "Deleteslink",
-			Handler:    _slink_Deleteslink_Handler,
+			MethodName: "DeleteSlink",
+			Handler:    _slink_DeleteSlink_Handler,
 		},
 		{
 			MethodName: "Resolve",

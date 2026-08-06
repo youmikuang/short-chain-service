@@ -8,8 +8,8 @@ import (
 	"server/apps/admin/internal/config"
 	"server/apps/admin/internal/svc"
 	"server/apps/admin/internal/types"
-	"server/common/model"
-	"server/common/tool"
+	"server/pkg/model"
+	"server/pkg/tool"
 
 	"github.com/zeromicro/go-zero/core/conf"
 	"github.com/zeromicro/go-zero/core/stores/sqlx"

@@ -6,7 +6,7 @@ import (
 	"errors"
 	"testing"
 
-	"server/common/errorx"
+	"server/pkg/errorx"
 
 	"github.com/golang-jwt/jwt/v4"
 )

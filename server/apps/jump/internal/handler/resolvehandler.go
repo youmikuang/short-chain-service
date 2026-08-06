@@ -8,7 +8,7 @@ import (
 	"server/apps/jump/internal/logic"
 	"server/apps/jump/internal/svc"
 	"server/apps/jump/internal/types"
-	"server/common/errorx"
+	"server/pkg/errorx"
 
 	"github.com/zeromicro/go-zero/core/logx"
 	"github.com/zeromicro/go-zero/rest/httpx"

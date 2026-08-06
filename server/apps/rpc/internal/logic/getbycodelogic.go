@@ -2,9 +2,10 @@ package logic
 
 import (
 	"context"
+	"errors"
 	"server/apps/rpc/internal/svc"
 	"server/apps/rpc/pb"
-	"server/common/errorx"
+	"server/pkg/errorx"
 
 	"github.com/redis/go-redis/v9"
 )
@@ -25,13 +26,13 @@ func (l *GetByCodeLogic) GetByCode(in *pb.GetByCodeReq) (*pb.GetByCodeResp, erro
 	}
 	// 查缓存
 	longURL, err := l.svcCtx.Redis.Get(l.ctx, "short_link:"+code).Result()
-	if err == redis.Nil {
+	if errors.Is(err, redis.Nil) {
 		// 回源 MySQL
-		row, derr := l.svcCtx.Models.Slink.FindOneByCode(l.ctx, code)
-		if isNotFound(derr) {
+		row, err := l.svcCtx.Models.Slink.FindOneByCode(l.ctx, code)
+		if isNotFound(err) {
 			return nil, errorx.NotFound("code not found")
-		} else if derr != nil {
-			return nil, errorx.Internal(derr.Error())
+		} else if err != nil {
+			return nil, errorx.Internal(err.Error())
 		}
 		// 回填缓存
 		l.svcCtx.Redis.Set(l.ctx, "short_link:"+code, row.LongURL, redisCacheTTL())

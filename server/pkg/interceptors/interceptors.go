@@ -4,8 +4,8 @@ import (
 	"context"
 	"errors"
 	"strings"
-	"server/common/errorx"
-	"server/common/model"
+	"server/pkg/errorx"
+	"server/pkg/model"
 	"time"
 
 	"google.golang.org/grpc"

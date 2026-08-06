@@ -6,19 +6,31 @@ import (
 	"encoding/json"
 	"net/http"
 	"net/http/httptest"
+	"os"
 	"testing"
 
 	"server/apps/api/internal/config"
 	"server/apps/api/internal/svc"
 	"server/apps/api/internal/types"
-	"server/common/model"
 	pb "server/apps/rpc/pb"
+	"server/pkg/errorx"
+	"server/pkg/model"
+	"server/pkg/xhttp"
 
 	"github.com/zeromicro/go-zero/core/conf"
 	"github.com/zeromicro/go-zero/core/stores/sqlx"
+	"github.com/zeromicro/go-zero/rest/httpx"
 	"github.com/zeromicro/go-zero/rest/pathvar"
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
 )
+
+// TestMain 注册统一错误处理器，使 handler 测试覆盖真实的错误映射（如黑名单 → 403）。
+func TestMain(m *testing.M) {
+	httpx.SetErrorHandlerCtx(xhttp.ErrorHandler)
+	os.Exit(m.Run())
+}
 
 // mockSlinkClient 实现 pb.SlinkClient，仅覆盖 CreateSlink / GetByCode，供网关 handler 测试（无需启动 rpc 核心）。
 type mockSlinkClient struct {
@@ -128,5 +140,54 @@ func TestListMyLinksHandler_OK(t *testing.T) {
 	}
 	if resp.Total < 0 {
 		t.Fatalf("Total = %d, want >= 0", resp.Total)
+	}
+}
+
+// TestCreateSlinkHandler_Blacklisted 验证：rpc 核心返回黑名单拦截（gRPC PermissionDenied + 业务码 10007）
+// 经统一错误处理器映射为 HTTP 403，且响应体为干净 JSON（无 "rpc error:" 前缀）。
+func TestCreateSlinkHandler_Blacklisted(t *testing.T) {
+	c := loadAPIConfig(t)
+	// 模拟 rpc 核心透传的黑名单错误（与 errorx.Blacklisted 经 GRPCStatus 一致）
+	mock := &mockSlinkClient{createErr: errorx.Blacklisted("www.zhipin.com").GRPCStatus().Err()}
+	svcCtx := &svc.ServiceContext{Config: c, SlinkRpc: mock}
+
+	body, _ := json.Marshal(types.CreateSlinkReq{LongURL: "https://www.zhipin.com/job/123"})
+	req := httptest.NewRequest(http.MethodPost, "/api/short-links", bytes.NewReader(body))
+	req.Header.Set("Content-Type", "application/json")
+	rec := httptest.NewRecorder()
+	CreateSlinkHandler(svcCtx)(rec, req)
+
+	if rec.Code != http.StatusForbidden {
+		t.Fatalf("status = %d, want 403", rec.Code)
+	}
+	var resp struct {
+		Code int    `json:"code"`
+		Msg  string `json:"msg"`
+	}
+	if err := json.Unmarshal(rec.Body.Bytes(), &resp); err != nil {
+		t.Fatalf("unmarshal: %v (body=%s)", err, rec.Body.String())
+	}
+	if resp.Code != errorx.CodeBlacklisted {
+		t.Fatalf("code = %d, want %d", resp.Code, errorx.CodeBlacklisted)
+	}
+	if resp.Msg != "domain blacklisted: www.zhipin.com" {
+		t.Fatalf("msg = %q, want clean message without gRPC prefix", resp.Msg)
+	}
+}
+
+// TestCreateSlinkHandler_RPCInternal 验证：rpc 不可达（gRPC Internal）映射为 HTTP 500 而非裸 500 文本。
+func TestCreateSlinkHandler_RPCInternal(t *testing.T) {
+	c := loadAPIConfig(t)
+	mock := &mockSlinkClient{createErr: status.Error(codes.Internal, "rpc unavailable")}
+	svcCtx := &svc.ServiceContext{Config: c, SlinkRpc: mock}
+
+	body, _ := json.Marshal(types.CreateSlinkReq{LongURL: "https://example.com/x"})
+	req := httptest.NewRequest(http.MethodPost, "/api/short-links", bytes.NewReader(body))
+	req.Header.Set("Content-Type", "application/json")
+	rec := httptest.NewRecorder()
+	CreateSlinkHandler(svcCtx)(rec, req)
+
+	if rec.Code != http.StatusInternalServerError {
+		t.Fatalf("status = %d, want 500", rec.Code)
 	}
 }

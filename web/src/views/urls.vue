@@ -2,7 +2,7 @@
 import { ref, computed, onMounted, watch } from 'vue'
 import TheNavBar from '@/components/navbar.vue'
 import TheFooter from '@/components/footer.vue'
-import { fetchLinks, CreateSlink, type slink } from '@/api'
+import { fetchLinks, CreateSlink, describeApiError, type slink } from '@/api'
 
 const links = ref<slink[]>([])
 const loading = ref(false)
@@ -151,8 +151,8 @@ async function submitCreate() {
     const res = await CreateSlink(normalized)
     links.value.unshift(res)
     closeCreate()
-  } catch {
-    createError.value = 'Failed to create link. Please try again.'
+  } catch (e) {
+    createError.value = describeApiError(e)
   } finally {
     creating.value = false
   }

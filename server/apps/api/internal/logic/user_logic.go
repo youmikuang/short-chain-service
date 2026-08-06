@@ -12,9 +12,9 @@ import (
 
 	"server/apps/api/internal/svc"
 	"server/apps/api/internal/types"
-	"server/common/errorx"
-	"server/common/model"
-	"server/common/tool"
+	"server/pkg/errorx"
+	"server/pkg/model"
+	"server/pkg/tool"
 
 	"github.com/zeromicro/go-zero/core/logx"
 	"github.com/zeromicro/go-zero/core/stores/sqlx"

@@ -30,8 +30,8 @@ func (s *slinkServer) BatchCreate(ctx context.Context, in *pb.BatchCreateReq) (*
 	return logic.NewBatchCreateLogic(ctx, s.svcCtx).BatchCreate(in)
 }
 
-func (s *slinkServer) Deleteslink(ctx context.Context, in *pb.DeleteslinkReq) (*pb.DeleteslinkResp, error) {
-	return logic.NewDeleteslinkLogic(ctx, s.svcCtx).Deleteslink(in)
+func (s *slinkServer) DeleteSlink(ctx context.Context, in *pb.DeleteSlinkReq) (*pb.DeleteSlinkResp, error) {
+	return logic.NewDeleteSlinkLogic(ctx, s.svcCtx).DeleteSlink(in)
 }
 
 func (s *slinkServer) Resolve(ctx context.Context, in *pb.ResolveReq) (*pb.ResolveResp, error) {

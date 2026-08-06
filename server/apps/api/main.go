@@ -10,9 +10,11 @@ import (
 	"server/apps/api/internal/handler"
 	"server/apps/api/internal/middleware"
 	"server/apps/api/internal/svc"
+	"server/pkg/xhttp"
 
 	"github.com/zeromicro/go-zero/core/conf"
 	"github.com/zeromicro/go-zero/rest"
+	"github.com/zeromicro/go-zero/rest/httpx"
 )
 
 var configFile = flag.String("f", "etc/api-api.yaml", "the config file")
@@ -43,6 +45,9 @@ func main() {
 
 	server := rest.MustNewServer(c.RestConf)
 	defer server.Stop()
+
+	// 统一错误响应：业务错误 / gRPC status → 干净 {"code","msg"} 与正确 HTTP 状态
+	httpx.SetErrorHandlerCtx(xhttp.ErrorHandler)
 
 	ctx := svc.NewServiceContext(c)
 	handler.RegisterHandlers(server, ctx)

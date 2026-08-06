@@ -5,18 +5,12 @@ import (
 
 	"server/apps/admin/internal/logic"
 	"server/apps/admin/internal/svc"
-
-	"github.com/zeromicro/go-zero/rest/httpx"
+	"server/apps/admin/internal/types"
+	"server/pkg/xhttp"
 )
 
 func DashboardHandler(svcCtx *svc.ServiceContext) http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
-		l := logic.NewDashboardLogic(r.Context(), svcCtx)
-		resp, err := l.Dashboard()
-		if err != nil {
-			httpx.ErrorCtx(r.Context(), w, err)
-		} else {
-			httpx.OkJsonCtx(r.Context(), w, resp)
-		}
-	}
+	return xhttp.HandleNoReq(func(r *http.Request) (*types.DashboardResp, error) {
+		return logic.NewDashboardLogic(r.Context(), svcCtx).Dashboard()
+	})
 }

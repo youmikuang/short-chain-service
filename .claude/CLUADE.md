@@ -18,21 +18,29 @@
 
 ## 目录结构
 
+布局参考 [go-zero-box](https://github.com/prf16/go-zero-box) 的工程模板约定：
+API 描述文件集中在顶层 `api/`，跨服务复用代码放在 `pkg/`，各独立服务置于 `apps/`。
+
 ```
 short-chain-service/
 ├── docs/              # 架构 & API 文档
 ├── web/               # Vue3 官网：注册/登录/GitHub 授权/申请 Key
 ├── admin-web/         # Vue3 管理后台
 ├── server/            # Go 后端（go-zero 单体仓库）
+│   ├── api/           # API 描述文件（按模块平铺：shortlink.api / user.api / admin.api）
 │   ├── apps/
-│   │   ├── rpc/       # 短链核心 gRPC 服务（生成/解析/删除/批量）
+│   │   ├── rpc/       # 短链核心 gRPC 服务（生成/解析/删除/批量），pb/ 放 .proto 与生成代码
 │   │   ├── api/       # 业务 API 网关（用户体系 + 短链 CRUD 委托 rpc）
 │   │   ├── admin/     # 管理后台 API（黑名单 / Token / 链接 / Dashboard）
 │   │   └── jump/      # 跳转服务（解析短码并 302，委托 rpc）
-│   ├── common/        # 跨服务公共：model / errorx / tool / clickhouse / interceptors
+│   ├── pkg/           # 跨服务公共（对应 go-zero-box 的 pkg/）：model / errorx / tool / clickhouse / interceptors / xhttp(handler 模板) / ctxdata / xfilters
+│   ├── runtime/       # 运行时目录（日志等）
 │   └── deploy/        # docker-compose + nginx + k8s + sql
 └── README.md
 ```
+
+> 每个 app 内部结构遵循 go-zero 标准：`internal/{config,handler,logic,middleware,svc,types}`，
+> rpc 额外含 `internal/{server}` 与 `pb/`。`main.go` 为各 app 独立二进制入口。
 
 > `sdk/go/` 仍规划中，尚未落地（详见 `docs/architecture.md`）。
 
@@ -53,8 +61,8 @@ short-chain-service/
 
 ### 1. 纯单元测试（无需任何基础设施）
 
-- `server/common/tool/tool_test.go`：URL 归一化 / 域名提取 / Sha256 / Base62 / 随机串 / 雪花 ID。
-- `server/common/errorx/errorx_test.go`：统一错误码与 `Is` 判定。
+- `server/pkg/tool/tool_test.go`：URL 归一化 / 域名提取 / Sha256 / Base62 / 随机串 / 雪花 ID。
+- `server/pkg/errorx/errorx_test.go`：统一错误码与 `Is` 判定。
 - `server/apps/api/internal/logic/security_test.go`：密码哈希、JWT 签发校验、`uidFromCtx`、boolToInt。
 - `server/apps/jump/internal/logic/resolvelogic_test.go`：用 `mockSlinkClient` 验证 Resolve 的 metadata 透传与黑名单/错误分支，**无需启动 rpc 服务**。
 
@@ -76,7 +84,7 @@ short-chain-service/
 接口不仅包含 logic 业务方法，也包含其外层适配器（鉴权中间件、HTTP handler、gRPC 拦截器）。
 这些同样按 TDD 约束补齐：
 
-- **gRPC 拦截器** `server/common/interceptors/interceptors_test.go`（纯单元，无需基础设施）：
+- **gRPC 拦截器** `server/pkg/interceptors/interceptors_test.go`（纯单元，无需基础设施）：
   - `UnaryServerInterceptor`：Resolve 公开端点放行、缺失 metadata / 错误 token 拒绝、正确 token 放行。
   - `UnaryClientInterceptor`：网关→rpc 每次调用附带 `x-internal-token`。
   - `UnaryServerLogInterceptor`：不阻塞请求、成功/错误均透传（rpc_logs 异步写入）。
@@ -100,13 +108,13 @@ short-chain-service/
 ```bash
 cd server
 # 全部后端测试
-go test ./apps/... ./common/...
+go test ./apps/... ./pkg/...
 # 单包
 go test ./apps/rpc/internal/logic/ -v
 go test ./apps/api/internal/logic/ -run TestRegister -v
 # 仅纯单元测试（无需基础设施）
-go test ./common/tool/ ./common/errorx/ ./apps/jump/internal/logic/ \
-       ./common/interceptors/ ./apps/jump/internal/handler/ ./apps/api/internal/middleware/
+go test ./pkg/tool/ ./pkg/errorx/ ./apps/jump/internal/logic/ \
+       ./pkg/interceptors/ ./apps/jump/internal/handler/ ./apps/api/internal/middleware/
 ```
 
 > 集成测试前置：本地需有 MySQL + Redis（`docker compose -f server/deploy/docker/docker-compose.yml up -d`），

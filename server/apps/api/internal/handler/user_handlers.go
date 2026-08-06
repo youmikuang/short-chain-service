@@ -8,45 +8,25 @@ import (
 	"server/apps/api/internal/logic"
 	"server/apps/api/internal/svc"
 	"server/apps/api/internal/types"
-	"server/common/tool"
+	"server/pkg/tool"
+	"server/pkg/xhttp"
 
 	"github.com/zeromicro/go-zero/rest/httpx"
 )
 
 func RegisterHandler(svcCtx *svc.ServiceContext) http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
-		var req types.RegisterReq
-		if err := httpx.Parse(r, &req); err != nil {
-			httpx.ErrorCtx(r.Context(), w, err)
-			return
-		}
-		l := logic.NewRegisterLogic(r.Context(), svcCtx)
-		resp, err := l.Register(&req)
-		if err != nil {
-			httpx.ErrorCtx(r.Context(), w, err)
-		} else {
-			httpx.OkJsonCtx(r.Context(), w, resp)
-		}
-	}
+	return xhttp.Handle(func(r *http.Request, req *types.RegisterReq) (*types.RegisterResp, error) {
+		return logic.NewRegisterLogic(r.Context(), svcCtx).Register(req)
+	})
 }
 
 func LoginHandler(svcCtx *svc.ServiceContext) http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
-		var req types.LoginReq
-		if err := httpx.Parse(r, &req); err != nil {
-			httpx.ErrorCtx(r.Context(), w, err)
-			return
-		}
-		l := logic.NewLoginLogic(r.Context(), svcCtx)
-		resp, err := l.Login(&req)
-		if err != nil {
-			httpx.ErrorCtx(r.Context(), w, err)
-		} else {
-			httpx.OkJsonCtx(r.Context(), w, resp)
-		}
-	}
+	return xhttp.Handle(func(r *http.Request, req *types.LoginReq) (*types.LoginResp, error) {
+		return logic.NewLoginLogic(r.Context(), svcCtx).Login(req)
+	})
 }
 
+// GitHubAuthURLHandler 需要在响应中下发 state Cookie（防 CSRF），不走通用模板。
 func GitHubAuthURLHandler(svcCtx *svc.ServiceContext) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		var req types.GitHubAuthURLReq
@@ -89,6 +69,7 @@ func githubCallbackError(w http.ResponseWriter, r *http.Request, svcCtx *svc.Ser
 	http.Redirect(w, r, base+"/login?"+q.Encode(), http.StatusFound)
 }
 
+// GitHubCallbackHandler 以 302 重定向（而非 JSON）响应，不走通用模板。
 func GitHubCallbackHandler(svcCtx *svc.ServiceContext) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		var req types.GitHubCallbackReq
@@ -129,156 +110,61 @@ func GitHubCallbackHandler(svcCtx *svc.ServiceContext) http.HandlerFunc {
 }
 
 func CreateAPIKeyHandler(svcCtx *svc.ServiceContext) http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
-		var req types.CreateAPIKeyReq
-		if err := httpx.Parse(r, &req); err != nil {
-			httpx.ErrorCtx(r.Context(), w, err)
-			return
-		}
-		l := logic.NewCreateAPIKeyLogic(r.Context(), svcCtx)
-		resp, err := l.CreateAPIKey(&req)
-		if err != nil {
-			httpx.ErrorCtx(r.Context(), w, err)
-		} else {
-			httpx.OkJsonCtx(r.Context(), w, resp)
-		}
-	}
+	return xhttp.Handle(func(r *http.Request, req *types.CreateAPIKeyReq) (*types.CreateAPIKeyResp, error) {
+		return logic.NewCreateAPIKeyLogic(r.Context(), svcCtx).CreateAPIKey(req)
+	})
 }
 
 func ListAPIKeysHandler(svcCtx *svc.ServiceContext) http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
-		l := logic.NewListAPIKeysLogic(r.Context(), svcCtx)
-		resp, err := l.ListAPIKeys(&types.ListAPIKeysReq{})
-		if err != nil {
-			httpx.ErrorCtx(r.Context(), w, err)
-		} else {
-			httpx.OkJsonCtx(r.Context(), w, resp)
-		}
-	}
+	return xhttp.HandleNoReq(func(r *http.Request) (*types.ListAPIKeysResp, error) {
+		return logic.NewListAPIKeysLogic(r.Context(), svcCtx).ListAPIKeys(&types.ListAPIKeysReq{})
+	})
 }
 
 func RevokeAPIKeyHandler(svcCtx *svc.ServiceContext) http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
-		var req types.RevokeAPIKeyReq
-		if err := httpx.Parse(r, &req); err != nil {
-			httpx.ErrorCtx(r.Context(), w, err)
-			return
-		}
-		l := logic.NewRevokeAPIKeyLogic(r.Context(), svcCtx)
-		resp, err := l.RevokeAPIKey(&req)
-		if err != nil {
-			httpx.ErrorCtx(r.Context(), w, err)
-		} else {
-			httpx.OkJsonCtx(r.Context(), w, resp)
-		}
-	}
+	return xhttp.Handle(func(r *http.Request, req *types.RevokeAPIKeyReq) (*types.RevokeAPIKeyResp, error) {
+		return logic.NewRevokeAPIKeyLogic(r.Context(), svcCtx).RevokeAPIKey(req)
+	})
 }
 
 func GetProfileHandler(svcCtx *svc.ServiceContext) http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
-		l := logic.NewGetProfileLogic(r.Context(), svcCtx)
-		resp, err := l.GetProfile()
-		if err != nil {
-			httpx.ErrorCtx(r.Context(), w, err)
-		} else {
-			httpx.OkJsonCtx(r.Context(), w, resp)
-		}
-	}
+	return xhttp.HandleNoReq(func(r *http.Request) (*types.GetProfileResp, error) {
+		return logic.NewGetProfileLogic(r.Context(), svcCtx).GetProfile()
+	})
 }
 
 func UpdateProfileHandler(svcCtx *svc.ServiceContext) http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
-		var req types.UpdateProfileReq
-		if err := httpx.Parse(r, &req); err != nil {
-			httpx.ErrorCtx(r.Context(), w, err)
-			return
-		}
-		l := logic.NewUpdateProfileLogic(r.Context(), svcCtx)
-		resp, err := l.UpdateProfile(&req)
-		if err != nil {
-			httpx.ErrorCtx(r.Context(), w, err)
-		} else {
-			httpx.OkJsonCtx(r.Context(), w, resp)
-		}
-	}
+	return xhttp.Handle(func(r *http.Request, req *types.UpdateProfileReq) (*types.UpdateProfileResp, error) {
+		return logic.NewUpdateProfileLogic(r.Context(), svcCtx).UpdateProfile(req)
+	})
 }
 
 func ChangePasswordHandler(svcCtx *svc.ServiceContext) http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
-		var req types.ChangePasswordReq
-		if err := httpx.Parse(r, &req); err != nil {
-			httpx.ErrorCtx(r.Context(), w, err)
-			return
-		}
-		l := logic.NewChangePasswordLogic(r.Context(), svcCtx)
-		resp, err := l.ChangePassword(&req)
-		if err != nil {
-			httpx.ErrorCtx(r.Context(), w, err)
-		} else {
-			httpx.OkJsonCtx(r.Context(), w, resp)
-		}
-	}
+	return xhttp.Handle(func(r *http.Request, req *types.ChangePasswordReq) (*types.ChangePasswordResp, error) {
+		return logic.NewChangePasswordLogic(r.Context(), svcCtx).ChangePassword(req)
+	})
 }
 
 func GetSettingsHandler(svcCtx *svc.ServiceContext) http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
-		l := logic.NewGetSettingsLogic(r.Context(), svcCtx)
-		resp, err := l.GetSettings()
-		if err != nil {
-			httpx.ErrorCtx(r.Context(), w, err)
-		} else {
-			httpx.OkJsonCtx(r.Context(), w, resp)
-		}
-	}
+	return xhttp.HandleNoReq(func(r *http.Request) (*types.GetSettingsResp, error) {
+		return logic.NewGetSettingsLogic(r.Context(), svcCtx).GetSettings()
+	})
 }
 
 func UpdateSettingsHandler(svcCtx *svc.ServiceContext) http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
-		var req types.UpdateSettingsReq
-		if err := httpx.Parse(r, &req); err != nil {
-			httpx.ErrorCtx(r.Context(), w, err)
-			return
-		}
-		l := logic.NewUpdateSettingsLogic(r.Context(), svcCtx)
-		resp, err := l.UpdateSettings(&req)
-		if err != nil {
-			httpx.ErrorCtx(r.Context(), w, err)
-		} else {
-			httpx.OkJsonCtx(r.Context(), w, resp)
-		}
-	}
+	return xhttp.Handle(func(r *http.Request, req *types.UpdateSettingsReq) (*types.UpdateSettingsResp, error) {
+		return logic.NewUpdateSettingsLogic(r.Context(), svcCtx).UpdateSettings(req)
+	})
 }
 
 func UsageTrendsHandler(svcCtx *svc.ServiceContext) http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
-		var req types.UsageTrendsReq
-		if err := httpx.Parse(r, &req); err != nil {
-			httpx.ErrorCtx(r.Context(), w, err)
-			return
-		}
-		l := logic.NewUsageTrendsLogic(r.Context(), svcCtx)
-		resp, err := l.UsageTrends(&req)
-		if err != nil {
-			httpx.ErrorCtx(r.Context(), w, err)
-		} else {
-			httpx.OkJsonCtx(r.Context(), w, resp)
-		}
-	}
+	return xhttp.Handle(func(r *http.Request, req *types.UsageTrendsReq) (*types.UsageTrendsResp, error) {
+		return logic.NewUsageTrendsLogic(r.Context(), svcCtx).UsageTrends(req)
+	})
 }
 
 func LogsHandler(svcCtx *svc.ServiceContext) http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
-		var req types.LogsReq
-		if err := httpx.Parse(r, &req); err != nil {
-			httpx.ErrorCtx(r.Context(), w, err)
-			return
-		}
-		l := logic.NewLogsLogic(r.Context(), svcCtx)
-		resp, err := l.Logs(&req)
-		if err != nil {
-			httpx.ErrorCtx(r.Context(), w, err)
-		} else {
-			httpx.OkJsonCtx(r.Context(), w, resp)
-		}
-	}
+	return xhttp.Handle(func(r *http.Request, req *types.LogsReq) (*types.LogsResp, error) {
+		return logic.NewLogsLogic(r.Context(), svcCtx).Logs(req)
+	})
 }

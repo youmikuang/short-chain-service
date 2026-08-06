@@ -5,14 +5,25 @@ import (
 	"errors"
 	"net/http"
 	"net/http/httptest"
+	"os"
 	"testing"
 
 	"server/apps/jump/internal/svc"
 	pb "server/apps/rpc/pb"
+	"server/pkg/xhttp"
 
+	"github.com/zeromicro/go-zero/rest/httpx"
 	"github.com/zeromicro/go-zero/rest/pathvar"
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
 )
+
+// TestMain 注册统一错误处理器，使 handler 测试覆盖真实的错误映射（如黑名单 → 403）。
+func TestMain(m *testing.M) {
+	httpx.SetErrorHandlerCtx(xhttp.ErrorHandler)
+	os.Exit(m.Run())
+}
 
 // mockSlinkClient 实现 pb.SlinkClient，仅覆盖 Resolve，供 handler 测试（无需启动 rpc 核心）。
 type mockSlinkClient struct {
@@ -48,9 +59,9 @@ func TestCleanIP(t *testing.T) {
 
 func TestClientIP(t *testing.T) {
 	cases := []struct {
-		name string
+		name  string
 		setup func(r *http.Request)
-		want string
+		want  string
 	}{
 		{"x-forwarded-for", func(r *http.Request) { r.Header.Set("X-Forwarded-For", "1.2.3.4, 5.6.7.8") }, "1.2.3.4"},
 		{"x-real-ip", func(r *http.Request) { r.Header.Set("X-Real-IP", "9.9.9.9") }, "9.9.9.9"},
@@ -141,9 +152,9 @@ func TestResolveHandler_Blocked(t *testing.T) {
 	rec := httptest.NewRecorder()
 	h(rec, req)
 
-	// 命中黑名单：errorx.CodeBlacklisted 经 httpx.ErrorCtx 默认写 400
-	if rec.Code != http.StatusBadRequest {
-		t.Fatalf("status = %d, want 400", rec.Code)
+	// 命中黑名单：errorx.CodeBlacklisted 经统一错误处理器映射为 403 Forbidden
+	if rec.Code != http.StatusForbidden {
+		t.Fatalf("status = %d, want 403", rec.Code)
 	}
 }
 
@@ -156,8 +167,23 @@ func TestResolveHandler_RPCError(t *testing.T) {
 	rec := httptest.NewRecorder()
 	h(rec, req)
 
-	// 非 not found 的 rpc 错误：httpx.ErrorCtx 默认写 400
+	// 非 not found 的 rpc 错误：经统一错误处理器，普通错误映射为 400
 	if rec.Code != http.StatusBadRequest {
 		t.Fatalf("status = %d, want 400", rec.Code)
+	}
+}
+
+func TestResolveHandler_RPCInternal(t *testing.T) {
+	// 真实 rpc 不可达：gRPC status Internal → 统一错误处理器映射为 500（干净 JSON，无 gRPC 前缀）
+	mock := &mockSlinkClient{err: status.Error(codes.Internal, "rpc unavailable")}
+	h := ResolveHandler(newJumpSvc(mock))
+
+	req := httptest.NewRequest(http.MethodGet, "/r/abc?code=abc", nil)
+	req = pathvar.WithVars(req, map[string]string{"code": "abc"})
+	rec := httptest.NewRecorder()
+	h(rec, req)
+
+	if rec.Code != http.StatusInternalServerError {
+		t.Fatalf("status = %d, want 500", rec.Code)
 	}
 }

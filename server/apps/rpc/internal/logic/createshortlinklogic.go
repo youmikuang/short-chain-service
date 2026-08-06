@@ -7,9 +7,9 @@ import (
 
 	"server/apps/rpc/internal/svc"
 	"server/apps/rpc/pb"
-	"server/common/errorx"
-	"server/common/model"
-	"server/common/tool"
+	"server/pkg/errorx"
+	"server/pkg/model"
+	"server/pkg/tool"
 )
 
 type CreateSlinkLogic struct {
@@ -34,20 +34,20 @@ func (l *CreateSlinkLogic) CreateSlink(in *pb.CreateSlinkReq) (*pb.CreateSlinkRe
 		source = "web" // 网页（JWT）调用
 	} else if in.GetApiKey() == "" {
 		return nil, errorx.Unauthorized("unauthorized")
-	} else {
-		row, err := l.svcCtx.Models.ApiKey.FindOneByHash(l.ctx, tool.Sha256Hex(in.GetApiKey()))
-		if err != nil || row.Status != 1 {
-			return nil, errorx.Unauthorized("invalid X-API-Key")
-		}
-		ownerId = row.UserId
 	}
+
+	row, err := l.svcCtx.Models.ApiKey.FindOneByHash(l.ctx, tool.Sha256Hex(in.GetApiKey()))
+	if err != nil || row.Status != 1 {
+		return nil, errorx.Unauthorized("invalid X-API-Key")
+	}
+	ownerId = row.UserId
 	// 归一化长链接用于去重与存储（https://baidu.com/ 与 https://baidu.com 视为同一链接）
 	longURL := tool.NormalizeURL(in.GetLongUrl())
 	domain, err := tool.ExtractDomain(longURL)
 	if err != nil {
 		return nil, errorx.BadParam("invalid long_url")
 	}
-	blocked, err := l.isBlacklisted(domain)
+	blocked, err := isDomainBlacklisted(l.ctx, l.svcCtx, domain)
 	if err != nil {
 		return nil, err
 	}
@@ -59,8 +59,8 @@ func (l *CreateSlinkLogic) CreateSlink(in *pb.CreateSlinkReq) (*pb.CreateSlinkRe
 	// 「最后生成」的来源（web / rpc 谁后生成算谁的），并刷新缓存。
 	if exist, err := l.svcCtx.Models.Slink.FindOneByUserAndURL(l.ctx, ownerId, longURL); err == nil {
 		if exist.Source != source {
-			if uerr := l.svcCtx.Models.Slink.UpdateSource(l.ctx, exist.Code, source); uerr != nil {
-				return nil, errorx.Internal(uerr.Error())
+			if err := l.svcCtx.Models.Slink.UpdateSource(l.ctx, exist.Code, source); err != nil {
+				return nil, errorx.Internal(err.Error())
 			}
 		}
 		// 刷新 Redis 缓存（long_url / uid / source），保证跳转与访问日志来源准确
@@ -98,7 +98,7 @@ func (l *CreateSlinkLogic) CreateSlink(in *pb.CreateSlinkReq) (*pb.CreateSlinkRe
 // genCode 生成短码：随机 Base62 串，默认 6 位；若已存在则加长 1 位重试，最多到 8 位。
 func (l *CreateSlinkLogic) genCode() (string, error) {
 	for length := 6; length <= 8; length++ {
-		for i := 0; i < 5; i++ {
+		for range 5 {
 			code := tool.RandString(length)
 			if _, err := l.svcCtx.Models.Slink.FindOneByCode(l.ctx, code); err != nil {
 				if isNotFound(err) {
@@ -110,17 +110,6 @@ func (l *CreateSlinkLogic) genCode() (string, error) {
 		}
 	}
 	return "", errorx.Internal("failed to generate unique short code")
-}
-
-// isBlacklisted 校验域名是否命中黑名单（优先 MySQL，回退 Redis）
-func (l *CreateSlinkLogic) isBlacklisted(domain string) (bool, error) {
-	if _, err := l.svcCtx.Models.DomainBlacklist.FindOneByDomain(l.ctx, domain); err == nil {
-		return true, nil
-	} else if !isNotFound(err) {
-		return false, err
-	}
-	// 回退 Redis Set（admin 写入时同步 SADD）
-	return l.svcCtx.Redis.SIsMember(l.ctx, l.svcCtx.Config.RedisKey, domain).Result()
 }
 
 func redisCacheTTL() time.Duration {

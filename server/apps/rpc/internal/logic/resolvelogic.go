@@ -2,11 +2,12 @@ package logic
 
 import (
 	"context"
+	"errors"
 	"server/apps/rpc/internal/svc"
 	"server/apps/rpc/pb"
-	"server/common/errorx"
-	"server/common/model"
-	"server/common/tool"
+	"server/pkg/errorx"
+	"server/pkg/model"
+	"server/pkg/tool"
 	"time"
 
 	"github.com/redis/go-redis/v9"
@@ -42,13 +43,13 @@ func (l *ResolveLogic) Resolve(in *pb.ResolveReq) (*pb.ResolveResp, error) {
 	// 短链所属用户（用于写入访问明细日志，按用户隔离）
 	var ownerId int64
 	var source string
-	if err == redis.Nil {
+	if errors.Is(err, redis.Nil) {
 		// 回源 MySQL
-		row, derr := l.svcCtx.Models.Slink.FindOneByCode(l.ctx, code)
-		if isNotFound(derr) {
+		row, err := l.svcCtx.Models.Slink.FindOneByCode(l.ctx, code)
+		if isNotFound(err) {
 			return nil, errorx.NotFound("code not found")
-		} else if derr != nil {
-			return nil, errorx.Internal(derr.Error())
+		} else if err != nil {
+			return nil, errorx.Internal(err.Error())
 		}
 		longURL = row.LongURL
 		ownerId = row.UserId
@@ -58,28 +59,28 @@ func (l *ResolveLogic) Resolve(in *pb.ResolveReq) (*pb.ResolveResp, error) {
 		l.svcCtx.Redis.Set(l.ctx, "short_link:"+code+":source", source, redisCacheTTL())
 	} else if err != nil {
 		return nil, err
-	} else {
-		// 缓存命中：尝试从 uid 缓存取所属用户，缺失则回源补齐
-		if v, e := l.svcCtx.Redis.Get(l.ctx, "short_link:"+code+":uid").Int64(); e == nil {
-			ownerId = v
-		} else if row, derr := l.svcCtx.Models.Slink.FindOneByCode(l.ctx, code); derr == nil {
-			ownerId = row.UserId
-			l.svcCtx.Redis.Set(l.ctx, "short_link:"+code+":uid", ownerId, redisCacheTTL())
-		}
-		// source 优先从缓存读取，缺失再回源
-		if s, e := l.svcCtx.Redis.Get(l.ctx, "short_link:"+code+":source").Result(); e == nil {
-			source = s
-		} else if row, derr := l.svcCtx.Models.Slink.FindOneByCode(l.ctx, code); derr == nil {
-			source = row.Source
-			l.svcCtx.Redis.Set(l.ctx, "short_link:"+code+":source", source, redisCacheTTL())
-		}
 	}
 
-	// 域名黑名单校验
-	domain, derr := tool.ExtractDomain(longURL)
-	if derr == nil {
-		blocked, berr := l.isBlacklisted(domain)
-		if berr == nil && blocked {
+	// 缓存命中：尝试从 uid 缓存取所属用户，缺失则回源补齐
+	if v, e := l.svcCtx.Redis.Get(l.ctx, "short_link:"+code+":uid").Int64(); e == nil {
+		ownerId = v
+	} else if row, err := l.svcCtx.Models.Slink.FindOneByCode(l.ctx, code); err == nil {
+		ownerId = row.UserId
+		l.svcCtx.Redis.Set(l.ctx, "short_link:"+code+":uid", ownerId, redisCacheTTL())
+	}
+	// source 优先从缓存读取，缺失再回源
+	if s, e := l.svcCtx.Redis.Get(l.ctx, "short_link:"+code+":source").Result(); e == nil {
+		source = s
+	} else if row, err := l.svcCtx.Models.Slink.FindOneByCode(l.ctx, code); err == nil {
+		source = row.Source
+		l.svcCtx.Redis.Set(l.ctx, "short_link:"+code+":source", source, redisCacheTTL())
+	}
+
+	// 域名黑名单校验（含子域匹配：黑名单存 zhipin.com 时 www.zhipin.com 同样命中）
+	domain, err := tool.ExtractDomain(longURL)
+	if err == nil {
+		blocked, err := isDomainBlacklisted(l.ctx, l.svcCtx, domain)
+		if err == nil && blocked {
 			return &pb.ResolveResp{Blocked: true}, nil // 命中黑名单，不跳转
 		}
 	}
@@ -120,27 +121,16 @@ func (l *ResolveLogic) ProbeClickHouse(ctx context.Context) error {
 		Source:  "rpc",
 	}
 	if err := l.svcCtx.ClickHouseVisit.Insert(ctx, probe); err != nil {
-		return errorx.Internal("clickhouse insert failed: " + err.Error())
+		return errorx.Internal("ClickHouse insert failed: " + err.Error())
 	}
 	rows, _, err := l.svcCtx.ClickHouseVisit.FindPageByUser(ctx, 0, 1, 50, probe.Code, "")
 	if err != nil {
-		return errorx.Internal("clickhouse read-back failed: " + err.Error())
+		return errorx.Internal("ClickHouse read-back failed: " + err.Error())
 	}
 	for _, r := range rows {
 		if r.Code == probe.Code {
 			return nil
 		}
 	}
-	return errorx.Internal("clickhouse probe row not found after insert")
-}
-
-// isBlacklisted 校验域名是否命中黑名单（优先 MySQL，回退 Redis）
-func (l *ResolveLogic) isBlacklisted(domain string) (bool, error) {
-	if _, err := l.svcCtx.Models.DomainBlacklist.FindOneByDomain(l.ctx, domain); err == nil {
-		return true, nil
-	} else if !isNotFound(err) {
-		return false, err
-	}
-	// 回退 Redis Set（admin 写入时同步 SADD）
-	return l.svcCtx.Redis.SIsMember(l.ctx, l.svcCtx.Config.RedisKey, domain).Result()
+	return errorx.Internal("ClickHouse probe row not found after insert")
 }

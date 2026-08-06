@@ -7,8 +7,8 @@ import (
 	"server/apps/rpc/internal/config"
 	"server/apps/rpc/internal/svc"
 	pb "server/apps/rpc/pb"
-	"server/common/model"
-	"server/common/tool"
+	"server/pkg/model"
+	"server/pkg/tool"
 
 	"github.com/zeromicro/go-zero/core/conf"
 )
@@ -97,6 +97,10 @@ func TestCreateSlink_Blacklisted(t *testing.T) {
 
 	if _, err := l.CreateSlink(&pb.CreateSlinkReq{LongUrl: "https://" + domain + "/p", UserId: 1}); err == nil {
 		t.Fatal("expected Blacklisted error")
+	}
+	// 子域也应命中父域黑名单条目（黑名单存 example 主域，创建 www.<domain> 应被拒）
+	if _, err := l.CreateSlink(&pb.CreateSlinkReq{LongUrl: "https://www." + domain + "/p", UserId: 1}); err == nil {
+		t.Fatal("expected Blacklisted error for subdomain of blacklisted domain")
 	}
 }
 
@@ -204,6 +208,23 @@ func TestResolve_Blacklisted(t *testing.T) {
 	if !resp.Blocked {
 		t.Fatal("expected Blocked=true for blacklisted domain")
 	}
+
+	// 子域链接同样应被拦截（黑名单存主域，长链接为 www.<domain>）
+	subCode := "blk" + tool.RandString(5)
+	if _, err := ctx.Models.Slink.Insert(context.Background(), &model.Slink{
+		Code: subCode, LongURL: "https://www." + domain + "/x", UserId: 1, Status: 1, Source: "web",
+	}); err != nil {
+		t.Fatalf("insert slink failed: %v", err)
+	}
+	defer cleanupLink(t, ctx, subCode)
+
+	subResp, err := rl.Resolve(&pb.ResolveReq{Code: subCode})
+	if err != nil {
+		t.Fatalf("Resolve failed: %v", err)
+	}
+	if !subResp.Blocked {
+		t.Fatal("expected Blocked=true for subdomain of blacklisted domain")
+	}
 }
 
 func TestBatchCreate(t *testing.T) {
@@ -229,20 +250,20 @@ func TestBatchCreate(t *testing.T) {
 func TestDeleteSlink(t *testing.T) {
 	ctx := newTestSvc(t)
 	cl := NewCreateSlinkLogic(context.Background(), ctx)
-	dl := NewDeleteslinkLogic(context.Background(), ctx)
+	dl := NewDeleteSlinkLogic(context.Background(), ctx)
 
 	longURL := "https://example.com/del-" + tool.RandString(8)
 	cr, err := cl.CreateSlink(&pb.CreateSlinkReq{LongUrl: longURL, UserId: 6001})
 	if err != nil {
 		t.Fatalf("CreateSlink failed: %v", err)
 	}
-	if _, err := dl.Deleteslink(&pb.DeleteslinkReq{Code: cr.Code}); err != nil {
-		t.Fatalf("Deleteslink failed: %v", err)
+	if _, err := dl.DeleteSlink(&pb.DeleteSlinkReq{Code: cr.Code}); err != nil {
+		t.Fatalf("DeleteSlink failed: %v", err)
 	}
 	if _, derr := ctx.Models.Slink.FindOneByCode(context.Background(), cr.Code); !isNotFound(derr) {
 		t.Fatalf("expected NotFound after delete, got %v", derr)
 	}
-	if _, err := dl.Deleteslink(&pb.DeleteslinkReq{}); err == nil {
+	if _, err := dl.DeleteSlink(&pb.DeleteSlinkReq{}); err == nil {
 		t.Fatal("empty code should be BadParam")
 	}
 }

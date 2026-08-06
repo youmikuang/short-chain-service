@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"server/apps/admin/internal/svc"
 	"server/apps/admin/internal/types"
-	"server/common/errorx"
+	"server/pkg/errorx"
 	"time"
 
 	"github.com/zeromicro/go-zero/core/logx"

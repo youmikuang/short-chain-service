@@ -6,7 +6,7 @@ import (
 	"errors"
 	"testing"
 
-	"server/common/model"
+	"server/pkg/model"
 
 	_ "github.com/go-sql-driver/mysql"
 	"google.golang.org/grpc"

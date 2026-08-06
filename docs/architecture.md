@@ -54,7 +54,7 @@
 - 仪表盘流量趋势：`action_logs`（MySQL 每日操作量）+ `rpc_logs`（ClickHouse 每日生成量）双序列，聚合成近 7 天 `TrafficPoint[]`。
 
 ### apps/rpc（:8081）
-`slink` 服务（`pb/shortlink.proto`）：`CreateSlink` / `GetByCode` / `BatchCreate` / `Deleteslink` / `Resolve`（含黑名单校验）。拦截器异步写 ClickHouse `rpc_logs`。
+`slink` 服务（`pb/shortlink.proto`）：`CreateSlink` / `GetByCode` / `BatchCreate` / `DeleteSlink` / `Resolve`（含黑名单校验）。拦截器异步写 ClickHouse `rpc_logs`。
 
 ---
 
